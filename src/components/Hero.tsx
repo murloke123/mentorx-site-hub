@@ -1,11 +1,8 @@
-
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-
 const Hero = () => {
-  return (
-    <section className="relative bg-gradient-to-br from-purple-50 to-white py-16 md:py-24">
+  return <section className="relative bg-gradient-to-br from-purple-50 to-white py-16 md:py-24">
       <div className="container mx-auto px-4 md:px-8">
         <div className="flex flex-col md:flex-row items-center">
           <div className="md:w-1/2 mb-8 md:mb-0">
@@ -13,10 +10,7 @@ const Hero = () => {
               Conecte-se com os melhores<br />
               <span className="text-primary">mentores</span> para evoluir
             </h1>
-            <p className="text-lg text-gray-700 mb-6">
-              Na MentorX, você encontra especialistas prontos para compartilhar conhecimento 
-              através de cursos, materiais exclusivos e sessões de mentoria personalizadas.
-            </p>
+            <p className="text-lg text-gray-700 mb-6">Na MentorX, você encontra especialistas prontos para compartilhar conhecimento através de cursos, materiais exclusivos e sessões de mentoria personalizadas = ).</p>
             <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
               <Dialog>
                 <DialogTrigger asChild>
@@ -52,16 +46,10 @@ const Hero = () => {
             </div>
           </div>
           <div className="md:w-1/2 flex justify-center">
-            <img 
-              src="/placeholder.svg" 
-              alt="MentorX Platform" 
-              className="rounded-xl shadow-lg w-full max-w-md"
-            />
+            <img src="/placeholder.svg" alt="MentorX Platform" className="rounded-xl shadow-lg w-full max-w-md" />
           </div>
         </div>
       </div>
-    </section>
-  );
+    </section>;
 };
-
 export default Hero;
