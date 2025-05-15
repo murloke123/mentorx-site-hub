@@ -7,7 +7,7 @@ const Hero = () => {
         <div className="flex flex-col md:flex-row items-center">
           <div className="md:w-1/2 mb-8 md:mb-0">
             <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">
-              Conecte-se com os melhores<br />
+              Conecte-se \o/ com os melhores<br />
               <span className="text-primary">mentores</span> para evoluir
             </h1>
             <p className="text-lg text-gray-700 mb-6">Na MentorX, você encontra especialistas prontos para compartilhar conhecimento através de cursos, materiais exclusivos e sessões de mentoria personalizadas = ).</p>
