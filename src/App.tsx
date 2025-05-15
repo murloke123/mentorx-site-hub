@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -30,6 +31,14 @@ const App = () => (
               <Route path="/courses" element={<CoursesPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/mentor/dashboard" element={<MentorDashboardPage />} />
+              {/* Add additional mentor routes */}
+              <Route path="/mentor/courses/new" element={<NotFound />} />
+              <Route path="/mentor/courses/:id" element={<NotFound />} />
+              <Route path="/mentor/courses/:id/edit" element={<NotFound />} />
+              <Route path="/mentor/modules/new" element={<NotFound />} />
+              <Route path="/mentor/modules/:id" element={<NotFound />} />
+              <Route path="/mentor/modules/:id/edit" element={<NotFound />} />
+              <Route path="/mentor/modules/:id/lessons" element={<NotFound />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>
