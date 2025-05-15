@@ -4,66 +4,90 @@ import CourseCard from "@/components/CourseCard";
 import MentorCard from "@/components/MentorCard";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Course, User } from "@/types";
+import { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import Onboarding from "@/components/Onboarding";
+import { mockCourses, mockMentors } from "@/data/mockData";
 
-const featuredCourses: Course[] = [
+const becomeMentorSlides = [
   {
-    id: "1",
-    title: "Marketing Digital para Iniciantes",
-    description: "Aprenda os fundamentos do marketing digital e como aplicá-los em seu negócio.",
-    mentorId: "1",
-    price: 0,
-    imageUrl: "/placeholder.svg",
+    title: "Sua própria plataforma",
+    description: "Configure sua própria plataforma com sua marca, identidade visual e logo.",
+    icon: "🎨"
   },
   {
-    id: "2",
-    title: "Gestão de Projetos com Metodologias Ágeis",
-    description: "Domine técnicas de gestão de projetos usando Scrum, Kanban e outras metodologias ágeis.",
-    mentorId: "2",
-    price: 197,
-    imageUrl: "/placeholder.svg",
+    title: "Compartilhe nas redes",
+    description: "Compartilhe nas redes sociais — no futuro, integrará com WhatsApp e outras plataformas.",
+    icon: "📱"
   },
   {
-    id: "3",
-    title: "Finanças Pessoais e Investimentos",
-    description: "Organize suas finanças e comece a investir com estratégia e conhecimento.",
-    mentorId: "3",
-    price: 149.90,
-    imageUrl: "/placeholder.svg",
-  },
-];
-
-const topMentors: User[] = [
-  {
-    id: "1",
-    name: "Ana Silva",
-    email: "ana@example.com",
-    role: "mentor",
-    bio: "Especialista em marketing digital com mais de 10 anos de experiência em grandes empresas.",
-    areas: ["Marketing Digital", "Branding"],
+    title: "Recompensas exclusivas",
+    description: "Ganhe recompensas exclusivas participando do ecossistema MentorX.",
+    icon: "🏆"
   },
   {
-    id: "2",
-    name: "Carlos Mendes",
-    email: "carlos@example.com",
-    role: "mentor",
-    bio: "Gerente de Projetos certificado PMP com background em tecnologia e transformação digital.",
-    areas: ["Gestão de Projetos", "Agile"],
-  },
-  {
-    id: "3",
-    name: "Juliana Costa",
-    email: "juliana@example.com",
-    role: "mentor",
-    bio: "Consultora financeira especializada em investimentos e planejamento para pessoas físicas e startups.",
-    areas: ["Finanças", "Investimentos"],
-  },
+    title: "Comunidade de mentores",
+    description: "Interaja com outros mentores e faça parte de um grupo exclusivo.",
+    icon: "👥"
+  }
 ];
 
 const HomePage = () => {
+  const [showMentorDialog, setShowMentorDialog] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  
+  const featuredCourses = mockCourses.slice(0, 3);
+  const topMentors = mockMentors.slice(0, 3);
+  
+  const handleBecomeMentor = () => {
+    setShowMentorDialog(false);
+    setShowOnboarding(true);
+  };
+
   return (
     <div>
       <Hero />
+      
+      {/* "Seja um Mentor" CTA */}
+      <section className="py-10 bg-gradient-to-br from-purple-100 to-white">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col lg:flex-row items-center gap-8">
+            <div className="lg:w-1/2">
+              <h2 className="text-3xl font-bold mb-4">Compartilhe seu conhecimento</h2>
+              <p className="text-lg mb-6">
+                Transforme sua experiência em oportunidade. Crie cursos, realize mentorias
+                e construa sua comunidade de seguidores.
+              </p>
+              <Button 
+                size="lg" 
+                className="relative overflow-hidden group animate-pulse hover:animate-none"
+                onClick={() => setShowMentorDialog(true)}
+              >
+                <span className="absolute inset-0 bg-white/20 transform translate-x-full group-hover:translate-x-[-100%] transition-transform duration-300"></span>
+                <span className="relative z-10">+ Seja um Mentor</span>
+              </Button>
+            </div>
+            <div className="lg:w-1/2 w-full">
+              <Carousel className="w-full">
+                <CarouselContent>
+                  {becomeMentorSlides.map((slide, index) => (
+                    <CarouselItem key={index}>
+                      <div className="p-6 bg-white rounded-xl shadow-sm border h-64 flex flex-col justify-center items-center text-center">
+                        <div className="text-4xl mb-4">{slide.icon}</div>
+                        <h3 className="text-xl font-semibold mb-2">{slide.title}</h3>
+                        <p className="text-gray-600">{slide.description}</p>
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious />
+                <CarouselNext />
+              </Carousel>
+            </div>
+          </div>
+        </div>
+      </section>
       
       {/* Featured Courses */}
       <section className="py-12 bg-white">
@@ -128,6 +152,41 @@ const HomePage = () => {
           </div>
         </div>
       </section>
+
+      {/* Become Mentor Dialog */}
+      <Dialog open={showMentorDialog} onOpenChange={setShowMentorDialog}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-center text-xl">Torne-se um Mentor</DialogTitle>
+          </DialogHeader>
+          <div className="py-6">
+            <Carousel>
+              <CarouselContent>
+                {becomeMentorSlides.map((slide, index) => (
+                  <CarouselItem key={index}>
+                    <div className="p-6 text-center">
+                      <div className="text-5xl mb-4">{slide.icon}</div>
+                      <h3 className="text-xl font-semibold mb-2">{slide.title}</h3>
+                      <p className="text-gray-600">{slide.description}</p>
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious className="left-2" />
+              <CarouselNext className="right-2" />
+            </Carousel>
+
+            <div className="flex justify-center mt-8">
+              <Button onClick={handleBecomeMentor}>
+                Começar como Mentor
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Onboarding Dialog */}
+      <Onboarding open={showOnboarding} onComplete={() => setShowOnboarding(false)} />
     </div>
   );
 };

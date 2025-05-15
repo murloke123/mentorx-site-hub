@@ -3,7 +3,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: "mentor" | "mentee";
+  role: "mentor" | "mentee" | "admin";
   bio?: string;
   profileImage?: string;
   areas?: string[];
@@ -17,6 +17,7 @@ export interface Course {
   price: number; // 0 for free courses
   imageUrl?: string;
   materials?: Material[];
+  public?: boolean; // Whether the course is visible to non-followers
 }
 
 export interface Material {
