@@ -4,10 +4,15 @@ import { toast } from "@/hooks/use-toast";
 
 export async function getMentorProfile() {
   try {
+    // Get current user ID
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) throw new Error("Not authenticated");
+    
     const { data: profile, error } = await supabase
       .from("profiles")
       .select("*")
-      .eq("id", supabase.auth.getUser()?.data.user?.id)
+      .eq("id", user.id)
       .single();
 
     if (error) throw error;
@@ -25,10 +30,15 @@ export async function getMentorProfile() {
 
 export async function getMentorCourses() {
   try {
+    // Get current user ID
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) throw new Error("Not authenticated");
+    
     const { data: courses, error } = await supabase
       .from("courses")
       .select("*, enrollments(count)")
-      .eq("mentor_id", supabase.auth.getUser()?.data.user?.id)
+      .eq("mentor_id", user.id)
       .order("created_at", { ascending: false });
 
     if (error) throw error;
@@ -46,10 +56,15 @@ export async function getMentorCourses() {
 
 export async function getMentorModules(limit = 5) {
   try {
+    // Get current user ID
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) throw new Error("Not authenticated");
+    
     const { data: modules, error } = await supabase
       .from("modules")
       .select("*, courses!inner(*)")
-      .eq("courses.mentor_id", supabase.auth.getUser()?.data.user?.id)
+      .eq("courses.mentor_id", user.id)
       .order("created_at", { ascending: false })
       .limit(limit);
 
@@ -68,10 +83,15 @@ export async function getMentorModules(limit = 5) {
 
 export async function getMentorFollowersCount() {
   try {
+    // Get current user ID
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) throw new Error("Not authenticated");
+    
     const { count, error } = await supabase
       .from("mentor_followers")
       .select("*", { count: "exact", head: true })
-      .eq("mentor_id", supabase.auth.getUser()?.data.user?.id);
+      .eq("mentor_id", user.id);
 
     if (error) throw error;
     return count || 0;
@@ -88,6 +108,11 @@ export async function getMentorFollowersCount() {
 
 export async function getEnrollmentStats(periodDays = 30) {
   try {
+    // Get current user ID
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) throw new Error("Not authenticated");
+    
     // Calculate the date X days ago
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - periodDays);
@@ -98,7 +123,7 @@ export async function getEnrollmentStats(periodDays = 30) {
     const { data: enrollments, error } = await supabase
       .from("enrollments")
       .select("enrolled_at, courses!inner(*)")
-      .eq("courses.mentor_id", supabase.auth.getUser()?.data.user?.id)
+      .eq("courses.mentor_id", user.id)
       .gte("enrolled_at", startDateStr)
       .order("enrolled_at", { ascending: true });
 
