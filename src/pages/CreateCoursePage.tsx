@@ -4,21 +4,18 @@ import { useNavigate } from "react-router-dom";
 import CourseForm from "@/components/mentor/CourseForm";
 import MentorSidebar from "@/components/mentor/MentorSidebar";
 import { useToast } from "@/hooks/use-toast";
+import { createCourse, CourseFormData } from "@/services/courseService";
 
 const CreateCoursePage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (courseData: any) => {
+  const handleSubmit = async (courseData: CourseFormData) => {
     setIsSubmitting(true);
     
     try {
-      // Simulação de criação de curso (sem banco de dados real)
-      console.log("Curso sendo criado:", courseData);
-      
-      // Simular um tempo de processamento
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await createCourse(courseData);
       
       toast({
         title: "Curso criado com sucesso!",

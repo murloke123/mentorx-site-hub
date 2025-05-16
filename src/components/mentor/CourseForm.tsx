@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,7 +18,7 @@ const defaultValues = {
   description: "",
   category: "",
   image: "",
-  type: "free", // "free" ou "paid"
+  type: "free" as const, // "free" ou "paid"
   price: 0,
   currency: "BRL",
   discount: 0,
@@ -54,7 +53,7 @@ const CourseForm = ({
   onCancel,
   isSubmitting = false,
 }: CourseFormProps) => {
-  const [courseType, setCourseType] = useState(initialData.type);
+  const [courseType, setCourseType] = useState<"free" | "paid">(initialData.type);
   
   const form = useForm<CourseFormData>({
     resolver: zodResolver(formSchema),
