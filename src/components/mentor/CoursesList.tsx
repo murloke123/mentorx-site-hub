@@ -61,22 +61,12 @@ const CoursesList = ({ courses, isLoading, totalEnrollments }: CoursesListProps)
 
   return (
     <div className="mb-8">
-      <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h2 className="text-2xl font-semibold">My Courses</h2>
-          <p className="text-sm text-muted-foreground">Manage and track all your courses</p>
-        </div>
-        <Button onClick={handleCreateCourse}>
-          <PlusCircle className="mr-2 h-4 w-4" /> Create New Course
-        </Button>
-      </div>
-      
       {/* Filters and Search */}
       <div className="mb-6 flex flex-col sm:flex-row gap-4">
         <div className="relative flex-grow">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search courses..."
+            placeholder="Buscar cursos..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9"
@@ -84,11 +74,11 @@ const CoursesList = ({ courses, isLoading, totalEnrollments }: CoursesListProps)
         </div>
         <Tabs defaultValue="all" className="w-full sm:w-auto">
           <TabsList>
-            <TabsTrigger value="all" onClick={() => handleFilterChange('all')}>All</TabsTrigger>
-            <TabsTrigger value="public" onClick={() => handleFilterChange('public')}>Public</TabsTrigger>
-            <TabsTrigger value="private" onClick={() => handleFilterChange('private')}>Private</TabsTrigger>
-            <TabsTrigger value="paid" onClick={() => handleFilterChange('paid')}>Paid</TabsTrigger>
-            <TabsTrigger value="free" onClick={() => handleFilterChange('free')}>Free</TabsTrigger>
+            <TabsTrigger value="all" onClick={() => handleFilterChange('all')}>Todos</TabsTrigger>
+            <TabsTrigger value="public" onClick={() => handleFilterChange('public')}>Públicos</TabsTrigger>
+            <TabsTrigger value="private" onClick={() => handleFilterChange('private')}>Privados</TabsTrigger>
+            <TabsTrigger value="paid" onClick={() => handleFilterChange('paid')}>Pagos</TabsTrigger>
+            <TabsTrigger value="free" onClick={() => handleFilterChange('free')}>Gratuitos</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
@@ -96,7 +86,7 @@ const CoursesList = ({ courses, isLoading, totalEnrollments }: CoursesListProps)
       {/* Courses List */}
       {isLoading ? (
         <div className="text-center py-10 border-2 border-dashed border-gray-300 rounded-lg">
-          <p className="text-muted-foreground">Loading your courses...</p>
+          <p className="text-muted-foreground">Carregando seus cursos...</p>
         </div>
       ) : filteredCourses.length > 0 ? (
         <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
@@ -120,10 +110,10 @@ const CoursesList = ({ courses, isLoading, totalEnrollments }: CoursesListProps)
                       <CardTitle>{course.title}</CardTitle>
                       <div className="flex items-center gap-2 mt-1">
                         <Badge variant={course.is_public ? "outline" : "secondary"}>
-                          {course.is_public ? 'Public' : 'Private'}
+                          {course.is_public ? 'Público' : 'Privado'}
                         </Badge>
                         <Badge variant={course.is_paid ? "default" : "outline"}>
-                          {course.is_paid ? `$${course.price?.toFixed(2)}` : 'Free'}
+                          {course.is_paid ? `R$${course.price?.toFixed(2)}` : 'Gratuito'}
                         </Badge>
                       </div>
                     </div>
@@ -133,7 +123,7 @@ const CoursesList = ({ courses, isLoading, totalEnrollments }: CoursesListProps)
               <CardContent className="flex-grow">
                 <div className="mb-4">
                   <div className="flex justify-between mb-1">
-                    <span className="text-sm">Enrollments</span>
+                    <span className="text-sm">Inscrições</span>
                     <span className="text-sm font-medium">{course.enrollments?.[0]?.count || 0}</span>
                   </div>
                   <Progress 
@@ -148,10 +138,10 @@ const CoursesList = ({ courses, isLoading, totalEnrollments }: CoursesListProps)
               </CardContent>
               <div className="flex justify-between p-6 pt-0">
                 <Button variant="outline" asChild>
-                  <Link to={`/mentor/courses/${course.id}`}>View Details</Link>
+                  <Link to={`/mentor/courses/${course.id}`}>Ver Detalhes</Link>
                 </Button>
                 <Button variant="outline" asChild>
-                  <Link to={`/mentor/courses/${course.id}/edit`}>Edit Course</Link>
+                  <Link to={`/mentor/courses/${course.id}/edit`}>Editar Curso</Link>
                 </Button>
               </div>
             </Card>
@@ -161,15 +151,15 @@ const CoursesList = ({ courses, isLoading, totalEnrollments }: CoursesListProps)
         <div className="text-center py-10 border-2 border-dashed border-gray-300 rounded-lg">
           <BookOpen className="mx-auto h-12 w-12 text-gray-400" />
           <h3 className="mt-2 text-xl font-medium text-gray-900">
-            {searchQuery || visibilityFilter ? 'No courses match your filters' : 'No courses created yet'}
+            {searchQuery || visibilityFilter ? 'Nenhum curso corresponde aos seus filtros' : 'Nenhum curso criado ainda'}
           </h3>
           <p className="mt-1 text-sm text-gray-500">
-            {searchQuery || visibilityFilter ? 'Try changing your search or filters' : 'Start sharing your knowledge!'}
+            {searchQuery || visibilityFilter ? 'Tente alterar sua busca ou filtros' : 'Comece a compartilhar seu conhecimento!'}
           </p>
           {!searchQuery && !visibilityFilter && (
             <div className="mt-6">
               <Button onClick={handleCreateCourse}>
-                <PlusCircle className="mr-2 h-4 w-4" /> Create Your First Course
+                <PlusCircle className="mr-2 h-4 w-4" /> Criar Seu Primeiro Curso
               </Button>
             </div>
           )}
