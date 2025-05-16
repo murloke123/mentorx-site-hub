@@ -23,7 +23,7 @@ const CreateCoursePage = () => {
       });
       
       // Redirecionar para a página de meus cursos após a criação
-      navigate("/mentor/dashboard");
+      navigate("/mentor/cursos");
     } catch (error) {
       console.error("Erro ao criar curso:", error);
       toast({
@@ -37,7 +37,7 @@ const CreateCoursePage = () => {
   };
 
   const handleCancel = () => {
-    navigate("/mentor/dashboard");
+    navigate("/mentor/cursos");
   };
 
   return (
