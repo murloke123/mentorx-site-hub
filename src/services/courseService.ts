@@ -1,19 +1,9 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { Tables } from "@/integrations/supabase/types";
-import { toast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
+import { CourseFormData } from "@/components/mentor/course-form/FormSchema";
 
-export interface CourseFormData {
-  name: string;
-  description: string;
-  category: string;
-  image: string;
-  type: "free" | "paid";
-  price: number;
-  currency: string;
-  discount: number;
-  visibility: "public" | "private";
-}
+export type { CourseFormData } from "@/components/mentor/course-form/FormSchema";
 
 export async function createCourse(courseData: CourseFormData) {
   try {
@@ -139,6 +129,7 @@ export async function getMentorCourses() {
     return data;
   } catch (error) {
     console.error("Erro ao buscar cursos do mentor:", error);
+    const { toast } = useToast();
     toast({
       title: "Erro ao buscar cursos",
       description: "Não foi possível carregar seus cursos.",

@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import CourseForm from "@/components/mentor/CourseForm";
+import CourseForm from "@/components/mentor/course-form";
 import MentorSidebar from "@/components/mentor/MentorSidebar";
 import { useToast } from "@/hooks/use-toast";
 import { createCourse, CourseFormData } from "@/services/courseService";

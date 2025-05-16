@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import CourseForm from "@/components/mentor/CourseForm";
+import CourseForm from "@/components/mentor/course-form";
 import MentorSidebar from "@/components/mentor/MentorSidebar";
 import { useToast } from "@/hooks/use-toast";
 import { getCourseById, updateCourse, CourseFormData } from "@/services/courseService";
