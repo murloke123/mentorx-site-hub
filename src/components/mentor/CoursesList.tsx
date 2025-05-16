@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -29,6 +29,7 @@ interface CoursesListProps {
 const CoursesList = ({ courses, isLoading, totalEnrollments }: CoursesListProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [visibilityFilter, setVisibilityFilter] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   // Filter courses based on search query and visibility filter
   const filteredCourses = courses.filter(course => {
@@ -53,6 +54,11 @@ const CoursesList = ({ courses, isLoading, totalEnrollments }: CoursesListProps)
     }
   };
 
+  // Handle create course button click
+  const handleCreateCourse = () => {
+    navigate('/mentor/courses/new');
+  };
+
   return (
     <div className="mb-8">
       <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -60,11 +66,9 @@ const CoursesList = ({ courses, isLoading, totalEnrollments }: CoursesListProps)
           <h2 className="text-2xl font-semibold">My Courses</h2>
           <p className="text-sm text-muted-foreground">Manage and track all your courses</p>
         </div>
-        <Link to="/mentor/courses/new"> 
-          <Button>
-            <PlusCircle className="mr-2 h-4 w-4" /> Create New Course
-          </Button>
-        </Link>
+        <Button onClick={handleCreateCourse}>
+          <PlusCircle className="mr-2 h-4 w-4" /> Create New Course
+        </Button>
       </div>
       
       {/* Filters and Search */}
@@ -164,11 +168,9 @@ const CoursesList = ({ courses, isLoading, totalEnrollments }: CoursesListProps)
           </p>
           {!searchQuery && !visibilityFilter && (
             <div className="mt-6">
-              <Link to="/mentor/courses/new">
-                <Button>
-                  <PlusCircle className="mr-2 h-4 w-4" /> Create Your First Course
-                </Button>
-              </Link>
+              <Button onClick={handleCreateCourse}>
+                <PlusCircle className="mr-2 h-4 w-4" /> Create Your First Course
+              </Button>
             </div>
           )}
         </div>

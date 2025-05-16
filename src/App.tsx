@@ -11,6 +11,8 @@ import AboutPage from "@/pages/AboutPage";
 import CoursesPage from "@/pages/CoursesPage";
 import LoginPage from "@/pages/LoginPage";
 import MentorDashboardPage from "@/pages/MentorDashboardPage";
+import CreateCoursePage from "@/pages/CreateCoursePage";
+import MentorFollowersPage from "@/pages/MentorFollowersPage";
 import NotFound from "@/pages/NotFound";
 
 
@@ -31,8 +33,9 @@ const App = () => (
               <Route path="/courses" element={<CoursesPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/mentor/dashboard" element={<MentorDashboardPage />} />
+              <Route path="/mentor/courses/new" element={<CreateCoursePage />} />
+              <Route path="/mentor/followers" element={<MentorFollowersPage />} />
               {/* Add additional mentor routes */}
-              <Route path="/mentor/courses/new" element={<NotFound />} />
               <Route path="/mentor/courses/:id" element={<NotFound />} />
               <Route path="/mentor/courses/:id/edit" element={<NotFound />} />
               <Route path="/mentor/modules/new" element={<NotFound />} />
