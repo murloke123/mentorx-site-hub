@@ -68,12 +68,15 @@ const MentorSidebar = () => {
       )}
     >
       <div className="flex flex-col h-full">
-        {/* Collapse button at the top */}
-        <div className="p-4 flex justify-end">
+        {/* Cabeçalho com nome e botão de recolher */}
+        <div className="p-4 flex items-center justify-between border-b">
+          {!isCollapsed && (
+            <h2 className="font-semibold text-lg">MentorX</h2>
+          )}
           <Button 
             variant="ghost" 
             size="icon" 
-            className="rounded-full"
+            className={cn("rounded-full", isCollapsed && "mx-auto")}
             onClick={() => setIsCollapsed(!isCollapsed)}
             aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
