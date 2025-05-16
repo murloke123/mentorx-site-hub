@@ -1,13 +1,17 @@
 
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { BookOpen, Users, Calendar, Settings, ArrowLeft, ChevronRight, ChevronLeft, LayoutDashboard } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { BookOpen, Users, Calendar, Settings, ArrowLeft, ChevronRight, ChevronLeft, LayoutDashboard, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const MentorSidebar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const [isCollapsed, setIsCollapsed] = useState(false);
   
   const menuItems = [
@@ -37,6 +41,24 @@ const MentorSidebar = () => {
       href: "/mentor/configuracoes",
     },
   ];
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast({
+        title: "Logout realizado com sucesso",
+        description: "Você foi desconectado da sua conta"
+      });
+      navigate("/");
+    } catch (error) {
+      console.error("Erro ao fazer logout:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao fazer logout",
+        description: "Ocorreu um problema ao tentar desconectar sua conta"
+      });
+    }
+  };
 
   return (
     <div 
@@ -106,11 +128,41 @@ const MentorSidebar = () => {
           </nav>
         </div>
         
-        <div className="mt-auto p-4">
+        <div className="mt-auto p-4 border-t">
+          {/* Logout button */}
+          {isCollapsed ? (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-center text-red-500 hover:text-red-600 hover:bg-red-50"
+                    onClick={handleLogout}
+                  >
+                    <LogOut className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="right">
+                  Sair
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          ) : (
+            <Button
+              variant="ghost"
+              className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50"
+              onClick={handleLogout}
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Sair
+            </Button>
+          )}
+          
+          {/* Collapse/Expand button */}
           <Button 
             variant="ghost" 
             size="sm" 
-            className="w-full justify-center"
+            className="w-full justify-center mt-2"
             onClick={() => setIsCollapsed(!isCollapsed)}
           >
             {isCollapsed ? <ChevronRight /> : <ChevronLeft />}
