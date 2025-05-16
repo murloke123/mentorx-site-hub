@@ -31,7 +31,7 @@ const CoursesList = ({ courses, isLoading, totalEnrollments }: CoursesListProps)
   const [visibilityFilter, setVisibilityFilter] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  // Filter courses based on search query and visibility filter
+  // Filtrar cursos com base na busca e filtro de visibilidade
   const filteredCourses = courses.filter(course => {
     const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                         (course.description?.toLowerCase().includes(searchQuery.toLowerCase()) || false);
@@ -45,7 +45,7 @@ const CoursesList = ({ courses, isLoading, totalEnrollments }: CoursesListProps)
     return matchesSearch && matchesFilter;
   });
   
-  // Handle course filtering
+  // Lidar com a mudança de filtro
   const handleFilterChange = (value: string) => {
     if (value === 'all') {
       setVisibilityFilter(null);
@@ -54,14 +54,14 @@ const CoursesList = ({ courses, isLoading, totalEnrollments }: CoursesListProps)
     }
   };
 
-  // Handle create course button click
+  // Lidar com o clique no botão de criar curso
   const handleCreateCourse = () => {
     navigate('/mentor/courses/new');
   };
 
   return (
     <div className="mb-8">
-      {/* Filters and Search */}
+      {/* Filtros e Busca */}
       <div className="mb-6 flex flex-col sm:flex-row gap-4">
         <div className="relative flex-grow">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -83,7 +83,7 @@ const CoursesList = ({ courses, isLoading, totalEnrollments }: CoursesListProps)
         </Tabs>
       </div>
 
-      {/* Courses List */}
+      {/* Lista de Cursos */}
       {isLoading ? (
         <div className="text-center py-10 border-2 border-dashed border-gray-300 rounded-lg">
           <p className="text-muted-foreground">Carregando seus cursos...</p>

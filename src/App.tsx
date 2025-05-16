@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,6 +12,7 @@ import CoursesPage from "@/pages/CoursesPage";
 import LoginPage from "@/pages/LoginPage";
 import MentorDashboardPage from "@/pages/MentorDashboardPage";
 import CreateCoursePage from "@/pages/CreateCoursePage";
+import EditCoursePage from "@/pages/EditCoursePage";
 import MeusCursosPage from "@/pages/MeusCursosPage";
 import MentorFollowersPage from "@/pages/MentorFollowersPage";
 import NotFound from "@/pages/NotFound";
@@ -35,12 +37,12 @@ const App = () => (
               <Route path="/mentor/dashboard" element={<MentorDashboardPage />} />
               <Route path="/mentor/cursos" element={<MeusCursosPage />} />
               <Route path="/mentor/courses/new" element={<CreateCoursePage />} />
+              <Route path="/mentor/courses/:id/edit" element={<EditCoursePage />} />
               <Route path="/mentor/followers" element={<MentorFollowersPage />} />
               <Route path="/mentor/mentorados" element={<MentorFollowersPage />} />
               <Route path="/mentor/calendario" element={<NotFound />} />
               <Route path="/mentor/configuracoes" element={<NotFound />} />
               <Route path="/mentor/courses/:id" element={<NotFound />} />
-              <Route path="/mentor/courses/:id/edit" element={<NotFound />} />
               <Route path="/mentor/modules/new" element={<NotFound />} />
               <Route path="/mentor/modules/:id" element={<NotFound />} />
               <Route path="/mentor/modules/:id/edit" element={<NotFound />} />
