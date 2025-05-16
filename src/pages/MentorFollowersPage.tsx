@@ -11,7 +11,7 @@ async function getMentorFollowers() {
   
   const { data, error } = await supabase
     .from('mentor_followers')
-    .select('*, profiles:follower_id(*)')
+    .select('*, follower:follower_id(id, full_name)')
     .eq('mentor_id', user.id)
     .order('followed_at', { ascending: false });
   
@@ -49,9 +49,9 @@ export default function MentorFollowersPage() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {followers.map((follower) => (
-            <Card key={follower.id}>
+            <Card key={follower.follower_id}>
               <CardHeader>
-                <CardTitle>{follower.profiles?.full_name || 'Anonymous User'}</CardTitle>
+                <CardTitle>{follower.follower?.full_name || 'Anonymous User'}</CardTitle>
               </CardHeader>
               <CardContent>
                 <p>Followed on {new Date(follower.followed_at).toLocaleDateString()}</p>

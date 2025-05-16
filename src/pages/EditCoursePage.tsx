@@ -38,7 +38,7 @@ const formSchema = z.object({
   price: z.union([
     z.string().min(1, {
       message: "Please enter a valid price."
-    }),
+    }).transform(val => parseFloat(val)),
     z.number().min(0),
   ]).optional().transform(value => {
     if (!value) return null;
@@ -64,7 +64,7 @@ export default function EditCoursePage() {
       description: "",
       is_public: true,
       is_paid: false,
-      price: "",
+      price: undefined,
       image_url: "",
     },
   });
@@ -94,7 +94,7 @@ export default function EditCoursePage() {
             description: data.description || "",
             is_public: data.is_public,
             is_paid: data.is_paid,
-            price: data.price ? data.price.toString() : "",
+            price: data.price !== null ? data.price : undefined,
             image_url: data.image_url || "",
           });
         }

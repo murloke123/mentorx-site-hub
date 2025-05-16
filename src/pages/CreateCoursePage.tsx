@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -38,7 +37,7 @@ const formSchema = z.object({
   price: z.union([
     z.string().min(1, {
       message: "Please enter a valid price."
-    }),
+    }).transform(val => parseFloat(val)),
     z.number().min(0),
   ]).optional().transform(value => {
     if (!value) return null;
@@ -62,7 +61,7 @@ export default function CreateCoursePage() {
       description: "",
       is_public: true,
       is_paid: false,
-      price: "",
+      price: undefined,
       image_url: "",
     },
   });
