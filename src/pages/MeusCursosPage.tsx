@@ -22,7 +22,7 @@ const MeusCursosPage = () => {
   }, 0);
   
   const handleCreateCourse = () => {
-    navigate('/mentor/courses/new');
+    navigate('/mentor/cursos/novo');
   };
 
   return (

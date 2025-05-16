@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -36,17 +35,20 @@ const App = () => (
               <Route path="/login" element={<LoginPage />} />
               <Route path="/mentor/dashboard" element={<MentorDashboardPage />} />
               <Route path="/mentor/cursos" element={<MeusCursosPage />} />
-              <Route path="/mentor/courses/new" element={<CreateCoursePage />} />
-              <Route path="/mentor/courses/:id/edit" element={<EditCoursePage />} />
+              <Route path="/mentor/cursos/novo" element={<CreateCoursePage />} />
+              <Route path="/mentor/cursos/:id/editar" element={<EditCoursePage />} />
               <Route path="/mentor/followers" element={<MentorFollowersPage />} />
               <Route path="/mentor/mentorados" element={<MentorFollowersPage />} />
               <Route path="/mentor/calendario" element={<NotFound />} />
               <Route path="/mentor/configuracoes" element={<NotFound />} />
-              <Route path="/mentor/courses/:id" element={<NotFound />} />
-              <Route path="/mentor/modules/new" element={<NotFound />} />
-              <Route path="/mentor/modules/:id" element={<NotFound />} />
-              <Route path="/mentor/modules/:id/edit" element={<NotFound />} />
-              <Route path="/mentor/modules/:id/lessons" element={<NotFound />} />
+              <Route path="/mentor/cursos/:id" element={<NotFound />} />
+              <Route path="/mentor/modulos/novo" element={<NotFound />} />
+              <Route path="/mentor/modulos/:id" element={<NotFound />} />
+              <Route path="/mentor/modulos/:id/editar" element={<NotFound />} />
+              <Route path="/mentor/modulos/:id/aulas" element={<NotFound />} />
+              {/* Keep backwards compatibility for now */}
+              <Route path="/mentor/courses/new" element={<CreateCoursePage />} />
+              <Route path="/mentor/courses/:id/edit" element={<EditCoursePage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>

@@ -56,7 +56,7 @@ const CoursesList = ({ courses, isLoading, totalEnrollments }: CoursesListProps)
 
   // Lidar com o clique no botão de criar curso
   const handleCreateCourse = () => {
-    navigate('/mentor/courses/new');
+    navigate('/mentor/cursos/novo');
   };
 
   return (
@@ -138,10 +138,10 @@ const CoursesList = ({ courses, isLoading, totalEnrollments }: CoursesListProps)
               </CardContent>
               <div className="flex justify-between p-6 pt-0">
                 <Button variant="outline" asChild>
-                  <Link to={`/mentor/courses/${course.id}`}>Ver Detalhes</Link>
+                  <Link to={`/mentor/cursos/${course.id}`}>Ver Detalhes</Link>
                 </Button>
                 <Button variant="outline" asChild>
-                  <Link to={`/mentor/courses/${course.id}/edit`}>Editar Curso</Link>
+                  <Link to={`/mentor/cursos/${course.id}/editar`}>Editar Curso</Link>
                 </Button>
               </div>
             </Card>

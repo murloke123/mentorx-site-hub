@@ -11,24 +11,23 @@ const CreateCoursePage = () => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (courseData: CourseFormData) => {
+  const handleSubmit = async (formData: CourseFormData) => {
     setIsSubmitting(true);
     
     try {
-      await createCourse(courseData);
+      await createCourse(formData);
       
       toast({
         title: "Curso criado com sucesso!",
-        description: "Seu curso foi publicado na plataforma.",
+        description: "Seu curso foi criado e está pronto para ser configurado.",
       });
       
-      // Redirecionar para a página de meus cursos após a criação
       navigate("/mentor/cursos");
     } catch (error) {
       console.error("Erro ao criar curso:", error);
       toast({
         title: "Erro ao criar curso",
-        description: "Ocorreu um erro ao tentar criar seu curso. Tente novamente.",
+        description: "Ocorreu um erro ao tentar criar o curso. Tente novamente.",
         variant: "destructive",
       });
     } finally {
