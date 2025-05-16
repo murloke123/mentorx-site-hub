@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { BookOpen, Users, Calendar, Settings, ArrowLeft, ChevronRight, ChevronLeft, LayoutDashboard, LogOut } from "lucide-react";
+import { Users, Calendar, Settings, ChevronRight, ChevronLeft, LayoutDashboard, LogOut, BookOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -68,27 +68,20 @@ const MentorSidebar = () => {
       )}
     >
       <div className="flex flex-col h-full">
-        <div className={cn("p-4", isCollapsed && "items-center")}>
-          <Link to="/" className={cn("flex items-center mb-6", isCollapsed && "justify-center")}>
-            {isCollapsed ? (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <ArrowLeft className="w-5 h-5" />
-                  </TooltipTrigger>
-                  <TooltipContent side="right">
-                    Voltar para o site
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            ) : (
-              <>
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                <span className="font-medium">Voltar para o site</span>
-              </>
-            )}
-          </Link>
+        {/* Collapse button at the top */}
+        <div className="p-4 flex justify-end">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="rounded-full"
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+          </Button>
+        </div>
           
+        <div className={cn("p-4", isCollapsed && "items-center")}>
           <nav className="space-y-1">
             {menuItems.map((item) => (
               <Link key={item.href} to={item.href}>
@@ -157,17 +150,6 @@ const MentorSidebar = () => {
               Sair
             </Button>
           )}
-          
-          {/* Collapse/Expand button */}
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="w-full justify-center mt-2"
-            onClick={() => setIsCollapsed(!isCollapsed)}
-          >
-            {isCollapsed ? <ChevronRight /> : <ChevronLeft />}
-            {!isCollapsed && <span className="ml-2">Recolher</span>}
-          </Button>
         </div>
       </div>
     </div>
