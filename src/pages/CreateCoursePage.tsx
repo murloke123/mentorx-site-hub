@@ -22,8 +22,8 @@ const CreateCoursePage = () => {
         description: "Seu curso foi publicado na plataforma.",
       });
       
-      // Redirecionar para a página de cursos após a criação
-      navigate("/courses");
+      // Redirecionar para a página de meus cursos após a criação
+      navigate("/mentor/dashboard");
     } catch (error) {
       console.error("Erro ao criar curso:", error);
       toast({

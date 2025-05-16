@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +11,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { BookOpen, Image as ImageIcon } from "lucide-react";
+import { BookOpen, Image as ImageIcon, Globe, Lock } from "lucide-react";
 
 // Define os valores iniciais para o formulário
 const defaultValues = {
@@ -22,6 +23,7 @@ const defaultValues = {
   price: 0,
   currency: "BRL",
   discount: 0,
+  visibility: "public" as const, // "public" ou "private"
 };
 
 // Define o esquema de validação do formulário
@@ -34,6 +36,7 @@ const formSchema = z.object({
   price: z.number().min(0),
   currency: z.string(),
   discount: z.number().min(0).max(100),
+  visibility: z.enum(["public", "private"]),
 });
 
 type CourseFormData = z.infer<typeof formSchema>;
@@ -149,6 +152,54 @@ const CourseForm = ({
 
             <FormField
               control={form.control}
+              name="visibility"
+              render={({ field }) => (
+                <FormItem className="mb-4">
+                  <FormLabel>Visibilidade do Curso*</FormLabel>
+                  <FormControl>
+                    <RadioGroup 
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      className="flex flex-col space-y-1"
+                    >
+                      <div className="flex items-start space-x-2">
+                        <div className="flex items-center h-6">
+                          <RadioGroupItem value="public" id="public" />
+                        </div>
+                        <div className="space-y-1">
+                          <div className="flex items-center">
+                            <Label htmlFor="public" className="font-medium flex items-center">
+                              <Globe className="mr-2 h-4 w-4" />
+                              Público
+                            </Label>
+                          </div>
+                          <p className="text-sm text-muted-foreground">O curso aparecerá para todos os mentorados da plataforma.</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-start space-x-2">
+                        <div className="flex items-center h-6">
+                          <RadioGroupItem value="private" id="private" />
+                        </div>
+                        <div className="space-y-1">
+                          <div className="flex items-center">
+                            <Label htmlFor="private" className="font-medium flex items-center">
+                              <Lock className="mr-2 h-4 w-4" />
+                              Privado
+                            </Label>
+                          </div>
+                          <p className="text-sm text-muted-foreground">O curso aparecerá apenas para os mentorados que seguem você.</p>
+                        </div>
+                      </div>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="image"
               render={({ field }) => (
                 <FormItem className="mb-4">
@@ -222,53 +273,55 @@ const CourseForm = ({
 
             {courseType === "paid" && (
               <div className="space-y-4 border-t pt-4 mt-4">
-                <FormField
-                  control={form.control}
-                  name="price"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Preço*</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          min="0" 
-                          step="0.01"
-                          onChange={(e) => field.onChange(parseFloat(e.target.value))}
-                          value={field.value}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="currency"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Moeda</FormLabel>
-                      <Select 
-                        onValueChange={field.onChange} 
-                        defaultValue={field.value}
-                      >
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <FormField
+                    control={form.control}
+                    name="price"
+                    render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Preço*</FormLabel>
                         <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione a moeda" />
-                          </SelectTrigger>
+                          <Input 
+                            type="number" 
+                            min="0" 
+                            step="0.01"
+                            onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                            value={field.value}
+                          />
                         </FormControl>
-                        <SelectContent>
-                          {currencies.map((currency) => (
-                            <SelectItem key={currency.value} value={currency.value}>
-                              {currency.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="currency"
+                    render={({ field }) => (
+                      <FormItem className="w-full sm:w-[180px]">
+                        <FormLabel>Moeda</FormLabel>
+                        <Select 
+                          onValueChange={field.onChange} 
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione a moeda" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {currencies.map((currency) => (
+                              <SelectItem key={currency.value} value={currency.value}>
+                                {currency.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
                 <FormField
                   control={form.control}

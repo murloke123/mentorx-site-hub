@@ -12,6 +12,7 @@ export interface CourseFormData {
   price: number;
   currency: string;
   discount: number;
+  visibility: "public" | "private";
 }
 
 export async function createCourse(courseData: CourseFormData) {
@@ -31,7 +32,7 @@ export async function createCourse(courseData: CourseFormData) {
       price: courseData.type === "paid" ? courseData.price : null,
       image_url: courseData.image,
       mentor_id: user.id,
-      is_public: true, // Por padrão, cursos são públicos
+      is_public: courseData.visibility === "public", // Usar o valor do campo de visibilidade
     };
 
     // Inserir o curso no Supabase
@@ -66,6 +67,7 @@ export async function updateCourse(courseId: string, courseData: CourseFormData)
       is_paid: courseData.type === "paid",
       price: courseData.type === "paid" ? courseData.price : null,
       image_url: courseData.image,
+      is_public: courseData.visibility === "public", // Usar o valor do campo de visibilidade
       updated_at: new Date().toISOString(),
     };
 
@@ -107,6 +109,7 @@ export async function getCourseById(courseId: string) {
       price: data.price || 0,
       currency: "BRL", // Este campo precisa ser preenchido com a moeda real
       discount: 0, // Este campo precisa ser preenchido com o desconto real
+      visibility: data.is_public ? "public" : "private", // Usar o valor do campo is_public
     };
     
     return courseFormData;
