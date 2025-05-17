@@ -1,6 +1,13 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
+// Define an interface for the progress object structure
+interface EnrollmentProgress {
+  overall_progress?: number;
+  completed_lessons?: number;
+  total_lessons?: number;
+}
+
 export const getMenteeProfile = async () => {
   const { data: session } = await supabase.auth.getSession();
   if (!session.session?.user) throw new Error('User not authenticated');
@@ -46,15 +53,18 @@ export const getMenteeCourses = async () => {
 
   // Transform the data to match our component expectations
   const courses = enrollments?.map(enrollment => {
+    // Cast the progress to our interface type
+    const progress = enrollment.progress as unknown as EnrollmentProgress;
+    
     return {
       id: enrollment.course?.id,
       title: enrollment.course?.title,
       description: enrollment.course?.description,
       mentor_id: enrollment.course?.mentor_id,
       mentor_name: enrollment.course?.mentor?.full_name,
-      progress: enrollment.progress?.overall_progress || 0,
-      completed_lessons: enrollment.progress?.completed_lessons || 0,
-      total_lessons: enrollment.progress?.total_lessons || 0
+      progress: progress?.overall_progress || 0,
+      completed_lessons: progress?.completed_lessons || 0,
+      total_lessons: progress?.total_lessons || 0
     };
   }) || [];
 
