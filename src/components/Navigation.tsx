@@ -38,6 +38,7 @@ const Navigation = () => {
           
         if (profileData) {
           setUserRole(profileData.role);
+          console.log("User role:", profileData.role); // Debug log
         }
       }
     };
@@ -46,6 +47,7 @@ const Navigation = () => {
     
     // Set up listener for auth state changes
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth state changed:", event); // Debug log
       setIsLoggedIn(!!session);
       
       if (session) {
@@ -58,6 +60,7 @@ const Navigation = () => {
           
         if (profileData) {
           setUserRole(profileData.role);
+          console.log("User role updated:", profileData.role); // Debug log
         }
       } else {
         setUserRole(null);
@@ -112,6 +115,7 @@ const Navigation = () => {
 
   const handleDashboardClick = () => {
     const dashboardUrl = getDashboardLink();
+    console.log("Navigating to dashboard:", dashboardUrl); // Debug log
     if (dashboardUrl !== '/') {
       navigate(dashboardUrl);
     }

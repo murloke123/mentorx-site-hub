@@ -43,35 +43,50 @@ const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode,
 
   useEffect(() => {
     const checkSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      setIsLoggedIn(!!data.session);
-      
-      if (data.session) {
-        // Fetch role from profiles table
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', data.session.user.id)
-          .single();
-          
-        if (profileData) {
-          setUserRole(profileData.role);
+      try {
+        console.log("Checking session...");
+        const { data } = await supabase.auth.getSession();
+        console.log("Session data:", data.session ? "Session exists" : "No session");
+        setIsLoggedIn(!!data.session);
+        
+        if (data.session) {
+          // Fetch role from profiles table
+          const { data: profileData, error } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', data.session.user.id)
+            .single();
+            
+          if (error) {
+            console.error("Error fetching profile:", error);
+          } else if (profileData) {
+            console.log("User role from profile:", profileData.role);
+            setUserRole(profileData.role);
+          }
         }
+      } catch (error) {
+        console.error("Error checking session:", error);
+        setIsLoggedIn(false);
       }
     };
     checkSession();
   }, []);
 
   // Show nothing during the initial check
-  if (isLoggedIn === null) return null;
+  if (isLoggedIn === null) {
+    console.log("Auth state is still loading...");
+    return <div>Carregando...</div>;
+  }
   
   if (!isLoggedIn) {
+    console.log("Not logged in, redirecting to login");
     // Redirect to login, but save the intended destination
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
   
   // If allowedRoles is specified, check if user has the right role
   if (allowedRoles && userRole && !allowedRoles.includes(userRole)) {
+    console.log(`User role ${userRole} not allowed, redirecting`);
     // User doesn't have the right role - redirect to appropriate dashboard
     if (userRole === 'mentor') {
       return <Navigate to="/mentor/dashboard" replace />;
@@ -84,6 +99,7 @@ const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode,
     }
   }
 
+  console.log("Access granted to protected route");
   return <>{children}</>;
 };
 
@@ -93,9 +109,7 @@ const ProtectedLayout = ({ children, role }: { children: React.ReactNode, role: 
   
   return (
     <ProtectedRoute allowedRoles={allowedRoles}>
-      <div className="flex">
-        {children}
-      </div>
+      {children}
     </ProtectedRoute>
   );
 };
