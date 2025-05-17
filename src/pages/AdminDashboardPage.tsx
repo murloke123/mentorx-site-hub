@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { getAdminProfile, getPlatformStats, getAllMentors, getAllCourses } from '@/services/adminService';
 import AdminSidebar from '@/components/admin/AdminSidebar';
@@ -8,6 +7,7 @@ import CoursesList from '@/components/admin/CoursesList';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge"; // Added Badge import
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
