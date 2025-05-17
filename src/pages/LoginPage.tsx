@@ -1,30 +1,30 @@
 import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client'; // Verifique se o caminho está correto
+import { supabase } from '@/integrations/supabase/client'; 
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"; // Importar RadioGroup
-import { useToast } from '@/components/ui/use-toast'; // Importe o useToast
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useToast } from '@/hooks/use-toast';
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const { toast } = useToast(); // Use o hook useToast
+  const { toast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState(''); // Estado para confirmar senha
-  const [fullName, setFullName] = useState(''); // Novo estado para Nome Completo
-  const [role, setRole] = useState<'mentor' | 'mentorado'>('mentorado'); // Novo estado para Perfil, padrão 'mentorado'
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [role, setRole] = useState<'mentor' | 'mentorado'>('mentorado');
   const [loading, setLoading] = useState(false);
-  const [isSignUp, setIsSignUp] = useState(false); // Para alternar entre login e cadastro
+  const [isSignUp, setIsSignUp] = useState(false);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     if (isSignUp) {
-      // Modo Cadastro
+      // Signup mode
       if (password !== confirmPassword) {
         toast({
           title: "Erro no Cadastro",
@@ -34,31 +34,66 @@ const LoginPage = () => {
         setLoading(false);
         return; 
       }
-      if (!fullName.trim()) { // Validar nome completo
+      
+      if (!fullName.trim()) {
         toast({ title: "Erro no Cadastro", description: "Por favor, informe seu nome completo.", variant: "destructive" });
         setLoading(false);
         return;
       }
+      
       try {
+        console.log(`Signup attempt with email: ${email}, role: ${role}`);
+        
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            data: { // Passar dados adicionais para a tabela profiles via trigger
+            data: {
               full_name: fullName,
               role: role, 
             }
           }
         });
+        
         if (error) throw error;
+        
+        console.log("Signup successful:", data);
+        
         toast({ title: "Cadastro realizado!", description: "Verifique seu email para confirmação, se aplicável. Agora você pode fazer login." });
-        setIsSignUp(false); // Volta para a tela de login
-        setFullName('');
-        setEmail('');
-        setPassword('');
-        setConfirmPassword('');
-        setRole('mentorado'); // Resetar para o padrão
+        
+        // Automatically log the user in after signup
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        
+        if (signInError) {
+          console.error("Error signing in after signup:", signInError);
+          setIsSignUp(false); // Return to login screen
+          setLoading(false);
+          return;
+        }
+        
+        console.log("Auto login after signup successful");
+        
+        // Check user role and redirect accordingly
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', signInData.user?.id)
+          .single();
+        
+        console.log("User profile after signup:", profileData);
+        
+        if (profileData?.role === 'mentor') {
+          navigate('/mentor/dashboard');
+        } else if (profileData?.role === 'mentorado') {
+          navigate('/mentorado/dashboard');
+        } else {
+          navigate('/');
+        }
       } catch (error: any) {
+        console.error("Signup error:", error);
         toast({
           title: "Erro no Cadastro",
           description: error.error_description || error.message,
@@ -68,36 +103,49 @@ const LoginPage = () => {
         setLoading(false);
       }
     } else {
-      // Modo Login
+      // Login mode
       try {
+        console.log(`Login attempt with email: ${email}`);
+        
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
+        
         if (error) throw error;
+        
         if (data.user) {
-          // Após o login, você pode querer buscar o perfil do usuário para redirecionar
-          // com base no 'role' (mentor/mentorado)
+          console.log("Login successful, user:", data.user.id);
+          
+          // Fetch user's role to redirect to the appropriate dashboard
           const { data: profileData, error: profileError } = await supabase
             .from('profiles')
             .select('role')
             .eq('id', data.user.id)
             .single();
 
-          if (profileError) throw profileError;
+          if (profileError) {
+            console.error("Error fetching user profile:", profileError);
+            throw profileError;
+          }
 
+          console.log("User role:", profileData?.role);
+          
           toast({ title: "Login bem-sucedido!", description: "Redirecionando..." });
+          
+          // Redirect based on user role
           if (profileData?.role === 'mentor') {
-            navigate('/mentor/dashboard'); // Exemplo de rota para dashboard do mentor
+            navigate('/mentor/dashboard'); 
           } else if (profileData?.role === 'mentorado') {
-            navigate('/mentorado/dashboard'); // Exemplo de rota para dashboard do mentorado
+            navigate('/mentorado/dashboard'); 
           } else {
-            navigate('/'); // Rota padrão
+            navigate('/');
           }
         } else {
           toast({ title: "Erro de Login", description: "Usuário não encontrado ou credenciais inválidas.", variant: "destructive" });
         }
       } catch (error: any) {
+        console.error("Login error:", error);
         toast({
           title: "Erro de Login",
           description: error.error_description || error.message,

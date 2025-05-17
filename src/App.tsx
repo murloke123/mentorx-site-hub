@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,13 +10,13 @@ import AboutPage from "@/pages/AboutPage";
 import CoursesPage from "@/pages/CoursesPage";
 import LoginPage from "@/pages/LoginPage";
 import MentorDashboardPage from "@/pages/MentorDashboardPage";
+import MentoradoDashboardPage from "@/pages/MentoradoDashboardPage";
 import CreateCoursePage from "@/pages/CreateCoursePage";
 import EditCoursePage from "@/pages/EditCoursePage";
 import MeusCursosPage from "@/pages/MeusCursosPage";
 import MentorFollowersPage from "@/pages/MentorFollowersPage";
 import NotFound from "@/pages/NotFound";
 import Debug from "@/components/Debug";
-
 
 const queryClient = new QueryClient();
 
@@ -42,13 +41,11 @@ const App = () => (
               <Route path="/mentor/cursos/:id/editar" element={<EditCoursePage />} />
               <Route path="/mentor/followers" element={<MentorFollowersPage />} />
               <Route path="/mentor/mentorados" element={<MentorFollowersPage />} />
-              <Route path="/mentor/calendario" element={<NotFound />} />
-              <Route path="/mentor/configuracoes" element={<NotFound />} />
-              <Route path="/mentor/cursos/:id" element={<NotFound />} />
-              <Route path="/mentor/modulos/novo" element={<NotFound />} />
-              <Route path="/mentor/modulos/:id" element={<NotFound />} />
-              <Route path="/mentor/modulos/:id/editar" element={<NotFound />} />
-              <Route path="/mentor/modulos/:id/aulas" element={<NotFound />} />
+              <Route path="/mentorado/dashboard" element={<MentoradoDashboardPage />} />
+              <Route path="/mentorado/cursos" element={<NotFound />} />
+              <Route path="/mentorado/cursos/:id" element={<NotFound />} />
+              <Route path="/mentorado/calendario" element={<NotFound />} />
+              <Route path="/mentorado/configuracoes" element={<NotFound />} />
               {/* Keep backwards compatibility for now */}
               <Route path="/mentor/courses/new" element={<CreateCoursePage />} />
               <Route path="/mentor/courses/:id/edit" element={<EditCoursePage />} />

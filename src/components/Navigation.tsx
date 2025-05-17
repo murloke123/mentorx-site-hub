@@ -90,7 +90,7 @@ const Navigation = () => {
     if (userRole === 'mentor') {
       navigate('/mentor/dashboard');
     } else if (userRole === 'mentorado') {
-      navigate('/dashboard');
+      navigate('/mentorado/dashboard');
     } else {
       toast({
         variant: "destructive",
