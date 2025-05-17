@@ -4,7 +4,6 @@ import { getMentorProfile, getMentorCourses, getMentorFollowersCount } from '@/s
 import StatsSection from '@/components/mentor/StatsSection';
 import AnalyticsSection from '@/components/mentor/AnalyticsSection';
 import CoursesList from '@/components/mentor/CoursesList';
-import MentorSidebar from '@/components/mentor/MentorSidebar';
 
 const MentorDashboardPage = () => {
   // Fetch the mentor profile
@@ -40,34 +39,31 @@ const MentorDashboardPage = () => {
   }, 0);
   
   return (
-    <div className="flex">
-      <MentorSidebar />
-      <div className="flex-1 p-6 overflow-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold">
-            {profile ? `Bem-vindo, ${profile.full_name || 'Mentor'}!` : 'Dashboard'}
-          </h1>
-          <p className="text-gray-600">Gerencie seus cursos e acompanhe seu desempenho</p>
-        </div>
-
-        {/* Stats Section */}
-        <StatsSection 
-          followersCount={followersCount} 
-          totalCourses={totalCourses}
-          totalEnrollments={totalEnrollments}
-          totalRevenue={totalRevenue}
-        />
-
-        {/* Analytics Section */}
-        <AnalyticsSection />
-
-        {/* Courses Section */}
-        <CoursesList 
-          courses={courses} 
-          isLoading={isLoadingCourses} 
-          totalEnrollments={totalEnrollments} 
-        />
+    <div className="flex-1 p-6 overflow-auto">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold">
+          {profile ? `Bem-vindo, ${profile.full_name || 'Mentor'}!` : 'Dashboard'}
+        </h1>
+        <p className="text-gray-600">Gerencie seus cursos e acompanhe seu desempenho</p>
       </div>
+
+      {/* Stats Section */}
+      <StatsSection 
+        followersCount={followersCount} 
+        totalCourses={totalCourses}
+        totalEnrollments={totalEnrollments}
+        totalRevenue={totalRevenue}
+      />
+
+      {/* Analytics Section */}
+      <AnalyticsSection />
+
+      {/* Courses Section */}
+      <CoursesList 
+        courses={courses} 
+        isLoading={isLoadingCourses} 
+        totalEnrollments={totalEnrollments} 
+      />
     </div>
   );
 };

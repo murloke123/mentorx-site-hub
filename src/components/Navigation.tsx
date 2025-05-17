@@ -76,7 +76,8 @@ const Navigation = () => {
         title: "Logout realizado com sucesso",
         description: "Você foi desconectado da sua conta"
       });
-      navigate("/");
+      // Force a page refresh to clear all state
+      window.location.href = "/";
     } catch (error) {
       console.error("Erro ao fazer logout:", error);
       toast({
@@ -97,6 +98,13 @@ const Navigation = () => {
         return '/admin/dashboard';
       default:
         return '/';
+    }
+  };
+
+  const handleDashboardClick = () => {
+    const dashboardUrl = getDashboardLink();
+    if (dashboardUrl !== '/') {
+      navigate(dashboardUrl);
     }
   };
 
@@ -125,12 +133,15 @@ const Navigation = () => {
             </Link>
             {isLoggedIn ? (
               <>
-                <Link to={getDashboardLink()}>
-                  <Button variant="outline" size="sm" className="flex items-center gap-1">
-                    <LayoutDashboard className="h-4 w-4" />
-                    Acessar meu Dashboard
-                  </Button>
-                </Link>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleDashboardClick} 
+                  className="flex items-center gap-1"
+                >
+                  <LayoutDashboard className="h-4 w-4" />
+                  Acessar meu Dashboard
+                </Button>
                 <Button 
                   variant="ghost" 
                   size="sm" 

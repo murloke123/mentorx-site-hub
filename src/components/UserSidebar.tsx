@@ -165,7 +165,8 @@ const UserSidebar = () => {
         title: "Logout realizado com sucesso",
         description: "Você foi desconectado da sua conta"
       });
-      navigate("/");
+      // Force a page refresh to clear all state
+      window.location.href = "/";
     } catch (error) {
       console.error("Erro ao fazer logout:", error);
       toast({
@@ -175,19 +176,6 @@ const UserSidebar = () => {
       });
     }
   };
-  
-  // Determine user type from path
-  const getUserType = () => {
-    if (location.pathname.includes('/mentor/')) return 'mentor';
-    if (location.pathname.includes('/mentorado/')) return 'mentorado';
-    if (location.pathname.includes('/admin/')) return 'admin';
-    return '';
-  };
-  
-  const userType = getUserType();
-  
-  // If not in a proper user route, don't show sidebar
-  if (!userType) return null;
 
   return (
     <div 

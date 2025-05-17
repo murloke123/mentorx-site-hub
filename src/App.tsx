@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -95,10 +94,7 @@ const ProtectedLayout = ({ children, role }: { children: React.ReactNode, role: 
   return (
     <ProtectedRoute allowedRoles={allowedRoles}>
       <div className="flex">
-        <UserSidebar />
-        <div className="flex-1">
-          {children}
-        </div>
+        {children}
       </div>
     </ProtectedRoute>
   );
