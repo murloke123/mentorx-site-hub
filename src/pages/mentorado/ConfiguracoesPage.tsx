@@ -67,7 +67,7 @@ const MentoradoConfiguracoesPage = () => {
           full_name: profile.full_name,
           bio: profile.bio,
           avatar_url: profile.avatar_url,
-          updated_at: new Date()
+          updated_at: new Date().toISOString() // Fix: Convert Date to ISO string
         })
         .eq('id', user.id);
         
