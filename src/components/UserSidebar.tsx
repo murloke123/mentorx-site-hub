@@ -1,51 +1,162 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Users, Calendar, Settings, ChevronRight, ChevronLeft, LayoutDashboard, LogOut, BookOpen, Home } from "lucide-react";
+import { 
+  Users, 
+  Calendar, 
+  Settings, 
+  ChevronRight, 
+  ChevronLeft, 
+  LayoutDashboard, 
+  LogOut, 
+  BookOpen, 
+  Home 
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
-const MentorSidebar = () => {
+const UserSidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
   
-  const menuItems = [
-    {
-      title: "Home",
-      icon: Home,
-      href: "/",
-    },
-    {
-      title: "Dashboard",
-      icon: LayoutDashboard,
-      href: "/mentor/dashboard",
-    },
-    {
-      title: "Meus Cursos",
-      icon: BookOpen,
-      href: "/mentor/cursos",
-    },
-    {
-      title: "Meus Mentorados",
-      icon: Users,
-      href: "/mentor/mentorados",
-    },
-    {
-      title: "Calendário",
-      icon: Calendar,
-      href: "/mentor/calendario",
-    },
-    {
-      title: "Configurações",
-      icon: Settings,
-      href: "/mentor/configuracoes",
-    },
-  ];
+  useEffect(() => {
+    const getUserRole = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session) {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', session.user.id)
+          .single();
+          
+        if (profileData) {
+          setUserRole(profileData.role);
+        }
+      }
+    };
+    
+    getUserRole();
+  }, []);
+  
+  // Define menu items based on user role
+  const getMenuItems = () => {
+    const baseItems = [
+      {
+        title: "Home",
+        icon: Home,
+        href: "/",
+      }
+    ];
+    
+    const mentorItems = [
+      {
+        title: "Dashboard",
+        icon: LayoutDashboard,
+        href: "/mentor/dashboard",
+      },
+      {
+        title: "Meus Cursos",
+        icon: BookOpen,
+        href: "/mentor/cursos",
+      },
+      {
+        title: "Meus Mentorados",
+        icon: Users,
+        href: "/mentor/mentorados",
+      },
+      {
+        title: "Calendário",
+        icon: Calendar,
+        href: "/mentor/calendario",
+      },
+      {
+        title: "Configurações",
+        icon: Settings,
+        href: "/mentor/configuracoes",
+      }
+    ];
+    
+    const mentoradoItems = [
+      {
+        title: "Dashboard",
+        icon: LayoutDashboard,
+        href: "/mentorado/dashboard",
+      },
+      {
+        title: "Meus Cursos",
+        icon: BookOpen,
+        href: "/mentorado/cursos",
+      },
+      {
+        title: "Mentores",
+        icon: Users,
+        href: "/mentorado/mentores",
+      },
+      {
+        title: "Calendário",
+        icon: Calendar,
+        href: "/mentorado/calendario",
+      },
+      {
+        title: "Configurações",
+        icon: Settings,
+        href: "/mentorado/configuracoes",
+      }
+    ];
+    
+    const adminItems = [
+      {
+        title: "Dashboard",
+        icon: LayoutDashboard,
+        href: "/admin/dashboard",
+      },
+      {
+        title: "Cursos",
+        icon: BookOpen,
+        href: "/admin/cursos",
+      },
+      {
+        title: "Mentores",
+        icon: Users,
+        href: "/admin/mentores",
+      },
+      {
+        title: "Mentorados",
+        icon: Users,
+        href: "/admin/mentorados",
+      },
+      {
+        title: "Calendário",
+        icon: Calendar,
+        href: "/admin/calendario",
+      },
+      {
+        title: "Configurações",
+        icon: Settings,
+        href: "/admin/configuracoes",
+      }
+    ];
+    
+    switch (userRole) {
+      case 'mentor':
+        return [...baseItems, ...mentorItems];
+      case 'mentorado':
+        return [...baseItems, ...mentoradoItems];
+      case 'admin':
+        return [...baseItems, ...adminItems];
+      default:
+        return baseItems;
+    }
+  };
+
+  const menuItems = getMenuItems();
 
   const handleLogout = async () => {
     try {
@@ -64,6 +175,19 @@ const MentorSidebar = () => {
       });
     }
   };
+  
+  // Determine user type from path
+  const getUserType = () => {
+    if (location.pathname.includes('/mentor/')) return 'mentor';
+    if (location.pathname.includes('/mentorado/')) return 'mentorado';
+    if (location.pathname.includes('/admin/')) return 'admin';
+    return '';
+  };
+  
+  const userType = getUserType();
+  
+  // If not in a proper user route, don't show sidebar
+  if (!userType) return null;
 
   return (
     <div 
@@ -164,4 +288,4 @@ const MentorSidebar = () => {
   );
 };
 
-export default MentorSidebar;
+export default UserSidebar;
