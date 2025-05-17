@@ -3,12 +3,30 @@ import { useQuery } from '@tanstack/react-query';
 import { getAllMentorees } from '@/services/adminService';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import MentoradosList from '@/components/admin/MentoradosList';
+import { useToast } from '@/hooks/use-toast';
 
 const AdminMentoradosPage = () => {
-  // Buscar mentorados
+  const { toast } = useToast();
+  
+  // Buscar mentorados com log adicional para depuração
   const { data: mentorados = [], isLoading, refetch } = useQuery({
     queryKey: ['allMentorees'],
-    queryFn: getAllMentorees,
+    queryFn: async () => {
+      console.log('Buscando mentorados...');
+      try {
+        const result = await getAllMentorees();
+        console.log('Mentorados encontrados:', result);
+        return result;
+      } catch (error) {
+        console.error('Erro ao buscar mentorados:', error);
+        toast({
+          variant: "destructive",
+          title: "Erro ao carregar mentorados",
+          description: "Não foi possível carregar a lista de mentorados."
+        });
+        return [];
+      }
+    },
   });
   
   return (

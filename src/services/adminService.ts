@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export const getAdminProfile = async () => {
@@ -21,25 +20,75 @@ export const getAdminProfile = async () => {
 };
 
 export const getAllMentors = async () => {
-  const { data, error } = await supabase
-    .from('profiles')
-    .select(`
-      *,
-      courses: courses(count),
-      followers: mentor_followers(count)
-    `)
-    .eq('role', 'mentor');
-
-  if (error) {
-    console.error('Erro ao buscar mentores:', error);
-    throw error;
+  console.log('Iniciando getAllMentors');
+  
+  // Verificar conexão com o Supabase
+  try {
+    const { data: testData, error: testError } = await supabase.from('profiles').select('count');
+    console.log('Teste de conexão com o Supabase:', testData ? 'OK' : 'Falha', testError);
+  } catch (e) {
+    console.error('Erro no teste de conexão:', e);
   }
 
-  return data.map(mentor => ({
-    ...mentor,
-    courses_count: mentor.courses?.[0]?.count || 0,
-    followers_count: mentor.followers?.[0]?.count || 0
-  }));
+  try {
+    // Consulta clara para buscar mentores
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, full_name, avatar_url, bio, role')
+      .eq('role', 'mentor');
+
+    if (error) {
+      console.error('Erro específico ao buscar mentores:', error);
+      throw error;
+    }
+
+    console.log('Mentores encontrados (raw):', data);
+
+    // Consulta para contar cursos por mentor
+    const coursesCountPromises = data.map(async (mentor) => {
+      const { count, error: countError } = await supabase
+        .from('courses')
+        .select('id', { count: 'exact', head: true })
+        .eq('mentor_id', mentor.id);
+
+      if (countError) {
+        console.error(`Erro ao contar cursos para mentor ${mentor.id}:`, countError);
+        return 0;
+      }
+      return count || 0;
+    });
+
+    // Consulta para contar seguidores por mentor
+    const followersCountPromises = data.map(async (mentor) => {
+      const { count, error: countError } = await supabase
+        .from('mentor_followers')
+        .select('mentor_id', { count: 'exact', head: true })
+        .eq('mentor_id', mentor.id);
+
+      if (countError) {
+        console.error(`Erro ao contar seguidores para mentor ${mentor.id}:`, countError);
+        return 0;
+      }
+      return count || 0;
+    });
+
+    // Esperar por todas as contagens
+    const coursesCount = await Promise.all(coursesCountPromises);
+    const followersCount = await Promise.all(followersCountPromises);
+
+    // Montar o resultado final com as contagens
+    const mentorsWithCounts = data.map((mentor, index) => ({
+      ...mentor,
+      courses_count: coursesCount[index],
+      followers_count: followersCount[index]
+    }));
+
+    console.log('Mentores processados com contagens:', mentorsWithCounts);
+    return mentorsWithCounts;
+  } catch (e) {
+    console.error('Erro geral em getAllMentors:', e);
+    throw e;
+  }
 };
 
 export const getAllMentorees = async () => {
