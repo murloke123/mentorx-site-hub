@@ -1,0 +1,185 @@
+
+import { useState } from 'react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { BookOpen, Users, AlertCircle } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
+import { deleteUser } from "@/services/adminService";
+
+interface Mentor {
+  id: string;
+  full_name: string | null;
+  avatar_url: string | null;
+  bio: string | null;
+  courses_count: number;
+  followers_count: number;
+}
+
+interface MentorsListProps {
+  mentors: Mentor[];
+  isLoading: boolean;
+  onDelete?: () => void;
+}
+
+const MentorsList = ({ mentors, isLoading, onDelete }: MentorsListProps) => {
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [selectedMentor, setSelectedMentor] = useState<Mentor | null>(null);
+  const { toast } = useToast();
+  
+  const handleDeleteClick = (mentor: Mentor) => {
+    setSelectedMentor(mentor);
+    setOpenDeleteDialog(true);
+  };
+  
+  const handleConfirmDelete = async () => {
+    if (!selectedMentor) return;
+    
+    try {
+      await deleteUser(selectedMentor.id);
+      toast({
+        title: "Mentor removido",
+        description: `${selectedMentor.full_name || 'O mentor'} foi removido com sucesso.`,
+      });
+      setOpenDeleteDialog(false);
+      if (onDelete) onDelete();
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Erro ao remover mentor",
+        description: error.message || "Ocorreu um erro ao tentar remover o mentor.",
+      });
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {[...Array(6)].map((_, i) => (
+          <Card key={i} className="overflow-hidden">
+            <CardHeader className="pb-2">
+              <div className="flex items-center gap-2">
+                <Skeleton className="h-12 w-12 rounded-full" />
+                <div className="space-y-1">
+                  <Skeleton className="h-4 w-40" />
+                  <Skeleton className="h-3 w-24" />
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-20 mb-3" />
+              <div className="flex gap-2">
+                <Skeleton className="h-5 w-20" />
+                <Skeleton className="h-5 w-20" />
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Skeleton className="h-9 w-full" />
+            </CardFooter>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
+  if (mentors.length === 0) {
+    return (
+      <Card className="w-full p-6 flex items-center justify-center bg-gray-50 border-dashed">
+        <div className="text-center">
+          <AlertCircle className="mx-auto h-12 w-12 text-gray-400 mb-3" />
+          <h3 className="text-lg font-medium">Nenhum mentor encontrado</h3>
+          <p className="text-sm text-gray-500 mt-2">
+            Não há mentores cadastrados na plataforma.
+          </p>
+        </div>
+      </Card>
+    );
+  }
+
+  return (
+    <>
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {mentors.map((mentor) => (
+          <Card key={mentor.id}>
+            <CardHeader>
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-12 w-12">
+                    <AvatarImage src={mentor.avatar_url || undefined} alt={mentor.full_name || 'Mentor'} />
+                    <AvatarFallback>{(mentor.full_name || 'M')[0].toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <CardTitle className="text-lg">{mentor.full_name || 'Sem nome'}</CardTitle>
+                    <CardDescription className="mt-1">Mentor</CardDescription>
+                  </div>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-gray-500 line-clamp-3 h-12">
+                {mentor.bio || 'Este mentor ainda não adicionou uma biografia.'}
+              </p>
+              <div className="flex gap-2 mt-4">
+                <Badge variant="outline" className="flex items-center gap-1">
+                  <BookOpen className="h-3 w-3" /> {mentor.courses_count} cursos
+                </Badge>
+                <Badge variant="outline" className="flex items-center gap-1">
+                  <Users className="h-3 w-3" /> {mentor.followers_count} seguidores
+                </Badge>
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button 
+                variant="destructive" 
+                size="sm" 
+                className="w-full"
+                onClick={() => handleDeleteClick(mentor)}
+              >
+                Remover mentor
+              </Button>
+            </CardFooter>
+          </Card>
+        ))}
+      </div>
+
+      <AlertDialog open={openDeleteDialog} onOpenChange={setOpenDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. Isso removerá permanentemente o mentor{" "}
+              <strong>{selectedMentor?.full_name}</strong> e todos os seus dados da plataforma.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete}>
+              Confirmar exclusão
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+};
+
+export default MentorsList;

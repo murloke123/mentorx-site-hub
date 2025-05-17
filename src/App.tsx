@@ -18,6 +18,12 @@ import MentorFollowersPage from "@/pages/MentorFollowersPage";
 import NotFound from "@/pages/NotFound";
 import Debug from "@/components/Debug";
 
+// Importar as novas páginas de administração
+import AdminDashboardPage from "@/pages/AdminDashboardPage";
+import AdminMentorsPage from "@/pages/AdminMentorsPage";
+import AdminMentoradosPage from "@/pages/AdminMentoradosPage";
+import AdminCoursesPage from "@/pages/AdminCoursesPage";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -35,17 +41,30 @@ const App = () => (
               <Route path="/about" element={<AboutPage />} />
               <Route path="/courses" element={<CoursesPage />} />
               <Route path="/login" element={<LoginPage />} />
+              
+              {/* Rotas de Mentor */}
               <Route path="/mentor/dashboard" element={<MentorDashboardPage />} />
               <Route path="/mentor/cursos" element={<MeusCursosPage />} />
               <Route path="/mentor/cursos/novo" element={<CreateCoursePage />} />
               <Route path="/mentor/cursos/:id/editar" element={<EditCoursePage />} />
               <Route path="/mentor/followers" element={<MentorFollowersPage />} />
               <Route path="/mentor/mentorados" element={<MentorFollowersPage />} />
+              
+              {/* Rotas de Mentorado */}
               <Route path="/mentorado/dashboard" element={<MentoradoDashboardPage />} />
               <Route path="/mentorado/cursos" element={<NotFound />} />
               <Route path="/mentorado/cursos/:id" element={<NotFound />} />
               <Route path="/mentorado/calendario" element={<NotFound />} />
               <Route path="/mentorado/configuracoes" element={<NotFound />} />
+              
+              {/* Novas Rotas de Administrador */}
+              <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+              <Route path="/admin/mentors" element={<AdminMentorsPage />} />
+              <Route path="/admin/mentorados" element={<AdminMentoradosPage />} />
+              <Route path="/admin/cursos" element={<AdminCoursesPage />} />
+              <Route path="/admin/relatorios" element={<NotFound />} />
+              <Route path="/admin/configuracoes" element={<NotFound />} />
+              
               {/* Keep backwards compatibility for now */}
               <Route path="/mentor/courses/new" element={<CreateCoursePage />} />
               <Route path="/mentor/courses/:id/edit" element={<EditCoursePage />} />

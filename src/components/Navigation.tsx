@@ -87,7 +87,9 @@ const Navigation = () => {
   };
   
   const handleDashboardAccess = () => {
-    if (userRole === 'mentor') {
+    if (userRole === 'admin') {
+      navigate('/admin/dashboard');
+    } else if (userRole === 'mentor') {
       navigate('/mentor/dashboard');
     } else if (userRole === 'mentorado') {
       navigate('/mentorado/dashboard');
