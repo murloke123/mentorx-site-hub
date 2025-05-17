@@ -24,21 +24,34 @@ const Navigation = () => {
   // Check if user is logged in when component mounts
   useEffect(() => {
     const checkUserSession = async () => {
+      console.log("Navigation: Checking user session");
       const { data } = await supabase.auth.getSession();
       const session = data.session;
+      
+      console.log("Navigation: Session exists?", !!session);
       setIsLoggedIn(!!session);
       
       if (session) {
-        // Fetch user role from profiles table
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', session.user.id)
-          .single();
+        try {
+          // Fetch user role from profiles table
+          const { data: profileData, error } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', session.user.id)
+            .single();
+            
+          if (error) throw error;
           
-        if (profileData) {
-          setUserRole(profileData.role);
-          console.log("User role:", profileData.role); // Debug log
+          if (profileData) {
+            console.log("Navigation: User role found:", profileData.role);
+            setUserRole(profileData.role);
+          } else {
+            console.log("Navigation: No profile data found");
+            setUserRole(null);
+          }
+        } catch (error) {
+          console.error("Navigation: Error fetching user role:", error);
+          setUserRole(null);
         }
       }
     };
@@ -47,20 +60,30 @@ const Navigation = () => {
     
     // Set up listener for auth state changes
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("Auth state changed:", event); // Debug log
+      console.log("Navigation: Auth state changed:", event);
       setIsLoggedIn(!!session);
       
       if (session) {
-        // Fetch user role from profiles table
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', session.user.id)
-          .single();
+        try {
+          // Fetch user role from profiles table
+          const { data: profileData, error } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', session.user.id)
+            .single();
+            
+          if (error) throw error;
           
-        if (profileData) {
-          setUserRole(profileData.role);
-          console.log("User role updated:", profileData.role); // Debug log
+          if (profileData) {
+            console.log("Navigation: User role updated:", profileData.role);
+            setUserRole(profileData.role);
+          } else {
+            console.log("Navigation: No profile data found");
+            setUserRole(null);
+          }
+        } catch (error) {
+          console.error("Navigation: Error fetching user role:", error);
+          setUserRole(null);
         }
       } else {
         setUserRole(null);
@@ -74,14 +97,26 @@ const Navigation = () => {
 
   const handleLogout = async () => {
     try {
+      console.log("Navigation: Starting logout process");
+      
       // Clean up authentication state
       Object.keys(localStorage).forEach((key) => {
         if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+          console.log("Navigation: Removing auth key from localStorage:", key);
           localStorage.removeItem(key);
         }
       });
       
+      // Also clean up from sessionStorage if needed
+      Object.keys(sessionStorage || {}).forEach((key) => {
+        if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+          console.log("Navigation: Removing auth key from sessionStorage:", key);
+          sessionStorage.removeItem(key);
+        }
+      });
+      
       await supabase.auth.signOut({ scope: 'global' });
+      console.log("Navigation: Logout API call completed");
       
       toast({
         title: "Logout realizado com sucesso",
@@ -91,7 +126,7 @@ const Navigation = () => {
       // Force a page refresh to clear all state
       window.location.href = "/";
     } catch (error) {
-      console.error("Erro ao fazer logout:", error);
+      console.error("Navigation: Erro ao fazer logout:", error);
       toast({
         variant: "destructive",
         title: "Erro ao fazer logout",
@@ -101,6 +136,7 @@ const Navigation = () => {
   };
 
   const getDashboardLink = () => {
+    console.log("Navigation: Getting dashboard link for role:", userRole);
     switch(userRole) {
       case 'mentor':
         return '/mentor/dashboard';
@@ -115,10 +151,8 @@ const Navigation = () => {
 
   const handleDashboardClick = () => {
     const dashboardUrl = getDashboardLink();
-    console.log("Navigating to dashboard:", dashboardUrl); // Debug log
-    if (dashboardUrl !== '/') {
-      navigate(dashboardUrl);
-    }
+    console.log("Navigation: Navigating to dashboard:", dashboardUrl);
+    navigate(dashboardUrl);
   };
 
   return (

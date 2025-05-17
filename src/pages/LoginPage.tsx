@@ -26,9 +26,19 @@ const LoginPage = () => {
 
   // Clean up existing auth state before login/signup
   const cleanupAuthState = () => {
+    console.log("LoginPage: Cleaning up auth state");
+    
     Object.keys(localStorage).forEach((key) => {
       if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+        console.log("LoginPage: Removing localStorage key:", key);
         localStorage.removeItem(key);
+      }
+    });
+    
+    Object.keys(sessionStorage || {}).forEach((key) => {
+      if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+        console.log("LoginPage: Removing sessionStorage key:", key);
+        sessionStorage.removeItem(key);
       }
     });
   };
@@ -58,16 +68,19 @@ const LoginPage = () => {
         return;
       }
       try {
+        console.log("LoginPage: Starting signup process");
         // Clean up existing auth state
         cleanupAuthState();
         
         // Try to sign out globally first
         try {
           await supabase.auth.signOut({ scope: 'global' });
+          console.log("LoginPage: Global sign out completed");
         } catch (err) {
-          console.log("Sign out error (expected if not signed in):", err);
+          console.log("LoginPage: Sign out error (expected if not signed in):", err);
         }
         
+        console.log("LoginPage: Attempting to sign up with email:", email);
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
@@ -80,7 +93,7 @@ const LoginPage = () => {
         });
         if (error) throw error;
         
-        console.log("Sign up successful:", data);
+        console.log("LoginPage: Sign up successful:", data);
         
         toast({ 
           title: "Cadastro realizado!", 
@@ -93,7 +106,7 @@ const LoginPage = () => {
         setConfirmPassword('');
         setRole('mentorado');
       } catch (error: any) {
-        console.error("Sign up error:", error);
+        console.error("LoginPage: Sign up error:", error);
         toast({
           title: "Erro no Cadastro",
           description: error.error_description || error.message,
@@ -105,26 +118,30 @@ const LoginPage = () => {
     } else {
       // Login mode
       try {
+        console.log("LoginPage: Starting login process");
         // Clean up existing auth state
         cleanupAuthState();
         
         // Try to sign out globally first
         try {
           await supabase.auth.signOut({ scope: 'global' });
+          console.log("LoginPage: Global sign out completed");
         } catch (err) {
-          console.log("Sign out error (expected if not signed in):", err);
+          console.log("LoginPage: Sign out error (expected if not signed in):", err);
         }
         
+        console.log("LoginPage: Attempting to sign in with email:", email);
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
         if (error) throw error;
         
-        console.log("Login successful:", data?.user?.id);
+        console.log("LoginPage: Login successful:", data?.user?.id);
         
         if (data.user) {
           // Fetch user's role
+          console.log("LoginPage: Fetching user role");
           const { data: profileData, error: profileError } = await supabase
             .from('profiles')
             .select('role')
@@ -132,27 +149,30 @@ const LoginPage = () => {
             .single();
 
           if (profileError) {
-            console.error("Error fetching profile:", profileError);
+            console.error("LoginPage: Error fetching profile:", profileError);
             throw profileError;
           }
 
-          console.log("User profile:", profileData);
+          console.log("LoginPage: User profile:", profileData);
           
           toast({ title: "Login bem-sucedido!", description: "Redirecionando..." });
           
+          // Store session in localStorage to prevent loss during redirect
+          localStorage.setItem('mentor_app_session', JSON.stringify(data.session));
+          
           // Redirect based on role
           if (profileData?.role === 'mentor') {
-            console.log("Redirecting to mentor dashboard");
-            navigate('/mentor/dashboard');
+            console.log("LoginPage: Redirecting to mentor dashboard");
+            navigate('/mentor/dashboard', { replace: true });
           } else if (profileData?.role === 'mentorado') {
-            console.log("Redirecting to mentorado dashboard");
-            navigate('/mentorado/dashboard');
+            console.log("LoginPage: Redirecting to mentorado dashboard");
+            navigate('/mentorado/dashboard', { replace: true });
           } else if (profileData?.role === 'admin') {
-            console.log("Redirecting to admin dashboard");
-            navigate('/admin/dashboard');
+            console.log("LoginPage: Redirecting to admin dashboard");
+            navigate('/admin/dashboard', { replace: true });
           } else {
-            console.log("Role unknown, redirecting to:", from);
-            navigate(from);
+            console.log("LoginPage: Role unknown, redirecting to:", from);
+            navigate(from, { replace: true });
           }
         } else {
           toast({ 
@@ -162,7 +182,7 @@ const LoginPage = () => {
           });
         }
       } catch (error: any) {
-        console.error("Login error:", error);
+        console.error("LoginPage: Login error:", error);
         toast({
           title: "Erro de Login",
           description: error.error_description || error.message,

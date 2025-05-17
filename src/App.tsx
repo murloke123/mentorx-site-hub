@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,7 +7,6 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-route
 import { useState, useEffect } from "react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import UserSidebar from "@/components/UserSidebar";
 import HomePage from "@/pages/HomePage";
 import AboutPage from "@/pages/AboutPage";
 import CoursesPage from "@/pages/CoursesPage";
@@ -39,14 +39,15 @@ const queryClient = new QueryClient();
 const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode, allowedRoles?: string[] }) => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const location = useLocation();
 
   useEffect(() => {
     const checkSession = async () => {
       try {
-        console.log("Checking session...");
+        console.log("ProtectedRoute: Checking session...");
         const { data } = await supabase.auth.getSession();
-        console.log("Session data:", data.session ? "Session exists" : "No session");
+        console.log("ProtectedRoute: Session data:", data.session ? "Session exists" : "No session");
         setIsLoggedIn(!!data.session);
         
         if (data.session) {
@@ -58,35 +59,37 @@ const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode,
             .single();
             
           if (error) {
-            console.error("Error fetching profile:", error);
+            console.error("ProtectedRoute: Error fetching profile:", error);
           } else if (profileData) {
-            console.log("User role from profile:", profileData.role);
+            console.log("ProtectedRoute: User role from profile:", profileData.role);
             setUserRole(profileData.role);
           }
         }
       } catch (error) {
-        console.error("Error checking session:", error);
+        console.error("ProtectedRoute: Error checking session:", error);
         setIsLoggedIn(false);
+      } finally {
+        setIsLoading(false);
       }
     };
     checkSession();
   }, []);
 
-  // Show nothing during the initial check
-  if (isLoggedIn === null) {
-    console.log("Auth state is still loading...");
-    return <div>Carregando...</div>;
+  // Show loading indicator during the initial check
+  if (isLoading || isLoggedIn === null) {
+    console.log("ProtectedRoute: Auth state is still loading...");
+    return <div className="flex items-center justify-center min-h-screen">Carregando...</div>;
   }
   
   if (!isLoggedIn) {
-    console.log("Not logged in, redirecting to login");
+    console.log("ProtectedRoute: Not logged in, redirecting to login");
     // Redirect to login, but save the intended destination
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
   
   // If allowedRoles is specified, check if user has the right role
   if (allowedRoles && userRole && !allowedRoles.includes(userRole)) {
-    console.log(`User role ${userRole} not allowed, redirecting`);
+    console.log(`ProtectedRoute: User role ${userRole} not allowed, redirecting`);
     // User doesn't have the right role - redirect to appropriate dashboard
     if (userRole === 'mentor') {
       return <Navigate to="/mentor/dashboard" replace />;
@@ -99,7 +102,7 @@ const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode,
     }
   }
 
-  console.log("Access granted to protected route");
+  console.log("ProtectedRoute: Access granted to protected route");
   return <>{children}</>;
 };
 
