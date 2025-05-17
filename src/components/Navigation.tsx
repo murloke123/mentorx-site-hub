@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -34,6 +33,11 @@ const Navigation = () => {
               
               console.info("Navigation: User role:", data?.role);
               setUserRole(data?.role || null);
+              
+              // Auto-redirect admin users to admin dashboard after login
+              if (event === 'SIGNED_IN' && data?.role === 'admin') {
+                navigate('/admin/dashboard');
+              }
             });
         } else {
           setUserRole(null);
@@ -66,7 +70,7 @@ const Navigation = () => {
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [navigate]);
   
   const handleLogout = async () => {
     try {

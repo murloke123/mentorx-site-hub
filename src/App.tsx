@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -57,8 +58,9 @@ const App = () => (
               <Route path="/mentorado/calendario" element={<NotFound />} />
               <Route path="/mentorado/configuracoes" element={<NotFound />} />
               
-              {/* Novas Rotas de Administrador */}
+              {/* Rotas de Administrador (correção na rota de mentores) */}
               <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+              <Route path="/admin/mentores" element={<AdminMentorsPage />} />
               <Route path="/admin/mentors" element={<AdminMentorsPage />} />
               <Route path="/admin/mentorados" element={<AdminMentoradosPage />} />
               <Route path="/admin/cursos" element={<AdminCoursesPage />} />

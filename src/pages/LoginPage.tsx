@@ -134,7 +134,9 @@ const LoginPage = () => {
           toast({ title: "Login bem-sucedido!", description: "Redirecionando..." });
           
           // Redirect based on user role
-          if (profileData?.role === 'mentor') {
+          if (profileData?.role === 'admin') {
+            navigate('/admin/dashboard');
+          } else if (profileData?.role === 'mentor') {
             navigate('/mentor/dashboard'); 
           } else if (profileData?.role === 'mentorado') {
             navigate('/mentorado/dashboard'); 

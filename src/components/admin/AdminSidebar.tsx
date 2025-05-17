@@ -56,9 +56,9 @@ const AdminSidebar = () => {
           </Button>
         </Link>
         
-        <Link to="/admin/mentors">
+        <Link to="/admin/mentores">
           <Button 
-            variant={isActive("/admin/mentors") ? "default" : "ghost"} 
+            variant={isActive("/admin/mentores") ? "default" : "ghost"} 
             className="w-full justify-start"
           >
             <Users className="mr-2 h-4 w-4" />
