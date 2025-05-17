@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -15,6 +16,7 @@ import EditCoursePage from "@/pages/EditCoursePage";
 import MeusCursosPage from "@/pages/MeusCursosPage";
 import MentorFollowersPage from "@/pages/MentorFollowersPage";
 import NotFound from "@/pages/NotFound";
+import Debug from "@/components/Debug";
 
 
 const queryClient = new QueryClient();
@@ -26,6 +28,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <div className="flex flex-col min-h-screen">
+          <Debug />
           <Navigation />
           <main className="flex-grow">
             <Routes>

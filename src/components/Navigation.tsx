@@ -1,9 +1,105 @@
 
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Calendar, MessageSquare } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const Navigation = () => {
+  const [session, setSession] = useState(null);
+  const [userRole, setUserRole] = useState(null);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  
+  useEffect(() => {
+    console.info("Navigation: Checking user session");
+    
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.info("Navigation: Auth state changed:", event);
+        setSession(session);
+        
+        if (session?.user.id) {
+          supabase
+            .from("profiles")
+            .select("role")
+            .eq("id", session.user.id)
+            .single()
+            .then(({ data, error }) => {
+              if (error) {
+                console.error("Error fetching user role:", error);
+                return;
+              }
+              
+              console.info("Navigation: User role:", data?.role);
+              setUserRole(data?.role || null);
+            });
+        } else {
+          setUserRole(null);
+        }
+      }
+    );
+    
+    // Initial session check
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      
+      if (session?.user.id) {
+        supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", session.user.id)
+          .single()
+          .then(({ data, error }) => {
+            if (error) {
+              console.error("Error fetching user role:", error);
+              return;
+            }
+            
+            console.info("Navigation: Initial user role:", data?.role);
+            setUserRole(data?.role || null);
+          });
+      }
+    });
+    
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+  
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast({
+        title: "Logout realizado com sucesso",
+        description: "Você foi desconectado da sua conta"
+      });
+      navigate("/");
+    } catch (error) {
+      console.error("Erro ao fazer logout:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao fazer logout",
+        description: "Ocorreu um problema ao tentar desconectar sua conta"
+      });
+    }
+  };
+  
+  const handleDashboardAccess = () => {
+    if (userRole === 'mentor') {
+      navigate('/mentor/dashboard');
+    } else if (userRole === 'mentorado') {
+      navigate('/dashboard');
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Acesso negado",
+        description: "Você não tem permissão para acessar essa área"
+      });
+    }
+  };
+
   return (
     <nav className="bg-white border-b shadow-sm">
       <div className="container mx-auto px-4">
@@ -27,9 +123,21 @@ const Navigation = () => {
                 Agendar
               </Button>
             </Link>
-            <Link to="/login">
-              <Button size="sm">Entrar</Button>
-            </Link>
+            
+            {session ? (
+              <>
+                <Button onClick={handleDashboardAccess} variant="outline" size="sm">
+                  Meu Dashboard
+                </Button>
+                <Button onClick={handleLogout} size="sm" variant="ghost">
+                  Sair
+                </Button>
+              </>
+            ) : (
+              <Link to="/login">
+                <Button size="sm">Entrar</Button>
+              </Link>
+            )}
           </div>
         </div>
       </div>
