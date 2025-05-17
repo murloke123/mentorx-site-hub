@@ -71,11 +71,20 @@ const Navigation = () => {
 
   const handleLogout = async () => {
     try {
-      await supabase.auth.signOut();
+      // Clean up authentication state
+      Object.keys(localStorage).forEach((key) => {
+        if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+          localStorage.removeItem(key);
+        }
+      });
+      
+      await supabase.auth.signOut({ scope: 'global' });
+      
       toast({
         title: "Logout realizado com sucesso",
         description: "Você foi desconectado da sua conta"
       });
+      
       // Force a page refresh to clear all state
       window.location.href = "/";
     } catch (error) {
