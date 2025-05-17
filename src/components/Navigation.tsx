@@ -1,9 +1,39 @@
 
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Calendar, MessageSquare } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Navigation = () => {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const location = useLocation();
+  const isMentorRoute = location.pathname.includes('/mentor/');
+  
+  // Check if user is logged in when component mounts
+  useEffect(() => {
+    const checkUserSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      setIsLoggedIn(!!data.session);
+    };
+    
+    checkUserSession();
+    
+    // Set up listener for auth state changes
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      setIsLoggedIn(!!session);
+    });
+    
+    return () => {
+      authListener?.subscription.unsubscribe();
+    };
+  }, []);
+
+  // Hide navigation in mentor pages where sidebar is shown
+  if (isMentorRoute) {
+    return null;
+  }
+
   return (
     <nav className="bg-white border-b shadow-sm">
       <div className="container mx-auto px-4">
@@ -27,9 +57,11 @@ const Navigation = () => {
                 Agendar
               </Button>
             </Link>
-            <Link to="/login">
-              <Button size="sm">Entrar</Button>
-            </Link>
+            {!isLoggedIn && (
+              <Link to="/login">
+                <Button size="sm">Entrar</Button>
+              </Link>
+            )}
           </div>
         </div>
       </div>

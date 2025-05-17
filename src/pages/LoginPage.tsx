@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client'; // Verifique se o caminho está correto
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,6 +10,7 @@ import { useToast } from '@/components/ui/use-toast'; // Importe o useToast
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast(); // Use o hook useToast
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -18,6 +19,9 @@ const LoginPage = () => {
   const [role, setRole] = useState<'mentor' | 'mentorado'>('mentorado'); // Novo estado para Perfil, padrão 'mentorado'
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false); // Para alternar entre login e cadastro
+
+  // Get the intended destination from the location state or default to '/'
+  const from = (location.state as any)?.from?.pathname || '/';
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,12 +91,14 @@ const LoginPage = () => {
           if (profileError) throw profileError;
 
           toast({ title: "Login bem-sucedido!", description: "Redirecionando..." });
+          
+          // Redirect to the intended destination or to the appropriate dashboard
           if (profileData?.role === 'mentor') {
-            navigate('/mentor/dashboard'); // Exemplo de rota para dashboard do mentor
+            navigate(from !== '/' ? from : '/mentor/dashboard');
           } else if (profileData?.role === 'mentorado') {
-            navigate('/mentorado/dashboard'); // Exemplo de rota para dashboard do mentorado
+            navigate(from !== '/' ? from : '/mentorado/dashboard');
           } else {
-            navigate('/'); // Rota padrão
+            navigate(from);
           }
         } else {
           toast({ title: "Erro de Login", description: "Usuário não encontrado ou credenciais inválidas.", variant: "destructive" });
