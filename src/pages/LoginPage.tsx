@@ -1,54 +1,30 @@
-
 import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client'; // Verifique se o caminho está correto
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { useToast } from '@/components/ui/use-toast';
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"; // Importar RadioGroup
+import { useToast } from '@/components/ui/use-toast'; // Importe o useToast
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const { toast } = useToast();
+  const { toast } = useToast(); // Use o hook useToast
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [fullName, setFullName] = useState('');
-  const [role, setRole] = useState<'mentor' | 'mentorado'>('mentorado');
+  const [confirmPassword, setConfirmPassword] = useState(''); // Estado para confirmar senha
+  const [fullName, setFullName] = useState(''); // Novo estado para Nome Completo
+  const [role, setRole] = useState<'mentor' | 'mentorado'>('mentorado'); // Novo estado para Perfil, padrão 'mentorado'
   const [loading, setLoading] = useState(false);
-  const [isSignUp, setIsSignUp] = useState(false);
-
-  // Get the intended destination from the location state or default to '/'
-  const from = (location.state as any)?.from?.pathname || '/';
-
-  // Clean up existing auth state before login/signup
-  const cleanupAuthState = () => {
-    console.log("LoginPage: Cleaning up auth state");
-    
-    Object.keys(localStorage).forEach((key) => {
-      if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
-        console.log("LoginPage: Removing localStorage key:", key);
-        localStorage.removeItem(key);
-      }
-    });
-    
-    Object.keys(sessionStorage || {}).forEach((key) => {
-      if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
-        console.log("LoginPage: Removing sessionStorage key:", key);
-        sessionStorage.removeItem(key);
-      }
-    });
-  };
+  const [isSignUp, setIsSignUp] = useState(false); // Para alternar entre login e cadastro
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     if (isSignUp) {
-      // Sign Up mode
+      // Modo Cadastro
       if (password !== confirmPassword) {
         toast({
           title: "Erro no Cadastro",
@@ -58,55 +34,31 @@ const LoginPage = () => {
         setLoading(false);
         return; 
       }
-      if (!fullName.trim()) {
-        toast({ 
-          title: "Erro no Cadastro", 
-          description: "Por favor, informe seu nome completo.", 
-          variant: "destructive" 
-        });
+      if (!fullName.trim()) { // Validar nome completo
+        toast({ title: "Erro no Cadastro", description: "Por favor, informe seu nome completo.", variant: "destructive" });
         setLoading(false);
         return;
       }
       try {
-        console.log("LoginPage: Starting signup process");
-        // Clean up existing auth state
-        cleanupAuthState();
-        
-        // Try to sign out globally first
-        try {
-          await supabase.auth.signOut({ scope: 'global' });
-          console.log("LoginPage: Global sign out completed");
-        } catch (err) {
-          console.log("LoginPage: Sign out error (expected if not signed in):", err);
-        }
-        
-        console.log("LoginPage: Attempting to sign up with email:", email);
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            data: {
+            data: { // Passar dados adicionais para a tabela profiles via trigger
               full_name: fullName,
               role: role, 
             }
           }
         });
         if (error) throw error;
-        
-        console.log("LoginPage: Sign up successful:", data);
-        
-        toast({ 
-          title: "Cadastro realizado!", 
-          description: "Verifique seu email para confirmação, se aplicável. Agora você pode fazer login." 
-        });
-        setIsSignUp(false);
+        toast({ title: "Cadastro realizado!", description: "Verifique seu email para confirmação, se aplicável. Agora você pode fazer login." });
+        setIsSignUp(false); // Volta para a tela de login
         setFullName('');
         setEmail('');
         setPassword('');
         setConfirmPassword('');
-        setRole('mentorado');
+        setRole('mentorado'); // Resetar para o padrão
       } catch (error: any) {
-        console.error("LoginPage: Sign up error:", error);
         toast({
           title: "Erro no Cadastro",
           description: error.error_description || error.message,
@@ -116,73 +68,36 @@ const LoginPage = () => {
         setLoading(false);
       }
     } else {
-      // Login mode
+      // Modo Login
       try {
-        console.log("LoginPage: Starting login process");
-        // Clean up existing auth state
-        cleanupAuthState();
-        
-        // Try to sign out globally first
-        try {
-          await supabase.auth.signOut({ scope: 'global' });
-          console.log("LoginPage: Global sign out completed");
-        } catch (err) {
-          console.log("LoginPage: Sign out error (expected if not signed in):", err);
-        }
-        
-        console.log("LoginPage: Attempting to sign in with email:", email);
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
         if (error) throw error;
-        
-        console.log("LoginPage: Login successful:", data?.user?.id);
-        
         if (data.user) {
-          // Fetch user's role
-          console.log("LoginPage: Fetching user role");
+          // Após o login, você pode querer buscar o perfil do usuário para redirecionar
+          // com base no 'role' (mentor/mentorado)
           const { data: profileData, error: profileError } = await supabase
             .from('profiles')
             .select('role')
             .eq('id', data.user.id)
             .single();
 
-          if (profileError) {
-            console.error("LoginPage: Error fetching profile:", profileError);
-            throw profileError;
-          }
+          if (profileError) throw profileError;
 
-          console.log("LoginPage: User profile:", profileData);
-          
           toast({ title: "Login bem-sucedido!", description: "Redirecionando..." });
-          
-          // Store session in localStorage to prevent loss during redirect
-          localStorage.setItem('mentor_app_session', JSON.stringify(data.session));
-          
-          // Redirect based on role
           if (profileData?.role === 'mentor') {
-            console.log("LoginPage: Redirecting to mentor dashboard");
-            navigate('/mentor/dashboard', { replace: true });
+            navigate('/mentor/dashboard'); // Exemplo de rota para dashboard do mentor
           } else if (profileData?.role === 'mentorado') {
-            console.log("LoginPage: Redirecting to mentorado dashboard");
-            navigate('/mentorado/dashboard', { replace: true });
-          } else if (profileData?.role === 'admin') {
-            console.log("LoginPage: Redirecting to admin dashboard");
-            navigate('/admin/dashboard', { replace: true });
+            navigate('/mentorado/dashboard'); // Exemplo de rota para dashboard do mentorado
           } else {
-            console.log("LoginPage: Role unknown, redirecting to:", from);
-            navigate(from, { replace: true });
+            navigate('/'); // Rota padrão
           }
         } else {
-          toast({ 
-            title: "Erro de Login", 
-            description: "Usuário não encontrado ou credenciais inválidas.", 
-            variant: "destructive" 
-          });
+          toast({ title: "Erro de Login", description: "Usuário não encontrado ou credenciais inválidas.", variant: "destructive" });
         }
       } catch (error: any) {
-        console.error("LoginPage: Login error:", error);
         toast({
           title: "Erro de Login",
           description: error.error_description || error.message,
@@ -205,7 +120,7 @@ const LoginPage = () => {
         </CardHeader>
         <form onSubmit={handleAuth}>
           <CardContent className="space-y-4">
-            {isSignUp && (
+            {isSignUp && ( // Campos visíveis apenas no cadastro
               <>
                 <div className="space-y-2">
                   <Label htmlFor="fullName">Nome Completo</Label>
@@ -264,6 +179,7 @@ const LoginPage = () => {
                 disabled={loading}
               />
             </div>
+            {/* Campo de Confirmar Senha - visível apenas no modo SignUp (cadastro) */}
             {isSignUp && (
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Confirmar Senha</Label>
@@ -273,7 +189,7 @@ const LoginPage = () => {
                   placeholder="********"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  required={isSignUp}
+                  required={isSignUp} // Obrigatório apenas no cadastro
                   disabled={loading}
                 />
               </div>
@@ -288,7 +204,9 @@ const LoginPage = () => {
               variant="link"
               onClick={() => {
                 setIsSignUp(!isSignUp);
+                // Limpar campos ao alternar
                 setFullName('');
+                // Manter email se já digitado ou limpar: setEmail('');
                 setPassword('');
                 setConfirmPassword('');
                 setRole('mentorado'); 

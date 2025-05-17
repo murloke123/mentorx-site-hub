@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
-import UserSidebar from "@/components/UserSidebar";
+import MentorSidebar from "@/components/mentor/MentorSidebar";
 import CoursesList from "@/components/mentor/CoursesList";
 import { getMentorCourses } from '@/services/courseService';
 
@@ -27,7 +27,7 @@ const MeusCursosPage = () => {
 
   return (
     <div className="flex">
-      <UserSidebar />
+      <MentorSidebar />
       <div className="flex-1 p-6">
         <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>

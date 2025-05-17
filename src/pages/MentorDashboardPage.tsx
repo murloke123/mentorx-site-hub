@@ -1,10 +1,10 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { getMentorProfile, getMentorCourses, getMentorFollowersCount } from '@/services/mentorService';
-import UserSidebar from "@/components/UserSidebar";
 import StatsSection from '@/components/mentor/StatsSection';
 import AnalyticsSection from '@/components/mentor/AnalyticsSection';
 import CoursesList from '@/components/mentor/CoursesList';
+import MentorSidebar from '@/components/mentor/MentorSidebar';
 
 const MentorDashboardPage = () => {
   // Fetch the mentor profile
@@ -41,7 +41,7 @@ const MentorDashboardPage = () => {
   
   return (
     <div className="flex">
-      <UserSidebar />
+      <MentorSidebar />
       <div className="flex-1 p-6 overflow-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold">
