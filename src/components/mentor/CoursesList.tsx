@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, Filter, PlusCircle, Search } from 'lucide-react';
+import { BookOpen, Filter, PlusCircle, Search, Layers } from 'lucide-react';
 
 interface Course {
   id: string;
@@ -57,6 +57,11 @@ const CoursesList = ({ courses, isLoading, totalEnrollments }: CoursesListProps)
   // Lidar com o clique no botão de criar curso
   const handleCreateCourse = () => {
     navigate('/mentor/cursos/novo');
+  };
+
+  // Navegar para a página de gerenciamento de módulos do curso
+  const handleGerenciarModulos = (courseId: string) => {
+    navigate(`/mentor/cursos/${courseId}/modulos`);
   };
 
   return (
@@ -142,6 +147,15 @@ const CoursesList = ({ courses, isLoading, totalEnrollments }: CoursesListProps)
                 </Button>
                 <Button variant="outline" asChild>
                   <Link to={`/mentor/cursos/${course.id}/editar`}>Editar Curso</Link>
+                </Button>
+              </div>
+              <div className="px-6 pb-6">
+                <Button 
+                  className="w-full" 
+                  variant="default" 
+                  onClick={() => handleGerenciarModulos(course.id)}
+                >
+                  <Layers className="mr-2 h-4 w-4" /> Gerenciar Módulos e Conteúdo
                 </Button>
               </div>
             </Card>

@@ -16,6 +16,8 @@ import CreateCoursePage from "@/pages/CreateCoursePage";
 import EditCoursePage from "@/pages/EditCoursePage";
 import MeusCursosPage from "@/pages/MeusCursosPage";
 import MentorFollowersPage from "@/pages/MentorFollowersPage";
+import ModulosPage from "@/pages/ModulosPage";
+import ConteudosPage from "@/pages/ConteudosPage";
 import NotFound from "@/pages/NotFound";
 import Debug from "@/components/Debug";
 
@@ -48,6 +50,8 @@ const App = () => (
               <Route path="/mentor/cursos" element={<MeusCursosPage />} />
               <Route path="/mentor/cursos/novo" element={<CreateCoursePage />} />
               <Route path="/mentor/cursos/:id/editar" element={<EditCoursePage />} />
+              <Route path="/mentor/cursos/:cursoId/modulos" element={<ModulosPage />} />
+              <Route path="/mentor/cursos/:cursoId/modulos/:moduloId" element={<ConteudosPage />} />
               <Route path="/mentor/followers" element={<MentorFollowersPage />} />
               <Route path="/mentor/mentorados" element={<MentorFollowersPage />} />
               
