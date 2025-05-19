@@ -10,9 +10,10 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 interface RichTextEditorProps {
   initialValue?: string;
   onChange: (content: string) => void;
+  disabled?: boolean;
 }
 
-const RichTextEditor = ({ initialValue = "", onChange }: RichTextEditorProps) => {
+const RichTextEditor = ({ initialValue = "", onChange, disabled = false }: RichTextEditorProps) => {
   const [editorInitialized, setEditorInitialized] = useState(false);
   const editorRef = useRef<HTMLDivElement | null>(null);
 
@@ -44,6 +45,8 @@ const RichTextEditor = ({ initialValue = "", onChange }: RichTextEditorProps) =>
   }, [onChange, editorInitialized]);
 
   const execCommand = (command: string, value: string = "") => {
+    if (disabled) return;
+    
     document.execCommand(command, false, value);
     
     // Atualiza manualmente o valor após executar um comando
@@ -57,6 +60,8 @@ const RichTextEditor = ({ initialValue = "", onChange }: RichTextEditorProps) =>
   };
 
   const insertImage = () => {
+    if (disabled) return;
+    
     const url = prompt("Insira a URL da imagem:");
     if (url) {
       execCommand('insertHTML', `<img src="${url}" alt="Imagem" style="max-width: 100%; height: auto;" />`);
@@ -64,6 +69,8 @@ const RichTextEditor = ({ initialValue = "", onChange }: RichTextEditorProps) =>
   };
 
   const createHeading = (level: number) => {
+    if (disabled) return;
+    
     const selection = window.getSelection();
     if (selection && selection.rangeCount > 0) {
       const range = selection.getRangeAt(0);
@@ -80,7 +87,7 @@ const RichTextEditor = ({ initialValue = "", onChange }: RichTextEditorProps) =>
   };
 
   return (
-    <div className="border rounded-md">
+    <div className={`border rounded-md ${disabled ? 'opacity-70' : ''}`}>
       <div className="bg-muted p-2 border-b flex flex-wrap gap-1">
         <TooltipProvider>
           <Tooltip>
@@ -90,6 +97,7 @@ const RichTextEditor = ({ initialValue = "", onChange }: RichTextEditorProps) =>
                 variant="ghost"
                 size="sm"
                 onClick={() => execCommand('bold')}
+                disabled={disabled}
               >
                 <Bold className="h-4 w-4" />
               </Button>
@@ -104,6 +112,7 @@ const RichTextEditor = ({ initialValue = "", onChange }: RichTextEditorProps) =>
                 variant="ghost"
                 size="sm"
                 onClick={() => execCommand('italic')}
+                disabled={disabled}
               >
                 <Italic className="h-4 w-4" />
               </Button>
@@ -118,6 +127,7 @@ const RichTextEditor = ({ initialValue = "", onChange }: RichTextEditorProps) =>
                 variant="ghost"
                 size="sm"
                 onClick={() => execCommand('underline')}
+                disabled={disabled}
               >
                 <Underline className="h-4 w-4" />
               </Button>
@@ -134,6 +144,7 @@ const RichTextEditor = ({ initialValue = "", onChange }: RichTextEditorProps) =>
                 variant="ghost"
                 size="sm"
                 onClick={() => createHeading(2)}
+                disabled={disabled}
               >
                 <Type className="h-4 w-4" />
               </Button>
@@ -150,6 +161,7 @@ const RichTextEditor = ({ initialValue = "", onChange }: RichTextEditorProps) =>
                 variant="ghost"
                 size="sm"
                 onClick={() => execCommand('justifyLeft')}
+                disabled={disabled}
               >
                 <AlignLeft className="h-4 w-4" />
               </Button>
@@ -164,6 +176,7 @@ const RichTextEditor = ({ initialValue = "", onChange }: RichTextEditorProps) =>
                 variant="ghost"
                 size="sm"
                 onClick={() => execCommand('justifyCenter')}
+                disabled={disabled}
               >
                 <AlignCenter className="h-4 w-4" />
               </Button>
@@ -178,6 +191,7 @@ const RichTextEditor = ({ initialValue = "", onChange }: RichTextEditorProps) =>
                 variant="ghost"
                 size="sm"
                 onClick={() => execCommand('justifyRight')}
+                disabled={disabled}
               >
                 <AlignRight className="h-4 w-4" />
               </Button>
@@ -194,6 +208,7 @@ const RichTextEditor = ({ initialValue = "", onChange }: RichTextEditorProps) =>
                 variant="ghost"
                 size="sm"
                 onClick={() => execCommand('insertUnorderedList')}
+                disabled={disabled}
               >
                 <List className="h-4 w-4" />
               </Button>
@@ -208,6 +223,7 @@ const RichTextEditor = ({ initialValue = "", onChange }: RichTextEditorProps) =>
                 variant="ghost"
                 size="sm"
                 onClick={() => execCommand('insertOrderedList')}
+                disabled={disabled}
               >
                 <ListOrdered className="h-4 w-4" />
               </Button>
@@ -224,6 +240,7 @@ const RichTextEditor = ({ initialValue = "", onChange }: RichTextEditorProps) =>
                 variant="ghost"
                 size="sm"
                 onClick={insertImage}
+                disabled={disabled}
               >
                 <Image className="h-4 w-4" />
               </Button>
@@ -236,8 +253,8 @@ const RichTextEditor = ({ initialValue = "", onChange }: RichTextEditorProps) =>
       <div
         ref={editorRef}
         id="rich-text-editor"
-        contentEditable
-        className="p-4 min-h-[300px] max-h-[500px] overflow-y-auto focus:outline-none"
+        contentEditable={!disabled}
+        className={`p-4 min-h-[300px] max-h-[500px] overflow-y-auto ${!disabled ? 'focus:outline-none' : 'bg-muted-50'}`}
         data-gramm="false" // Desativa correções gramaticais de terceiros
         spellCheck="false" // Desativa verificação ortográfica nativa
         dir="ltr" // Garante a direção do texto da esquerda para a direita
