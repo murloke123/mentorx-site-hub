@@ -47,9 +47,9 @@ const ConteudoForm = ({ onSubmit, initialData, isSubmitting, onCancel }: Conteud
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6 flex flex-col h-full max-h-[70vh]">
-        <div className="flex-1 overflow-hidden">
-          <ScrollArea className="h-full pr-4" style={{ height: 'calc(70vh - 80px)' }}>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="flex flex-col h-full">
+        <div className="flex-grow overflow-hidden" style={{ maxHeight: 'calc(70vh - 80px)' }}>
+          <ScrollArea className="h-full pr-4" style={{ height: '100%' }}>
             <div className="space-y-6 px-4 py-2 w-full max-w-3xl mx-auto">
               <BasicContentFields form={form} isSubmitting={isSubmitting} />
 
@@ -73,7 +73,7 @@ const ConteudoForm = ({ onSubmit, initialData, isSubmitting, onCancel }: Conteud
           </ScrollArea>
         </div>
 
-        <div className="flex justify-end space-x-2 pt-4 border-t mt-4 sticky bottom-0 bg-background">
+        <div className="flex justify-end space-x-2 pt-4 border-t mt-4 bg-background sticky bottom-0 p-4">
           <Button 
             type="button" 
             variant="outline" 
