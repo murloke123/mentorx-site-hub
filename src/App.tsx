@@ -1,83 +1,62 @@
 
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import HomePage from "./pages/HomePage";
+import LoginPage from "./pages/LoginPage";
+import CoursesPage from "./pages/CoursesPage";
+import AboutPage from "./pages/AboutPage";
+import MentorDashboardPage from "./pages/MentorDashboardPage";
+import MeusCursosPage from "./pages/MeusCursosPage";
+import CreateCoursePage from "./pages/CreateCoursePage";
+import EditCoursePage from "./pages/EditCoursePage";
+import CourseModulesPage from "./pages/CourseModulesPage";
+import CourseDetailsPage from "./pages/CourseDetailsPage";
+import MentorFollowersPage from "./pages/MentorFollowersPage";
+import MentoradoDashboardPage from "./pages/MentoradoDashboardPage";
+import AdminDashboardPage from "./pages/AdminDashboardPage";
+import AdminCoursesPage from "./pages/AdminCoursesPage";
+import AdminMentorsPage from "./pages/AdminMentorsPage";
+import AdminMentoradosPage from "./pages/AdminMentoradosPage";
+import NotFound from "./pages/NotFound";
 import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Navigation from "@/components/Navigation";
-import Footer from "@/components/Footer";
-import HomePage from "@/pages/HomePage";
-import AboutPage from "@/pages/AboutPage";
-import CoursesPage from "@/pages/CoursesPage";
-import LoginPage from "@/pages/LoginPage";
-import MentorDashboardPage from "@/pages/MentorDashboardPage";
-import MentoradoDashboardPage from "@/pages/MentoradoDashboardPage";
-import CreateCoursePage from "@/pages/CreateCoursePage";
-import EditCoursePage from "@/pages/EditCoursePage";
-import MeusCursosPage from "@/pages/MeusCursosPage";
-import MentorFollowersPage from "@/pages/MentorFollowersPage";
-import NotFound from "@/pages/NotFound";
-import Debug from "@/components/Debug";
+import "./App.css";
 
-// Importar as novas páginas de administração
-import AdminDashboardPage from "@/pages/AdminDashboardPage";
-import AdminMentorsPage from "@/pages/AdminMentorsPage";
-import AdminMentoradosPage from "@/pages/AdminMentoradosPage";
-import AdminCoursesPage from "@/pages/AdminCoursesPage";
-
-const queryClient = new QueryClient();
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        {/* Public routes */}
+        <Route path="/" element={<HomePage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/cursos" element={<CoursesPage />} />
+        <Route path="/sobre" element={<AboutPage />} />
+        
+        {/* Mentor routes */}
+        <Route path="/mentor" element={<Navigate to="/mentor/dashboard" replace />} />
+        <Route path="/mentor/dashboard" element={<MentorDashboardPage />} />
+        <Route path="/mentor/cursos" element={<MeusCursosPage />} />
+        <Route path="/mentor/cursos/novo" element={<CreateCoursePage />} />
+        <Route path="/mentor/cursos/:id/editar" element={<EditCoursePage />} />
+        <Route path="/mentor/cursos/:id/modulos" element={<CourseModulesPage />} />
+        <Route path="/mentor/cursos/:id/detalhes" element={<CourseDetailsPage />} />
+        <Route path="/mentor/seguidores" element={<MentorFollowersPage />} />
+        
+        {/* Mentorado routes */}
+        <Route path="/mentorado" element={<Navigate to="/mentorado/dashboard" replace />} />
+        <Route path="/mentorado/dashboard" element={<MentoradoDashboardPage />} />
+        
+        {/* Admin routes */}
+        <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+        <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+        <Route path="/admin/cursos" element={<AdminCoursesPage />} />
+        <Route path="/admin/mentores" element={<AdminMentorsPage />} />
+        <Route path="/admin/mentorados" element={<AdminMentoradosPage />} />
+        
+        {/* Fallback route */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
       <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <div className="flex flex-col min-h-screen">
-          <Debug />
-          <Navigation />
-          <main className="flex-grow">
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/about" element={<AboutPage />} />
-              <Route path="/courses" element={<CoursesPage />} />
-              <Route path="/login" element={<LoginPage />} />
-              
-              {/* Rotas de Mentor */}
-              <Route path="/mentor/dashboard" element={<MentorDashboardPage />} />
-              <Route path="/mentor/cursos" element={<MeusCursosPage />} />
-              <Route path="/mentor/cursos/novo" element={<CreateCoursePage />} />
-              <Route path="/mentor/cursos/:id/editar" element={<EditCoursePage />} />
-              <Route path="/mentor/followers" element={<MentorFollowersPage />} />
-              <Route path="/mentor/mentorados" element={<MentorFollowersPage />} />
-              
-              {/* Rotas de Mentorado */}
-              <Route path="/mentorado/dashboard" element={<MentoradoDashboardPage />} />
-              <Route path="/mentorado/cursos" element={<NotFound />} />
-              <Route path="/mentorado/cursos/:id" element={<NotFound />} />
-              <Route path="/mentorado/calendario" element={<NotFound />} />
-              <Route path="/mentorado/configuracoes" element={<NotFound />} />
-              
-              {/* Rotas de Administrador (correção na rota de mentores) */}
-              <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
-              <Route path="/admin/mentores" element={<AdminMentorsPage />} />
-              <Route path="/admin/mentors" element={<AdminMentorsPage />} />
-              <Route path="/admin/mentorados" element={<AdminMentoradosPage />} />
-              <Route path="/admin/cursos" element={<AdminCoursesPage />} />
-              <Route path="/admin/relatorios" element={<NotFound />} />
-              <Route path="/admin/configuracoes" element={<NotFound />} />
-              
-              {/* Keep backwards compatibility for now */}
-              <Route path="/mentor/courses/new" element={<CreateCoursePage />} />
-              <Route path="/mentor/courses/:id/edit" element={<EditCoursePage />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </main>
-          <Footer />
-        </div>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+    </BrowserRouter>
+  );
+}
 
 export default App;

@@ -139,33 +139,39 @@ export type Database = {
           created_at: string
           file_url: string | null
           id: string
+          is_published: boolean | null
           lesson_order: number
           module_id: string
           title: string
           type: string
           updated_at: string
+          video_url: string | null
         }
         Insert: {
           content?: string | null
           created_at?: string
           file_url?: string | null
           id?: string
+          is_published?: boolean | null
           lesson_order?: number
           module_id: string
           title: string
           type: string
           updated_at?: string
+          video_url?: string | null
         }
         Update: {
           content?: string | null
           created_at?: string
           file_url?: string | null
           id?: string
+          is_published?: boolean | null
           lesson_order?: number
           module_id?: string
           title?: string
           type?: string
           updated_at?: string
+          video_url?: string | null
         }
         Relationships: [
           {
@@ -216,6 +222,7 @@ export type Database = {
           content_type: string
           course_id: string
           created_at: string
+          description: string | null
           id: string
           is_free: boolean
           module_order: number
@@ -227,6 +234,7 @@ export type Database = {
           content_type: string
           course_id: string
           created_at?: string
+          description?: string | null
           id?: string
           is_free?: boolean
           module_order?: number
@@ -238,6 +246,7 @@ export type Database = {
           content_type?: string
           course_id?: string
           created_at?: string
+          description?: string | null
           id?: string
           is_free?: boolean
           module_order?: number
