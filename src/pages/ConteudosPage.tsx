@@ -2,17 +2,15 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle 
-} from '@/components/ui/dialog';
+
 import MentorSidebar from '@/components/mentor/MentorSidebar';
 import Breadcrumbs from '@/components/ui/breadcrumbs';
-import ConteudoForm from '@/components/mentor/content/ConteudoForm';
 import ConteudoList from '@/components/mentor/content/ConteudoList';
-import { Skeleton } from '@/components/ui/skeleton';
+import ConteudoDialog from '@/components/mentor/content/ConteudoDialog';
+import ConteudoError from '@/components/mentor/content/ConteudoError';
+import ConteudoLoading from '@/components/mentor/content/ConteudoLoading';
+import ModuloHeader from '@/components/mentor/content/ModuloHeader';
+
 import { getModuloById } from '@/services/moduloService';
 import { 
   getConteudosByModuloId, 
@@ -77,19 +75,21 @@ const ConteudosPage = () => {
     enabled: !!editingId,
   });
 
-  // Lidar com a adição de um novo conteúdo
   const handleAddConteudo = () => {
     setEditingId(null);
     setIsModalOpen(true);
   };
 
-  // Lidar com a edição de um conteúdo existente
   const handleEditConteudo = (conteudoId: string) => {
     setEditingId(conteudoId);
     setIsModalOpen(true);
   };
 
-  // Lidar com o envio do formulário de conteúdo
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingId(null);
+  };
+
   const handleSubmitConteudo = async (values: {
     nome_conteudo: string;
     descricao_conteudo?: string;
@@ -154,7 +154,6 @@ const ConteudosPage = () => {
     }
   };
 
-  // Lidar com a exclusão de um conteúdo
   const handleDeleteConteudo = async (conteudoId: string) => {
     if (!moduloId) return;
     
@@ -172,28 +171,18 @@ const ConteudosPage = () => {
     }
   };
 
-  // Se houver erro no carregamento
+  const isLoading = isLoadingModulo || isLoadingConteudos;
+
   if (isError) {
     return (
       <div className="flex">
         <MentorSidebar />
         <div className="flex-1 p-6">
-          <div className="text-center py-10">
-            <h1 className="text-2xl font-bold text-red-500">Erro ao carregar conteúdos</h1>
-            <p className="mt-2">Não foi possível carregar os conteúdos deste módulo.</p>
-            <button 
-              onClick={() => refetch()}
-              className="mt-4 px-4 py-2 bg-primary text-white rounded"
-            >
-              Tentar novamente
-            </button>
-          </div>
+          <ConteudoError onRetry={refetch} />
         </div>
       </div>
     );
   }
-
-  const isLoading = isLoadingModulo || isLoadingConteudos;
 
   return (
     <div className="flex">
@@ -208,22 +197,10 @@ const ConteudosPage = () => {
           className="mb-6"
         />
 
-        <h1 className="text-3xl font-bold mb-2">
-          {isLoadingModulo ? <Skeleton className="h-9 w-64" /> : modulo?.nome_modulo}
-        </h1>
-        
-        {modulo?.descricao_modulo && (
-          <p className="text-muted-foreground mb-6">
-            {modulo.descricao_modulo}
-          </p>
-        )}
+        <ModuloHeader modulo={modulo} isLoading={isLoadingModulo} />
 
         {isLoading ? (
-          <div className="space-y-4">
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-32 w-full" />
-            <Skeleton className="h-32 w-full" />
-          </div>
+          <ConteudoLoading />
         ) : (
           <ConteudoList 
             conteudos={conteudos}
@@ -235,47 +212,16 @@ const ConteudosPage = () => {
           />
         )}
 
-        <Dialog 
-          open={isModalOpen} 
-          onOpenChange={(open) => {
-            setIsModalOpen(open);
-            if (!open) setEditingId(null);
-          }}
-        >
-          <DialogContent className="sm:max-w-[700px]">
-            <DialogHeader>
-              <DialogTitle>
-                {editingId ? 'Editar Conteúdo' : 'Adicionar Novo Conteúdo'}
-              </DialogTitle>
-            </DialogHeader>
-            
-            {isLoadingConteudoParaEditar && editingId ? (
-              <div className="space-y-4 py-4">
-                <Skeleton className="h-8 w-full" />
-                <Skeleton className="h-24 w-full" />
-                <Skeleton className="h-8 w-1/2" />
-                <Skeleton className="h-40 w-full" />
-              </div>
-            ) : (
-              <ConteudoForm
-                onSubmit={handleSubmitConteudo}
-                onCancel={() => {
-                  setIsModalOpen(false);
-                  setEditingId(null);
-                }}
-                isSubmitting={isSubmitting}
-                initialData={editingId ? {
-                  nome_conteudo: conteudoParaEditar?.nome_conteudo,
-                  descricao_conteudo: conteudoParaEditar?.descricao_conteudo,
-                  tipo_conteudo: conteudoParaEditar?.tipo_conteudo,
-                  html_content: conteudoParaEditar?.dados_conteudo?.html_content,
-                  video_url: conteudoParaEditar?.dados_conteudo?.url,
-                  provider: conteudoParaEditar?.dados_conteudo?.provider,
-                } : undefined}
-              />
-            )}
-          </DialogContent>
-        </Dialog>
+        <ConteudoDialog
+          isOpen={isModalOpen}
+          onOpenChange={setIsModalOpen}
+          isLoading={isLoadingConteudoParaEditar}
+          isSubmitting={isSubmitting}
+          onSubmit={handleSubmitConteudo}
+          onCancel={handleCloseModal}
+          editingId={editingId}
+          conteudoParaEditar={conteudoParaEditar}
+        />
       </div>
     </div>
   );
