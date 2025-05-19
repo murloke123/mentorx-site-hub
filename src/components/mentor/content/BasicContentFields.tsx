@@ -51,8 +51,8 @@ const BasicContentFields = ({ form, isSubmitting }: BasicContentFieldsProps) => 
         name="tipo_conteudo"
         render={({ field }) => (
           <FormItem>
-            <div className="flex items-center gap-2">
-              <FormLabel className="min-w-24 m-0">Tipo de Conteúdo</FormLabel>
+            <div className="flex flex-wrap items-center gap-3">
+              <FormLabel className="min-w-24 m-0 whitespace-nowrap">Tipo de Conteúdo</FormLabel>
               <FormControl>
                 <RadioGroup
                   onValueChange={field.onChange}

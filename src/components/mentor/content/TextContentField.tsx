@@ -10,7 +10,7 @@ interface TextContentFieldProps {
 
 const TextContentField = ({ initialValue, onChange, isSubmitting }: TextContentFieldProps) => {
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 w-full">
       <FormLabel>Conteúdo</FormLabel>
       <RichTextEditor initialValue={initialValue} onChange={onChange} disabled={isSubmitting} />
     </div>

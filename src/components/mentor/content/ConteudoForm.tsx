@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2 } from 'lucide-react';
-import { conteudoSchema, ConteudoFormProps } from './types';
+import { conteudoSchema, ConteudoFormProps, ConteudoFormValues } from './types';
 import BasicContentFields from './BasicContentFields';
 import TextContentField from './TextContentField';
 import VideoContentField from './VideoContentField';
@@ -16,7 +16,7 @@ const ConteudoForm = ({ onSubmit, initialData, isSubmitting, onCancel }: Conteud
   const [videoUrl, setVideoUrl] = useState(initialData?.video_url || '');
   const [provider, setProvider] = useState<'youtube' | 'vimeo'>(initialData?.provider || 'youtube');
   
-  const form = useForm({
+  const form = useForm<ConteudoFormValues>({
     resolver: zodResolver(conteudoSchema),
     defaultValues: {
       nome_conteudo: initialData?.nome_conteudo || '',
@@ -34,7 +34,7 @@ const ConteudoForm = ({ onSubmit, initialData, isSubmitting, onCancel }: Conteud
     setProvider(videoProvider);
   };
 
-  const handleSubmit = async (values: typeof form.getValues) => {
+  const handleSubmit = async (values: ConteudoFormValues) => {
     const submissionData = {
       ...values,
       provider: values.tipo_conteudo === 'video_externo' ? provider : undefined,
@@ -48,8 +48,8 @@ const ConteudoForm = ({ onSubmit, initialData, isSubmitting, onCancel }: Conteud
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        <ScrollArea className="max-h-[70vh]">
-          <div className="space-y-6 pr-4">
+        <ScrollArea className="max-h-[70vh] px-1">
+          <div className="space-y-6 px-2 py-1 w-full max-w-3xl mx-auto">
             <BasicContentFields form={form} isSubmitting={isSubmitting} />
 
             {tipoConteudo === 'texto_rico' && (
@@ -71,7 +71,7 @@ const ConteudoForm = ({ onSubmit, initialData, isSubmitting, onCancel }: Conteud
           </div>
         </ScrollArea>
 
-        <div className="flex justify-end space-x-2 pt-4">
+        <div className="flex justify-end space-x-2 pt-4 border-t">
           <Button 
             type="button" 
             variant="outline" 
