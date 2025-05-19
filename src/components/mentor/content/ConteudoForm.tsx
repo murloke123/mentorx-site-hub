@@ -13,6 +13,7 @@ import RichTextEditor from './RichTextEditor';
 import VideoPlayer from './VideoPlayer';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const conteudoSchema = z.object({
   nome_conteudo: z.string().min(3, { message: 'O nome do conteúdo deve ter pelo menos 3 caracteres' }),
@@ -87,128 +88,134 @@ const ConteudoForm = ({ onSubmit, initialData, isSubmitting, onCancel }: Conteud
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        <FormField
-          control={form.control}
-          name="nome_conteudo"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Nome do Conteúdo</FormLabel>
-              <FormControl>
-                <Input placeholder="Digite o nome do conteúdo" {...field} disabled={isSubmitting} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <ScrollArea className="max-h-[70vh]">
+          <div className="space-y-6 pr-4">
+            <FormField
+              control={form.control}
+              name="nome_conteudo"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nome do Conteúdo</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Digite o nome do conteúdo" {...field} disabled={isSubmitting} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        <FormField
-          control={form.control}
-          name="descricao_conteudo"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Descrição</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Descreva brevemente este conteúdo (opcional)"
-                  {...field}
-                  disabled={isSubmitting}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+            <FormField
+              control={form.control}
+              name="descricao_conteudo"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Descrição</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Descreva brevemente este conteúdo (opcional)"
+                      {...field}
+                      disabled={isSubmitting}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        <FormField
-          control={form.control}
-          name="tipo_conteudo"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Tipo de Conteúdo</FormLabel>
-              <FormControl>
-                <RadioGroup
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  className="flex flex-col space-y-1"
-                  disabled={isSubmitting}
-                >
-                  <FormItem className="flex items-center space-x-3 space-y-0">
+            <FormField
+              control={form.control}
+              name="tipo_conteudo"
+              render={({ field }) => (
+                <FormItem>
+                  <div className="flex items-center gap-4">
+                    <FormLabel className="min-w-32 m-0">Tipo de Conteúdo</FormLabel>
                     <FormControl>
-                      <RadioGroupItem value="texto_rico" />
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="flex flex-row items-center gap-6"
+                        disabled={isSubmitting}
+                      >
+                        <FormItem className="flex items-center space-x-2 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value="texto_rico" />
+                          </FormControl>
+                          <FormLabel className="font-normal cursor-pointer">
+                            Texto com Imagens
+                          </FormLabel>
+                        </FormItem>
+                        <FormItem className="flex items-center space-x-2 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value="video_externo" />
+                          </FormControl>
+                          <FormLabel className="font-normal cursor-pointer">
+                            Vídeo (YouTube/Vimeo)
+                          </FormLabel>
+                        </FormItem>
+                      </RadioGroup>
                     </FormControl>
-                    <FormLabel className="font-normal cursor-pointer">
-                      Texto com Imagens
-                    </FormLabel>
-                  </FormItem>
-                  <FormItem className="flex items-center space-x-3 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="video_externo" />
-                    </FormControl>
-                    <FormLabel className="font-normal cursor-pointer">
-                      Vídeo (YouTube/Vimeo)
-                    </FormLabel>
-                  </FormItem>
-                </RadioGroup>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        {tipoConteudo === 'texto_rico' && (
-          <div className="space-y-2">
-            <FormLabel>Conteúdo</FormLabel>
-            <RichTextEditor initialValue={htmlContent} onChange={setHtmlContent} />
-          </div>
-        )}
-
-        {tipoConteudo === 'video_externo' && (
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <FormLabel>URL do Vídeo</FormLabel>
-              <Input 
-                placeholder="Ex: https://www.youtube.com/watch?v=dQw4w9WgXcQ" 
-                value={videoUrl}
-                onChange={handleVideoUrlChange}
-                disabled={isSubmitting}
-              />
-              <p className="text-sm text-muted-foreground">
-                Cole o link completo do seu vídeo do YouTube ou Vimeo.
-              </p>
-            </div>
-
-            {videoUrl && (
-              <Card>
-                <CardContent className="pt-6">
-                  <VideoPlayer provider={provider} url={videoUrl} />
-                </CardContent>
-              </Card>
+            {tipoConteudo === 'texto_rico' && (
+              <div className="space-y-2">
+                <FormLabel>Conteúdo</FormLabel>
+                <RichTextEditor initialValue={htmlContent} onChange={setHtmlContent} />
+              </div>
             )}
 
-            <Tabs defaultValue="youtube" value={provider} onValueChange={(value) => setProvider(value as 'youtube' | 'vimeo')}>
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="youtube">YouTube</TabsTrigger>
-                <TabsTrigger value="vimeo">Vimeo</TabsTrigger>
-              </TabsList>
-              <TabsContent value="youtube" className="p-4 border rounded-md mt-2">
-                <h4 className="text-sm font-medium mb-2">Como obter o link do YouTube:</h4>
-                <ol className="text-sm space-y-1 list-decimal list-inside text-muted-foreground">
-                  <li>Vá até o vídeo no YouTube</li>
-                  <li>Clique em 'Compartilhar' abaixo do vídeo</li>
-                  <li>Copie o link fornecido</li>
-                </ol>
-              </TabsContent>
-              <TabsContent value="vimeo" className="p-4 border rounded-md mt-2">
-                <h4 className="text-sm font-medium mb-2">Como obter o link do Vimeo:</h4>
-                <ol className="text-sm space-y-1 list-decimal list-inside text-muted-foreground">
-                  <li>Abra o vídeo no Vimeo</li>
-                  <li>Clique no ícone de 'Compartilhar' (geralmente um avião de papel)</li>
-                  <li>Copie o link da seção 'Link'</li>
-                </ol>
-              </TabsContent>
-            </Tabs>
+            {tipoConteudo === 'video_externo' && (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <FormLabel>URL do Vídeo</FormLabel>
+                  <Input 
+                    placeholder="Ex: https://www.youtube.com/watch?v=dQw4w9WgXcQ" 
+                    value={videoUrl}
+                    onChange={handleVideoUrlChange}
+                    disabled={isSubmitting}
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    Cole o link completo do seu vídeo do YouTube ou Vimeo.
+                  </p>
+                </div>
+
+                {videoUrl && (
+                  <Card>
+                    <CardContent className="pt-6">
+                      <VideoPlayer provider={provider} url={videoUrl} />
+                    </CardContent>
+                  </Card>
+                )}
+
+                <Tabs defaultValue="youtube" value={provider} onValueChange={(value) => setProvider(value as 'youtube' | 'vimeo')}>
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="youtube">YouTube</TabsTrigger>
+                    <TabsTrigger value="vimeo">Vimeo</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="youtube" className="p-4 border rounded-md mt-2">
+                    <h4 className="text-sm font-medium mb-2">Como obter o link do YouTube:</h4>
+                    <ol className="text-sm space-y-1 list-decimal list-inside text-muted-foreground">
+                      <li>Vá até o vídeo no YouTube</li>
+                      <li>Clique em 'Compartilhar' abaixo do vídeo</li>
+                      <li>Copie o link fornecido</li>
+                    </ol>
+                  </TabsContent>
+                  <TabsContent value="vimeo" className="p-4 border rounded-md mt-2">
+                    <h4 className="text-sm font-medium mb-2">Como obter o link do Vimeo:</h4>
+                    <ol className="text-sm space-y-1 list-decimal list-inside text-muted-foreground">
+                      <li>Abra o vídeo no Vimeo</li>
+                      <li>Clique no ícone de 'Compartilhar' (geralmente um avião de papel)</li>
+                      <li>Copie o link da seção 'Link'</li>
+                    </ol>
+                  </TabsContent>
+                </Tabs>
+              </div>
+            )}
           </div>
-        )}
+        </ScrollArea>
 
         <div className="flex justify-end space-x-2 pt-4">
           <Button 

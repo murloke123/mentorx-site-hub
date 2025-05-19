@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { 
   Bold, Italic, Underline, AlignLeft, AlignCenter, 
@@ -14,16 +14,14 @@ interface RichTextEditorProps {
 
 const RichTextEditor = ({ initialValue = "", onChange }: RichTextEditorProps) => {
   const [editorInitialized, setEditorInitialized] = useState(false);
+  const editorRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     // Inicializa o editor apenas uma vez após a montagem do componente
-    if (!editorInitialized) {
+    if (!editorInitialized && editorRef.current) {
       // Preparar o conteúdo inicial, se houver
-      if (initialValue) {
-        const editorElement = document.getElementById('rich-text-editor');
-        if (editorElement) {
-          editorElement.innerHTML = initialValue;
-        }
+      if (initialValue && editorRef.current) {
+        editorRef.current.innerHTML = initialValue;
       }
       setEditorInitialized(true);
     }
@@ -31,7 +29,7 @@ const RichTextEditor = ({ initialValue = "", onChange }: RichTextEditorProps) =>
 
   // Atualiza o valor cada vez que o conteúdo do editor muda
   useEffect(() => {
-    const editorElement = document.getElementById('rich-text-editor');
+    const editorElement = editorRef.current;
     if (editorElement && editorInitialized) {
       const handleEditorChange = () => {
         onChange(editorElement.innerHTML);
@@ -49,7 +47,7 @@ const RichTextEditor = ({ initialValue = "", onChange }: RichTextEditorProps) =>
     document.execCommand(command, false, value);
     
     // Atualiza manualmente o valor após executar um comando
-    const editorElement = document.getElementById('rich-text-editor');
+    const editorElement = editorRef.current;
     if (editorElement) {
       onChange(editorElement.innerHTML);
     }
@@ -236,10 +234,13 @@ const RichTextEditor = ({ initialValue = "", onChange }: RichTextEditorProps) =>
       </div>
 
       <div
+        ref={editorRef}
         id="rich-text-editor"
         contentEditable
         className="p-4 min-h-[300px] max-h-[500px] overflow-y-auto focus:outline-none"
-        dangerouslySetInnerHTML={{ __html: initialValue }}
+        data-gramm="false" // Desativa correções gramaticais de terceiros
+        spellCheck="false" // Desativa verificação ortográfica nativa
+        dir="ltr" // Garante a direção do texto da esquerda para a direita
       />
     </div>
   );
