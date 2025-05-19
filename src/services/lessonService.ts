@@ -6,7 +6,7 @@ export interface Lesson {
   id: string;
   title: string;
   content: string | null;
-  type: "text" | "pdf" | "video"; // Make this a union type instead of string
+  type: "text" | "pdf" | "video";
   file_url: string | null;
   video_url: string | null;
   module_id: string;
@@ -16,7 +16,7 @@ export interface Lesson {
   updated_at: string;
 }
 
-export async function getLessonsByModule(moduleId: string): Promise<Lesson[]> {
+export async function getLessonsByModule(moduleId: string) {
   try {
     const { data, error } = await supabase
       .from("lessons")
@@ -26,8 +26,7 @@ export async function getLessonsByModule(moduleId: string): Promise<Lesson[]> {
 
     if (error) throw error;
     
-    // Cast the response to ensure it matches our Lesson type
-    return (data || []) as Lesson[];
+    return data || [];
   } catch (error) {
     console.error("Error fetching lessons:", error);
     const { toast } = useToast();
@@ -77,20 +76,10 @@ export async function createLesson(lessonData: Partial<Lesson>) {
     
     const nextOrder = lessons && lessons.length > 0 ? lessons[0].lesson_order + 1 : 0;
     
-    // Make sure required properties are present
-    if (!lessonData.module_id) throw new Error("Module ID is required");
-    if (!lessonData.title) throw new Error("Title is required");
-    if (!lessonData.type) throw new Error("Type is required");
-    
     const { data, error } = await supabase
       .from("lessons")
       .insert({
-        module_id: lessonData.module_id,
-        title: lessonData.title,
-        type: lessonData.type,
-        content: lessonData.content || null,
-        file_url: lessonData.file_url || null,
-        video_url: lessonData.video_url || null,
+        ...lessonData,
         lesson_order: nextOrder,
         is_published: lessonData.is_published !== undefined ? lessonData.is_published : true
       })
@@ -99,7 +88,7 @@ export async function createLesson(lessonData: Partial<Lesson>) {
 
     if (error) throw error;
     
-    return data as Lesson;
+    return data;
   } catch (error) {
     console.error("Error creating lesson:", error);
     throw error;
@@ -165,7 +154,7 @@ export async function deleteLesson(lessonId: string) {
     // Verify lesson belongs to a module in a course owned by the user
     const { data: lesson, error: lessonError } = await supabase
       .from("lessons")
-      .select("*") // Select all columns to get file_url
+      .select("module_id")
       .eq("id", lessonId)
       .single();
       

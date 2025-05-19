@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -143,7 +144,6 @@ const CourseDetailsPage = () => {
     enabled: !!courseId,
   });
   
-  // Fix type issue by ensuring we cast the result to Lesson[] 
   // Fetch lessons for each module
   useEffect(() => {
     const fetchAllLessons = async () => {
@@ -310,7 +310,7 @@ const CourseDetailsPage = () => {
               <h3 className="mt-2 text-lg font-medium">Nenhum módulo criado</h3>
               <p className="mt-1 text-gray-500">Crie módulos para estruturar o conteúdo do seu curso</p>
               <Button onClick={handleEditModules} variant="outline" className="mt-4">
-                Adicionar M��dulos
+                Adicionar Módulos
               </Button>
             </div>
           ) : (

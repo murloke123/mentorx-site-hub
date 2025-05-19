@@ -14,7 +14,7 @@ export interface Module {
   updated_at: string;
 }
 
-export async function getModulesByCourse(courseId: string): Promise<Module[]> {
+export async function getModulesByCourse(courseId: string) {
   try {
     const { data, error } = await supabase
       .from("modules")
@@ -24,7 +24,7 @@ export async function getModulesByCourse(courseId: string): Promise<Module[]> {
 
     if (error) throw error;
     
-    return (data || []) as Module[];
+    return data || [];
   } catch (error) {
     console.error("Error fetching modules:", error);
     const { toast } = useToast();
@@ -66,17 +66,10 @@ export async function createModule(moduleData: Partial<Module>) {
     
     const nextOrder = modules && modules.length > 0 ? modules[0].module_order + 1 : 0;
     
-    // Ensure required properties are present
-    if (!moduleData.course_id) throw new Error("Course ID is required");
-    if (!moduleData.title) throw new Error("Title is required");
-    
     const { data, error } = await supabase
       .from("modules")
       .insert({
-        course_id: moduleData.course_id,
-        title: moduleData.title,
-        description: moduleData.description || null,
-        is_free: moduleData.is_free || false,
+        ...moduleData,
         module_order: nextOrder,
         content_type: moduleData.content_type || 'section',
       })
@@ -85,7 +78,7 @@ export async function createModule(moduleData: Partial<Module>) {
 
     if (error) throw error;
     
-    return data as Module;
+    return data;
   } catch (error) {
     console.error("Error creating module:", error);
     throw error;
