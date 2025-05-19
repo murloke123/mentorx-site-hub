@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, Filter, PlusCircle, Search, FileText, BookmarkIcon, Eye } from 'lucide-react';
+import { BookOpen, Filter, PlusCircle, Search } from 'lucide-react';
 
 interface Course {
   id: string;
@@ -57,16 +57,6 @@ const CoursesList = ({ courses, isLoading, totalEnrollments }: CoursesListProps)
   // Lidar com o clique no botão de criar curso
   const handleCreateCourse = () => {
     navigate('/mentor/cursos/novo');
-  };
-
-  // Navigate to course content management
-  const handleManageContent = (courseId: string) => {
-    navigate(`/mentor/cursos/${courseId}/modulos`);
-  };
-
-  // Navigate to course details
-  const handleViewDetails = (courseId: string) => {
-    navigate(`/mentor/cursos/${courseId}/detalhes`);
   };
 
   return (
@@ -146,14 +136,11 @@ const CoursesList = ({ courses, isLoading, totalEnrollments }: CoursesListProps)
                   <p className="text-sm text-muted-foreground line-clamp-2">{course.description}</p>
                 )}
               </CardContent>
-              <div className="grid grid-cols-2 gap-2 p-6 pt-0">
-                <Button variant="default" onClick={() => handleManageContent(course.id)} className="flex items-center">
-                  <FileText className="h-4 w-4 mr-2" /> Módulos
+              <div className="flex justify-between p-6 pt-0">
+                <Button variant="outline" asChild>
+                  <Link to={`/mentor/cursos/${course.id}`}>Ver Detalhes</Link>
                 </Button>
-                <Button variant="outline" onClick={() => handleViewDetails(course.id)} className="flex items-center">
-                  <Eye className="h-4 w-4 mr-2" /> Detalhes
-                </Button>
-                <Button variant="outline" asChild className="col-span-2">
+                <Button variant="outline" asChild>
                   <Link to={`/mentor/cursos/${course.id}/editar`}>Editar Curso</Link>
                 </Button>
               </div>
