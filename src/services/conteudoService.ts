@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { Json } from "@/integrations/supabase/types";
 
 export interface Conteudo {
   id: string;
@@ -28,7 +29,13 @@ export async function getConteudosByModuloId(moduloId: string): Promise<Conteudo
       .order("ordem", { ascending: true });
 
     if (error) throw error;
-    return data || [];
+    
+    // Garantir que os dados retornados sejam do tipo Conteudo[]
+    return (data || []).map(item => ({
+      ...item,
+      tipo_conteudo: item.tipo_conteudo as 'texto_rico' | 'video_externo',
+      dados_conteudo: item.dados_conteudo as Conteudo['dados_conteudo']
+    }));
   } catch (error) {
     console.error("Erro ao buscar conteúdos:", error);
     toast({
@@ -50,7 +57,14 @@ export async function getConteudoById(conteudoId: string): Promise<Conteudo | nu
       .single();
 
     if (error) throw error;
-    return data;
+    
+    if (!data) return null;
+    
+    return {
+      ...data,
+      tipo_conteudo: data.tipo_conteudo as 'texto_rico' | 'video_externo',
+      dados_conteudo: data.dados_conteudo as Conteudo['dados_conteudo']
+    };
   } catch (error) {
     console.error("Erro ao buscar conteúdo:", error);
     toast({
@@ -88,7 +102,7 @@ export async function criarConteudoTextoRico(dados: {
         modulo_id: dados.modulo_id,
         nome_conteudo: dados.nome_conteudo,
         descricao_conteudo: dados.descricao_conteudo,
-        tipo_conteudo: 'texto_rico',
+        tipo_conteudo: 'texto_rico' as const,
         dados_conteudo: {
           html_content: dados.html_content
         },
@@ -104,7 +118,11 @@ export async function criarConteudoTextoRico(dados: {
       description: "O conteúdo de texto foi adicionado ao módulo.",
     });
     
-    return data;
+    return {
+      ...data,
+      tipo_conteudo: data.tipo_conteudo as 'texto_rico' | 'video_externo',
+      dados_conteudo: data.dados_conteudo as Conteudo['dados_conteudo']
+    };
   } catch (error) {
     console.error("Erro ao criar conteúdo:", error);
     toast({
@@ -143,7 +161,7 @@ export async function criarConteudoVideo(dados: {
         modulo_id: dados.modulo_id,
         nome_conteudo: dados.nome_conteudo,
         descricao_conteudo: dados.descricao_conteudo,
-        tipo_conteudo: 'video_externo',
+        tipo_conteudo: 'video_externo' as const,
         dados_conteudo: {
           provider: dados.provider,
           url: dados.url
@@ -160,7 +178,11 @@ export async function criarConteudoVideo(dados: {
       description: "O conteúdo de vídeo foi adicionado ao módulo.",
     });
     
-    return data;
+    return {
+      ...data,
+      tipo_conteudo: data.tipo_conteudo as 'texto_rico' | 'video_externo',
+      dados_conteudo: data.dados_conteudo as Conteudo['dados_conteudo']
+    };
   } catch (error) {
     console.error("Erro ao criar conteúdo:", error);
     toast({
@@ -189,11 +211,14 @@ export async function atualizarConteudoTextoRico(
       .eq("id", conteudoId)
       .single();
     
+    // Criar um objeto para armazenar os dados do conteúdo atualizados
+    const dadosConteudoAtuais = conteudoAtual?.dados_conteudo as Conteudo['dados_conteudo'] || {};
+    
     const dadosConteudoAtualizados = {
-      ...conteudoAtual?.dados_conteudo,
+      ...dadosConteudoAtuais,
       html_content: dados.html_content !== undefined 
         ? dados.html_content 
-        : conteudoAtual?.dados_conteudo?.html_content
+        : dadosConteudoAtuais?.html_content
     };
     
     const atualizacoes: any = {};
@@ -215,7 +240,11 @@ export async function atualizarConteudoTextoRico(
       description: "As alterações foram salvas com sucesso.",
     });
     
-    return data;
+    return {
+      ...data,
+      tipo_conteudo: data.tipo_conteudo as 'texto_rico' | 'video_externo',
+      dados_conteudo: data.dados_conteudo as Conteudo['dados_conteudo']
+    };
   } catch (error) {
     console.error("Erro ao atualizar conteúdo:", error);
     toast({
@@ -245,14 +274,17 @@ export async function atualizarConteudoVideo(
       .eq("id", conteudoId)
       .single();
     
+    // Criar um objeto para armazenar os dados do conteúdo atualizados
+    const dadosConteudoAtuais = conteudoAtual?.dados_conteudo as Conteudo['dados_conteudo'] || {};
+    
     const dadosConteudoAtualizados = {
-      ...conteudoAtual?.dados_conteudo,
+      ...dadosConteudoAtuais,
       provider: dados.provider !== undefined 
         ? dados.provider 
-        : conteudoAtual?.dados_conteudo?.provider,
+        : dadosConteudoAtuais?.provider,
       url: dados.url !== undefined 
         ? dados.url 
-        : conteudoAtual?.dados_conteudo?.url
+        : dadosConteudoAtuais?.url
     };
     
     const atualizacoes: any = {};
@@ -274,7 +306,11 @@ export async function atualizarConteudoVideo(
       description: "As alterações foram salvas com sucesso.",
     });
     
-    return data;
+    return {
+      ...data,
+      tipo_conteudo: data.tipo_conteudo as 'texto_rico' | 'video_externo',
+      dados_conteudo: data.dados_conteudo as Conteudo['dados_conteudo']
+    };
   } catch (error) {
     console.error("Erro ao atualizar conteúdo:", error);
     toast({
