@@ -1,5 +1,4 @@
 
-import { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -32,15 +31,15 @@ const ConteudoDialog = ({
 }: ConteudoDialogProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[700px]">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[700px] p-0 overflow-hidden flex flex-col">
+        <DialogHeader className="p-6 pb-2">
           <DialogTitle>
             {editingId ? 'Editar Conteúdo' : 'Adicionar Novo Conteúdo'}
           </DialogTitle>
         </DialogHeader>
 
         {isLoading && editingId ? (
-          <div className="space-y-4 py-4">
+          <div className="space-y-4 p-6">
             <Skeleton className="h-8 w-full" />
             <Skeleton className="h-24 w-full" />
             <Skeleton className="h-8 w-1/2" />
