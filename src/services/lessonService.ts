@@ -26,7 +26,8 @@ export async function getLessonsByModule(moduleId: string) {
 
     if (error) throw error;
     
-    return data || [];
+    // Ensure the returned data conforms to the Lesson type
+    return (data || []) as Lesson[];
   } catch (error) {
     console.error("Error fetching lessons:", error);
     const { toast } = useToast();
@@ -76,10 +77,20 @@ export async function createLesson(lessonData: Partial<Lesson>) {
     
     const nextOrder = lessons && lessons.length > 0 ? lessons[0].lesson_order + 1 : 0;
     
+    // Ensure required properties are present
+    if (!lessonData.module_id || !lessonData.title || !lessonData.type) {
+      throw new Error("Dados de lição inválidos: module_id, title e type são obrigatórios");
+    }
+    
     const { data, error } = await supabase
       .from("lessons")
       .insert({
-        ...lessonData,
+        module_id: lessonData.module_id,
+        title: lessonData.title,
+        type: lessonData.type,
+        content: lessonData.content || null,
+        file_url: lessonData.file_url || null,
+        video_url: lessonData.video_url || null,
         lesson_order: nextOrder,
         is_published: lessonData.is_published !== undefined ? lessonData.is_published : true
       })
@@ -88,7 +99,7 @@ export async function createLesson(lessonData: Partial<Lesson>) {
 
     if (error) throw error;
     
-    return data;
+    return data as Lesson;
   } catch (error) {
     console.error("Error creating lesson:", error);
     throw error;
@@ -137,7 +148,7 @@ export async function updateLesson(lessonId: string, lessonData: Partial<Lesson>
 
     if (error) throw error;
     
-    return data;
+    return data as Lesson;
   } catch (error) {
     console.error("Error updating lesson:", error);
     throw error;
@@ -154,7 +165,7 @@ export async function deleteLesson(lessonId: string) {
     // Verify lesson belongs to a module in a course owned by the user
     const { data: lesson, error: lessonError } = await supabase
       .from("lessons")
-      .select("module_id")
+      .select("*")  // Select all fields to access file_url later
       .eq("id", lessonId)
       .single();
       

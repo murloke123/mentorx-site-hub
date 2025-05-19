@@ -66,10 +66,18 @@ export async function createModule(moduleData: Partial<Module>) {
     
     const nextOrder = modules && modules.length > 0 ? modules[0].module_order + 1 : 0;
     
+    // Ensure required properties are present
+    if (!moduleData.course_id || !moduleData.title) {
+      throw new Error("Dados do módulo inválidos: course_id e title são obrigatórios");
+    }
+    
     const { data, error } = await supabase
       .from("modules")
       .insert({
-        ...moduleData,
+        course_id: moduleData.course_id,
+        title: moduleData.title,
+        description: moduleData.description || null,
+        is_free: moduleData.is_free !== undefined ? moduleData.is_free : false,
         module_order: nextOrder,
         content_type: moduleData.content_type || 'section',
       })

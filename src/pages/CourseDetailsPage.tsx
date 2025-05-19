@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -152,7 +151,7 @@ const CourseDetailsPage = () => {
       for (const module of modules) {
         try {
           const lessons = await getLessonsByModule(module.id);
-          lessonsByModule[module.id] = lessons;
+          lessonsByModule[module.id] = lessons as Lesson[];
         } catch (error) {
           console.error(`Error fetching lessons for module ${module.id}:`, error);
         }

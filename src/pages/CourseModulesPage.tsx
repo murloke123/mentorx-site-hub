@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -79,7 +78,10 @@ const CourseModulesPage = () => {
     refetch: refetchLessons 
   } = useQuery({
     queryKey: ['lessons', selectedModuleId],
-    queryFn: () => getLessonsByModule(selectedModuleId!),
+    queryFn: async () => {
+      const lessonData = await getLessonsByModule(selectedModuleId!);
+      return lessonData as Lesson[];
+    },
     enabled: !!selectedModuleId,
   });
   
