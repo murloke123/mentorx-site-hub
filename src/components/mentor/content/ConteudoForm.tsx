@@ -47,31 +47,33 @@ const ConteudoForm = ({ onSubmit, initialData, isSubmitting, onCancel }: Conteud
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        <ScrollArea className="max-h-[70vh] px-1">
-          <div className="space-y-6 px-2 py-1 w-full max-w-3xl mx-auto">
-            <BasicContentFields form={form} isSubmitting={isSubmitting} />
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6 flex flex-col h-full max-h-[70vh]">
+        <div className="flex-1 overflow-hidden">
+          <ScrollArea className="h-full pr-4" style={{ height: 'calc(70vh - 80px)' }}>
+            <div className="space-y-6 px-4 py-2 w-full max-w-3xl mx-auto">
+              <BasicContentFields form={form} isSubmitting={isSubmitting} />
 
-            {tipoConteudo === 'texto_rico' && (
-              <TextContentField 
-                initialValue={htmlContent} 
-                onChange={setHtmlContent}
-                isSubmitting={isSubmitting}
-              />
-            )}
+              {tipoConteudo === 'texto_rico' && (
+                <TextContentField 
+                  initialValue={htmlContent} 
+                  onChange={setHtmlContent}
+                  isSubmitting={isSubmitting}
+                />
+              )}
 
-            {tipoConteudo === 'video_externo' && (
-              <VideoContentField
-                initialUrl={videoUrl}
-                initialProvider={provider}
-                onChange={handleVideoChange}
-                isSubmitting={isSubmitting}
-              />
-            )}
-          </div>
-        </ScrollArea>
+              {tipoConteudo === 'video_externo' && (
+                <VideoContentField
+                  initialUrl={videoUrl}
+                  initialProvider={provider}
+                  onChange={handleVideoChange}
+                  isSubmitting={isSubmitting}
+                />
+              )}
+            </div>
+          </ScrollArea>
+        </div>
 
-        <div className="flex justify-end space-x-2 pt-4 border-t">
+        <div className="flex justify-end space-x-2 pt-4 border-t mt-4 sticky bottom-0 bg-background">
           <Button 
             type="button" 
             variant="outline" 

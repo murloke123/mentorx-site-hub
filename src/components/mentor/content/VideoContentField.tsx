@@ -45,7 +45,7 @@ const VideoContentField = ({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 w-full">
       <div className="space-y-2">
         <FormLabel>URL do Vídeo</FormLabel>
         <Input 
@@ -53,6 +53,7 @@ const VideoContentField = ({
           value={videoUrl}
           onChange={handleVideoUrlChange}
           disabled={isSubmitting}
+          className="w-full"
         />
         <p className="text-sm text-muted-foreground">
           Cole o link completo do seu vídeo do YouTube ou Vimeo.
@@ -60,7 +61,7 @@ const VideoContentField = ({
       </div>
 
       {videoUrl && (
-        <Card>
+        <Card className="w-full">
           <CardContent className="pt-6">
             <VideoPlayer provider={provider} url={videoUrl} />
           </CardContent>
