@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -20,6 +21,7 @@ import ConteudosPage from "@/pages/ConteudosPage";
 import NotFound from "@/pages/NotFound";
 import Debug from "@/components/Debug";
 import ShowCoursePage from "@/pages/ShowCoursePage";
+import CoursePlayerPage from "@/pages/mentor/cursos/CoursePlayerPage";
 
 // Importar as novas páginas de administração
 import AdminDashboardPage from "@/pages/AdminDashboardPage";
@@ -51,6 +53,7 @@ const App = () => (
               <Route path="/mentor/cursos/novo" element={<CreateCoursePage />} />
               <Route path="/mentor/cursos/:id/editar" element={<EditCoursePage />} />
               <Route path="/mentor/cursos/show/:id" element={<ShowCoursePage />} />
+              <Route path="/mentor/curso/:id" element={<CoursePlayerPage />} />
               <Route path="/mentor/cursos/:cursoId/modulos" element={<ModulosPage />} />
               <Route path="/mentor/cursos/:cursoId/modulos/:moduloId" element={<ConteudosPage />} />
               <Route path="/mentor/followers" element={<MentorFollowersPage />} />

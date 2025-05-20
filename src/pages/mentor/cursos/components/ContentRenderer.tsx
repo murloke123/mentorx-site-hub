@@ -2,6 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ConteudoItemLocal, ModuloItemLocal } from '../types';
+import VideoPlayer from '@/components/mentor/content/VideoPlayer';
 
 interface ContentRendererProps {
   currentConteudo: ConteudoItemLocal | null;
@@ -10,7 +11,7 @@ interface ContentRendererProps {
 
 const ContentRenderer: React.FC<ContentRendererProps> = ({ currentConteudo, modulos }) => {
   if (!currentConteudo) {
-    return <p className="text-center text-gray-500">Selecione um conteúdo para visualizar.</p>;
+    return <p className="text-center text-gray-500 mt-10">Selecione um conteúdo para visualizar.</p>;
   }
 
   const currentModulo = modulos.find(m => m.id === currentConteudo.modulo_id);
@@ -19,9 +20,14 @@ const ContentRenderer: React.FC<ContentRendererProps> = ({ currentConteudo, modu
     switch (currentConteudo.tipo_conteudo) {
       case 'video':
         return currentConteudo.dados_conteudo?.video_url ? (
-          <div className="aspect-video bg-gray-300 flex items-center justify-center">
-            <p>Video Player Placeholder (URL: {currentConteudo.dados_conteudo.video_url})</p>
-          </div>
+          <Card className="mt-4">
+            <CardContent className="p-0">
+              <VideoPlayer 
+                provider={currentConteudo.dados_conteudo.video_url.includes('vimeo') ? 'vimeo' : 'youtube'} 
+                url={currentConteudo.dados_conteudo.video_url}
+              />
+            </CardContent>
+          </Card>
         ) : <p>Vídeo indisponível.</p>;
       case 'text':
         return currentConteudo.dados_conteudo?.texto_rico ? (
@@ -47,13 +53,13 @@ const ContentRenderer: React.FC<ContentRendererProps> = ({ currentConteudo, modu
   };
 
   return (
-    <>
+    <div className="p-6">
       <h2 className="text-2xl font-semibold mb-2">{currentConteudo.nome_conteudo}</h2>
       <p className="text-sm text-gray-600 mb-4">
         {currentModulo ? `Módulo: ${currentModulo.nome_modulo}` : ''}
       </p>
       {renderContent()}
-    </>
+    </div>
   );
 };
 

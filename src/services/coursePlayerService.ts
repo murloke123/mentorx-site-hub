@@ -1,134 +1,66 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { CursoItemLocal, ModuloItemLocal, ConteudoItemLocal } from "@/pages/mentor/cursos/types";
 
-// Define interfaces for course player functionality
-export interface ConteudoItem {
-  id: string;
-  nome_conteudo: string;
-  tipo_conteudo: 'video' | 'text' | 'pdf';
-  dados_conteudo: {
-    video_url?: string;
-    texto_rico?: string;
-    pdf_url?: string;
-    pdf_filename?: string;
-  };
-  ordem: number;
-  modulo_id: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface ModuloItem {
-  id: string;
-  nome_modulo: string;
-  descricao_modulo?: string;
-  ordem: number;
-  curso_id: string;
-  created_at: string;
-  updated_at: string;
-  conteudos: ConteudoItem[];
-}
-
-export interface CursoItem {
-  id: string;
-  title: string;
-  description?: string;
-  image_url?: string;
-  mentor_id: string;
-  is_paid?: boolean;
-  price?: number;
-  created_at: string;
-  updated_at: string;
-  modulos: ModuloItem[];
-}
-
-export interface CoursePlayerData {
-  curso: CursoItem;
-  modulos: ModuloItem[];
-  completedConteudoIds: string[];
-}
-
-// Function to get course details for the player
-export async function getCourseDetailsForPlayer(cursoId: string): Promise<CoursePlayerData> {
+// Função para obter detalhes do curso para o player
+export async function getCourseDetailsForPlayer(cursoId: string) {
   try {
-    // Fetch the course data
+    // Obter dados do curso
     const { data: curso, error: cursoError } = await supabase
       .from("cursos")
       .select("*")
       .eq("id", cursoId)
       .single();
-
+    
     if (cursoError) throw cursoError;
-
-    // Fetch the modules for the course
+    
+    // Obter módulos do curso
     const { data: modulos, error: modulosError } = await supabase
       .from("modulos")
       .select("*, conteudos(*)")
       .eq("curso_id", cursoId)
       .order("ordem", { ascending: true });
-
+    
     if (modulosError) throw modulosError;
-
-    // Get user ID for completed content check
+    
+    // Obter IDs de conteúdos já concluídos pelo usuário
     const { data: { user } } = await supabase.auth.getUser();
     
-    if (!user) {
-      throw new Error("Usuário não autenticado");
+    let completedConteudoIds: string[] = [];
+    if (user) {
+      const { data: conteudosConcluidos, error: concluidosError } = await supabase
+        .from("conteudo_concluido")
+        .select("conteudo_id")
+        .eq("user_id", user.id)
+        .eq("curso_id", cursoId);
+      
+      if (!concluidosError && conteudosConcluidos) {
+        completedConteudoIds = conteudosConcluidos.map(cc => cc.conteudo_id);
+      }
     }
-
-    // Fetch completed content IDs
-    const { data: concluidos, error: concluidosError } = await supabase
-      .from("conteudo_concluido")
-      .select("conteudo_id")
-      .eq("user_id", user.id)
-      .eq("curso_id", cursoId);
-
-    if (concluidosError) throw concluidosError;
-
-    const completedConteudoIds = concluidos ? concluidos.map(item => item.conteudo_id) : [];
-
-    // Create the properly structured course data with modules
-    const cursoWithModulos: CursoItem = {
-      ...curso,
-      modulos: modulos as ModuloItem[]
-    };
-
+    
     return {
-      curso: cursoWithModulos,
-      modulos: modulos as ModuloItem[],
+      curso: curso as unknown as CursoItemLocal,
+      modulos: modulos as unknown as ModuloItemLocal[],
       completedConteudoIds
     };
+    
   } catch (error) {
-    console.error("Error fetching course details for player:", error);
+    console.error("Erro ao buscar detalhes do curso:", error);
     throw error;
   }
 }
 
-// Mark content as completed
+// Função para marcar um conteúdo como concluído
 export async function markConteudoConcluido(cursoId: string, moduloId: string, conteudoId: string) {
   try {
-    // Get the user ID
+    // Verificar se o usuário está autenticado
     const { data: { user } } = await supabase.auth.getUser();
-    
     if (!user) {
       throw new Error("Usuário não autenticado");
     }
-    
-    // Check if already marked as completed
-    const { data: existing, error: checkError } = await supabase
-      .from("conteudo_concluido")
-      .select("id")
-      .eq("user_id", user.id)
-      .eq("conteudo_id", conteudoId)
-      .maybeSingle();
-    
-    if (checkError) throw checkError;
-    
-    if (existing) {
-      return existing;
-    }
-    
-    // Insert new record of completed content
+
+    // Inserir registro de conteúdo concluído
     const { data, error } = await supabase
       .from("conteudo_concluido")
       .insert({
@@ -137,41 +69,39 @@ export async function markConteudoConcluido(cursoId: string, moduloId: string, c
         modulo_id: moduloId,
         conteudo_id: conteudoId
       })
-      .select()
-      .single();
+      .select();
 
     if (error) throw error;
-    
     return data;
   } catch (error) {
-    console.error("Error marking content as completed:", error);
+    console.error("Erro ao marcar conteúdo como concluído:", error);
     throw error;
   }
 }
 
-// Mark content as incomplete
+// Função para desmarcar um conteúdo como concluído (remover)
 export async function markConteudoIncompleto(cursoId: string, moduloId: string, conteudoId: string) {
   try {
-    // Get the user ID
+    // Verificar se o usuário está autenticado
     const { data: { user } } = await supabase.auth.getUser();
-    
     if (!user) {
       throw new Error("Usuário não autenticado");
     }
 
-    // Delete the record
+    // Remover registro de conteúdo concluído
     const { error } = await supabase
       .from("conteudo_concluido")
       .delete()
-      .eq("user_id", user.id)
-      .eq("curso_id", cursoId)
-      .eq("conteudo_id", conteudoId);
+      .match({
+        user_id: user.id,
+        curso_id: cursoId,
+        conteudo_id: conteudoId
+      });
 
     if (error) throw error;
-    
     return { success: true };
   } catch (error) {
-    console.error("Error marking content as incomplete:", error);
+    console.error("Erro ao desmarcar conteúdo como concluído:", error);
     throw error;
   }
 }

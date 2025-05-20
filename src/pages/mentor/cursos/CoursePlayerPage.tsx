@@ -104,7 +104,7 @@ const CoursePlayerPage = () => {
       
       <div className="flex flex-1 overflow-hidden">
         {/* Main Content Area */}
-        <main className="flex-1 p-6 overflow-y-auto bg-gray-100">
+        <main className="flex-1 overflow-y-auto bg-gray-100">
           <ContentRenderer 
             currentConteudo={currentConteudo}
             modulos={curso.modulos}

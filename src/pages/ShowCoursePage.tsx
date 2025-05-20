@@ -1,11 +1,12 @@
 
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { User, Clock, BookOpen, Star, ChevronLeft } from "lucide-react";
+import { User, Clock, BookOpen, Star, ChevronLeft, Play } from "lucide-react";
 import { getCourseDetails } from "@/services/courseService";
+import { toast } from "@/hooks/use-toast";
 
 interface Course {
   id: string;
@@ -30,6 +31,7 @@ const ShowCoursePage = () => {
   const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!id) return;
@@ -49,6 +51,18 @@ const ShowCoursePage = () => {
 
     fetchCourse();
   }, [id]);
+
+  const handleAccessCourse = () => {
+    if (id) {
+      navigate(`/mentor/curso/${id}`);
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: "Não foi possível acessar o curso"
+      });
+    }
+  };
 
   if (loading) {
     return (
@@ -136,7 +150,13 @@ const ShowCoursePage = () => {
                 </div>
               </div>
               
-              <Button className="w-full">Matricular-se</Button>
+              <Button 
+                className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700"
+                onClick={handleAccessCourse}
+              >
+                <Play className="h-4 w-4" />
+                Ver Curso
+              </Button>
             </CardContent>
           </Card>
         </div>
