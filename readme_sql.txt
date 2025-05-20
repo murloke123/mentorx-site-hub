@@ -1,4 +1,5 @@
 
+
 # Supabase Database Documentation
 
 ## Project ID
@@ -240,3 +241,33 @@ CREATE INDEX idx_conteudo_concluido_user_conteudo ON public.conteudo_concluido(u
 1. This documentation will be updated whenever schema changes occur.
 2. The database still uses the "courses" table instead of "cursos" in production.
 3. There appears to be a pending migration for the "conteudo_concluido" table that hasn't been successfully applied yet.
+
+```
+
+## SQL Commands To Run in Supabase SQL Editor
+
+```sql
+-- 1. First, drop the tables we want to remove (modules and lessons)
+-- Be careful with the order due to foreign key constraints
+DROP TABLE IF EXISTS public.lessons;
+DROP TABLE IF EXISTS public.modules;
+
+-- 2. Rename courses table to cursos (if you want to go ahead with this change)
+-- CAUTION: This will require updating all references in your code!
+ALTER TABLE IF EXISTS public.courses RENAME TO cursos;
+
+-- 3. Update foreign key references in other tables
+ALTER TABLE IF EXISTS public.enrollments
+    DROP CONSTRAINT IF EXISTS enrollments_course_id_fkey,
+    ADD CONSTRAINT enrollments_course_id_fkey FOREIGN KEY (course_id) REFERENCES public.cursos(id);
+
+ALTER TABLE IF EXISTS public.modulos
+    DROP CONSTRAINT IF EXISTS modulos_curso_id_fkey,
+    ADD CONSTRAINT modulos_curso_id_fkey FOREIGN KEY (curso_id) REFERENCES public.cursos(id);
+
+ALTER TABLE IF EXISTS public.conteudo_concluido
+    DROP CONSTRAINT IF EXISTS conteudo_concluido_curso_id_fkey,
+    ADD CONSTRAINT conteudo_concluido_curso_id_fkey FOREIGN KEY (curso_id) REFERENCES public.cursos(id);
+```
+
+IMPORTANT: Before running these SQL commands, I need to warn you that renaming the "courses" table to "cursos" will require significant code changes throughout the application. The current codebase has many references to the "courses" table that would need to be updated. You might want to reconsider this change or plan for a more comprehensive update of the codebase.

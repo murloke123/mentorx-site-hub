@@ -1,306 +1,232 @@
-import { supabase } from '@/integrations/supabase/client';
-import type { Conteudo } from './conteudoService'; 
-import type { Modulo } from './moduloService';   
-// import { Curso } from './courseService'; // Curso não está exportado lá
 
-// Definição básica da interface Curso, ajuste conforme sua tabela 'cursos'
-export interface Curso {
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
+
+export interface CourseContent {
+  modules: Module[];
+  currentModule?: Module;
+  currentContent?: Content;
+}
+
+export interface Module {
   id: string;
   title: string;
-  description?: string;
-  image_url?: string;
-  mentor_id?: string; // Adicione outros campos relevantes da sua tabela cursos
-  // ... outros campos do curso
-  modulos: Modulo[]; // Nested modulos
+  order: number;
+  contents: Content[];
 }
 
-export interface ModuloComConteudos extends Modulo {
-  conteudos: Conteudo[];
-}
-
-export interface CursoDetalhado extends Curso {
-  modulos: ModuloComConteudos[];
-}
-
-export interface ConteudoConcluido {
-  id?: string;
-  user_id: string;
-  curso_id: string;
-  modulo_id: string;
-  conteudo_id: string;
-  created_at?: string;
-}
-
-// Buscar detalhes completos de um curso para o player
-export async function getCursoDetalhadoParaPlayer(cursoId: string): Promise<CursoDetalhado | null> {
-  const { data: cursoData, error: cursoError } = await supabase
-    .from('cursos') // Use o nome exato da tabela como string
-    .select('*, modulos(*, conteudos(*))') // Use nomes exatos das tabelas relacionadas
-    .eq('id', cursoId)
-    .order('ordem', { referencedTable: 'modulos', ascending: true }) // Corrigido para referencedTable
-    .order('ordem', { referencedTable: 'modulos.conteudos', ascending: true }) // Corrigido para referencedTable
-    .single();
-
-  if (cursoError) {
-    console.error("Erro ao buscar detalhes do curso para player:", cursoError);
-    // Não lance o erro aqui, retorne null para que a UI possa tratar
-    return null;
-  }
-  return cursoData as any; // Usar 'as any' temporariamente devido à complexidade do tipo aninhado
-}
-
-// Buscar IDs dos conteúdos concluídos por um usuário em um curso
-export async function getConteudosConcluidosPorUsuario(
-  cursoId: string,
-  userId: string
-): Promise<string[]> {
-  const { data, error } = await supabase
-    .from('conteudo_concluido') // Use o nome exato da tabela como string
-    .select('conteudo_id')
-    .eq('curso_id', cursoId)
-    .eq('user_id', userId);
-
-  if (error) {
-    console.error("Erro ao buscar conteúdos concluídos:", error);
-    return [];
-  }
-  // Certifique-se que data não é null e que os itens têm a propriedade conteudo_id
-  return data ? data.map(item => item.conteudo_id) : [];
-}
-
-// Marcar um conteúdo como concluído
-export async function marcarConteudoComoConcluido(
-  dadosConclusao: Omit<ConteudoConcluido, 'id' | 'created_at'>
-): Promise<ConteudoConcluido | null> {
-  const { data, error } = await supabase
-    .from('conteudo_concluido') // Use o nome exato da tabela como string
-    .insert([dadosConclusao])    // .insert() espera um array
-    .select()
-    .single();
-  
-  if (error) {
-    console.error("Erro ao marcar conteúdo como concluído:", error);
-    return null;
-  }
-  return data as ConteudoConcluido | null;
-}
-
-// Desmarcar um conteúdo como concluído
-export async function desmarcarConteudoComoConcluido(
-  conteudoId: string,
-  userId: string
-): Promise<boolean> {
-  const { error } = await supabase
-    .from('conteudo_concluido') // Use o nome exato da tabela como string
-    .delete()
-    .eq('conteudo_id', conteudoId)
-    .eq('user_id', userId);
-
-  if (error) {
-    console.error("Erro ao desmarcar conteúdo como concluído:", error);
-    return false;
-  }
-  return true;
-}
-
-// Define interfaces based on your Supabase schema
-// These might need to be adjusted if they are defined centrally and can be imported
-
-export interface Conteudo {
+export interface Content {
   id: string;
-  titulo: string;
-  tipo_conteudo: 'video' | 'text' | 'pdf';
-  dados_conteudo: {
-    video_url?: string;
-    texto_rico?: string;
-    pdf_url?: string;
-    pdf_filename?: string;
-    // Add other potential fields from your 'conteudos' table if needed
-  };
-  ordem: number;
-  modulo_id: string;
-  created_at: string;
-  updated_at: string;
+  title: string;
+  type: string;
+  order: number;
+  data: any;
+  isCompleted?: boolean;
 }
 
-export interface Modulo {
-  id: string;
-  titulo: string;
-  descricao?: string;
-  ordem: number;
-  curso_id: string;
-  created_at: string;
-  updated_at: string;
-  conteudos: Conteudo[]; // Nested conteudos
-}
-
-interface CourseDetailsPlayerResponse {
-  curso: Curso | null;
-  completedConteudoIds: string[];
-}
-
-/**
- * Fetches detailed course data for the player page, including modules, content,
- * and the user's completed content.
- */
-export async function getCourseDetailsForPlayer(cursoId: string): Promise<CourseDetailsPlayerResponse> {
-  if (!cursoId) {
-    throw new Error("ID do curso é obrigatório.");
-  }
-
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    // Handle case where user is not authenticated, if necessary for public courses
-    // For now, assuming player is for authenticated users or RLS handles public access
-    console.warn("Usuário não autenticado ao buscar detalhes do curso para o player.");
-  }
-
+export async function getCoursePlayerData(courseId: string, userId: string): Promise<CourseContent | null> {
   try {
-    // Fetch course details
-    const { data: courseData, error: courseError } = await supabase
-      .from('courses')
-      .select(\`
-        id,
-        title,
-        description,
-        image_url,
-        mentor_id,
-        modulos (
-          id,
-          titulo,
-          descricao,
-          ordem,
-          curso_id,
-          created_at,
-          updated_at,
-          conteudos (
-            id,
-            titulo,
-            tipo_conteudo,
-            dados_conteudo,
-            ordem,
-            modulo_id,
-            created_at,
-            updated_at
-          )
-        )
-      \`)
-      .eq('id', cursoId)
-      .maybeSingle(); // Use maybeSingle if the course might not exist or RLS prevents access
+    // Fetch modules
+    const { data: modulesData, error: modulesError } = await supabase
+      .from("modulos")
+      .select("*")
+      .eq("curso_id", courseId)
+      .order("ordem", { ascending: true });
 
-    if (courseError) throw courseError;
-    if (!courseData) {
-      // Consider if this should throw an error or return null for the curso
-      // For now, matching the return type which allows curso to be null
-      return { curso: null, completedConteudoIds: [] };
-    }
-
-    // Sort modules and their conteudos by 'ordem'
-    const sortedModulos = courseData.modulos.map(modulo => ({
-      ...modulo,
-      conteudos: modulo.conteudos.sort((a, b) => a.ordem - b.ordem),
-    })).sort((a, b) => a.ordem - b.ordem);
+    if (modulesError) throw modulesError;
     
-    const cursoComModulosOrdenados = { ...courseData, modulos: sortedModulos } as Curso;
-
-
-    // Fetch completed content for the current user and course
-    let completedConteudoIds: string[] = [];
-    if (user) {
-      const { data: completedData, error: completedError } = await supabase
-        .from('conteudo_concluido')
-        .select('conteudo_id')
-        .eq('user_id', user.id)
-        .eq('curso_id', cursoId);
-
-      if (completedError) {
-        console.error("Erro ao buscar conteúdos concluídos:", completedError);
-        // Decide if this error should be thrown or handled gracefully
-        // For now, we'll proceed without completed data if there's an error
-      } else if (completedData) {
-        completedConteudoIds = completedData.map(item => item.conteudo_id);
+    if (!modulesData || modulesData.length === 0) {
+      return { modules: [] };
+    }
+    
+    // Fetch all contents for this course's modules
+    const moduleIds = modulesData.map(module => module.id);
+    
+    const { data: contentsData, error: contentsError } = await supabase
+      .from("conteudos")
+      .select("*")
+      .in("modulo_id", moduleIds)
+      .order("ordem", { ascending: true });
+    
+    if (contentsError) throw contentsError;
+    
+    // Get completion data for this user and course
+    const { data: completionData, error: completionError } = await supabase
+      .from("conteudo_concluido")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("curso_id", courseId);
+    
+    if (completionError) throw completionError;
+    
+    // Map of completed content IDs for quick lookup
+    const completedContentIds = new Set(
+      completionData?.map(item => item.conteudo_id) || []
+    );
+    
+    // Organize data into the desired structure
+    const modules: Module[] = modulesData.map(module => {
+      // Get contents for this module
+      const moduleContents = contentsData?.filter(
+        content => content.modulo_id === module.id
+      ) || [];
+      
+      // Format contents with completion status
+      const contents: Content[] = moduleContents.map(content => ({
+        id: content.id,
+        title: content.nome_conteudo,
+        type: content.tipo_conteudo,
+        order: content.ordem,
+        data: content.dados_conteudo,
+        isCompleted: completedContentIds.has(content.id)
+      }));
+      
+      // Return formatted module
+      return {
+        id: module.id,
+        title: module.nome_modulo,
+        order: module.ordem,
+        contents: contents
+      };
+    });
+    
+    // Find the first incomplete content across all modules for initial position
+    let currentModule: Module | undefined = undefined;
+    let currentContent: Content | undefined = undefined;
+    
+    // Logic to find current position
+    let foundIncomplete = false;
+    
+    for (const module of modules) {
+      if (foundIncomplete) break;
+      
+      for (const content of module.contents) {
+        if (!content.isCompleted) {
+          currentModule = module;
+          currentContent = content;
+          foundIncomplete = true;
+          break;
+        }
       }
     }
     
-    return { curso: cursoComModulosOrdenados, completedConteudoIds };
-
+    // If all content is complete, set to the last module and content
+    if (!currentModule && modules.length > 0) {
+      currentModule = modules[modules.length - 1];
+      const moduleContents = currentModule.contents;
+      currentContent = moduleContents.length > 0 ? moduleContents[moduleContents.length - 1] : undefined;
+    }
+    
+    return {
+      modules,
+      currentModule,
+      currentContent
+    };
+    
   } catch (error) {
-    console.error('Erro ao buscar detalhes do curso para o player:', error);
-    // Consider how to propagate this error. Toast can be called from the component.
-    if (error instanceof Error) {
-        throw new Error(\`Falha ao carregar dados do curso: ${error.message.replace(/`/g, "\\`")}\`);
-    }
-    throw new Error("Uma falha desconhecida ocorreu ao carregar dados do curso.");
+    console.error("Error fetching course player data:", error);
+    toast({
+      title: "Erro ao carregar curso",
+      description: "Não foi possível carregar os dados do curso.",
+      variant: "destructive",
+    });
+    return null;
   }
 }
 
+export async function markContentAsCompleted(
+  userId: string,
+  courseId: string,
+  moduleId: string,
+  contentId: string
+) {
+  try {
+    const { data, error } = await supabase
+      .from("conteudo_concluido")
+      .insert({
+        user_id: userId,
+        curso_id: courseId,
+        modulo_id: moduleId,
+        conteudo_id: contentId,
+      })
+      .select()
+      .single();
 
-/**
- * Marks a piece of content as completed by the user.
- */
-export async function markConteudoAsConcluido(cursoId: string, moduloId: string, conteudoId: string): Promise<ConteudoConcluido | null> {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    throw new Error("Usuário não autenticado.");
-  }
-
-  if (!cursoId || !moduloId || !conteudoId) {
-    throw new Error("IDs do curso, módulo e conteúdo são obrigatórios.");
-  }
-
-  const { data, error } = await supabase
-    .from('conteudo_concluido')
-    .insert({
-      user_id: user.id,
-      curso_id: cursoId,
-      modulo_id: moduloId,
-      conteudo_id: conteudoId,
-    })
-    .select()
-    .single();
-
-  if (error) {
-    console.error("Erro ao marcar conteúdo como concluído:", error);
-    // Check for unique constraint violation (already completed) - might not be an "error" per se.
-    if (error.code === '23505') { // Unique violation
-        // Optionally, fetch and return the existing record or just return null/handle as success
-        console.warn("Conteúdo já estava marcado como concluído.");
-        // Attempt to fetch the existing record
-        const { data: existingData, error: fetchError } = await supabase
-            .from('conteudo_concluido')
-            .select('*')
-            .eq('user_id', user.id)
-            .eq('conteudo_id', conteudoId)
-            .single();
-        if (fetchError) throw fetchError;
-        return existingData as ConteudoConcluido;
+    if (error) {
+      // Check if this is just a unique constraint violation (already completed)
+      if (error.code === "23505") { // Unique violation in PostgreSQL
+        console.log("Conteúdo já foi marcado como concluído anteriormente");
+        return true;
+      }
+      throw error;
     }
-    throw error;
+
+    return true;
+  } catch (error) {
+    console.error("Error marking content as completed:", error);
+    toast({
+      title: "Erro",
+      description: "Não foi possível marcar o conteúdo como concluído.",
+      variant: "destructive",
+    });
+    return false;
   }
-  return data as ConteudoConcluido;
 }
 
-/**
- * Marks a piece of content as not completed by the user.
- */
-export async function markConteudoAsIncompleto(cursoId: string, moduloId: string, conteudoId: string): Promise<void> {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    throw new Error("Usuário não autenticado.");
-  }
+export async function getCourseProgress(userId: string, courseId: string) {
+  try {
+    // First get all conteúdos for this course
+    const { data: moduleData, error: moduleError } = await supabase
+      .from("modulos")
+      .select("id")
+      .eq("curso_id", courseId);
 
-  if (!cursoId || !moduloId || !conteudoId) { // cursoId and moduloId are not strictly needed for delete by user_id and conteudo_id, but good for consistency/logging
-    throw new Error("ID do conteúdo é obrigatório.");
-  }
+    if (moduleError) throw moduleError;
+    
+    if (!moduleData || moduleData.length === 0) {
+      return { completed: 0, total: 0, percentage: 0 };
+    }
+    
+    const moduleIds = moduleData.map(module => module.id);
 
-  const { error } = await supabase
-    .from('conteudo_concluido')
-    .delete()
-    .eq('user_id', user.id)
-    .eq('conteudo_id', conteudoId); // Primary key for user completion is (user_id, conteudo_id)
-
-  if (error) {
-    console.error("Erro ao marcar conteúdo como incompleto:", error);
-    throw error;
+    // Get all conteúdos for these modules
+    const { data: contentData, error: contentError } = await supabase
+      .from("conteudos")
+      .select("id")
+      .in("modulo_id", moduleIds);
+      
+    if (contentError) throw contentError;
+    
+    const totalContents = contentData?.length || 0;
+    
+    if (totalContents === 0) {
+      return { completed: 0, total: 0, percentage: 0 };
+    }
+    
+    // Now get completed contents
+    const { data: completedData, error: completedError } = await supabase
+      .from("conteudo_concluido")
+      .select("conteudo_id")
+      .eq("user_id", userId)
+      .eq("curso_id", courseId);
+      
+    if (completedError) throw completedError;
+    
+    const completedContents = completedData?.length || 0;
+    
+    // Calculate percentage
+    const percentage = totalContents > 0 
+      ? Math.round((completedContents / totalContents) * 100) 
+      : 0;
+      
+    return {
+      completed: completedContents,
+      total: totalContents,
+      percentage: percentage
+    };
+    
+  } catch (error) {
+    console.error("Error getting course progress:", error);
+    return { completed: 0, total: 0, percentage: 0 };
   }
-} 
+}
