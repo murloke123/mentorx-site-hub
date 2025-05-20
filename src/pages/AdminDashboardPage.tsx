@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { getAdminProfile, getPlatformStats, getAllMentors, getAllMentorados, getAllCourses } from '@/services/adminService';
 import AdminSidebar from '@/components/admin/AdminSidebar';
@@ -73,19 +72,19 @@ const AdminDashboardPage = () => {
   // Fetch recent mentors
   const { data: mentors = [], isLoading: isLoadingMentors } = useQuery<Mentor[]>({
     queryKey: ['recentMentors'],
-    queryFn: () => getAllMentors(5),
+    queryFn: () => getAllMentors({ queryKey: ['recentMentors'], signal: undefined }),
   });
   
   // Fetch recent mentorados
   const { data: mentorados = [], isLoading: isLoadingMentorados } = useQuery<Mentorado[]>({
     queryKey: ['recentMentorados'],
-    queryFn: () => getAllMentorados(5),
+    queryFn: () => getAllMentorados({ queryKey: ['recentMentorados'], signal: undefined }),
   });
   
   // Fetch recent courses
   const { data: courses = [], isLoading: isLoadingCourses } = useQuery<Course[]>({
     queryKey: ['recentCourses'],
-    queryFn: () => getAllCourses(5),
+    queryFn: () => getAllCourses({ queryKey: ['recentCourses'], signal: undefined }),
   });
   
   // Handle display of mentor_name from courses data
@@ -102,9 +101,8 @@ const AdminDashboardPage = () => {
           <p className="text-gray-600">Bem-vindo {profile?.full_name || 'Administrador'}</p>
         </div>
         
-        {/* Stats Section */}
+        {/* Stats Section - removed isLoading prop since it's not in the component's props */}
         <StatsSection 
-          isLoading={isLoadingStats} 
           mentorsCount={stats?.mentorsCount || 0}
           mentoreesCount={stats?.mentoreesCount || 0}
           coursesCount={stats?.coursesCount || 0}

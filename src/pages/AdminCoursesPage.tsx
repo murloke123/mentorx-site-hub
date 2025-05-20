@@ -17,8 +17,8 @@ interface Course {
 }
 
 const AdminCoursesPage = () => {
-  // Buscar cursos
-  const { data: courses = [], isLoading, refetch } = useQuery({
+  // Buscar cursos - fixed the useQuery call
+  const { data = [], isLoading, refetch } = useQuery({
     queryKey: ['allCourses'],
     queryFn: getAllCourses,
   });

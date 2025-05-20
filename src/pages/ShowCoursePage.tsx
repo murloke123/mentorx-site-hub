@@ -58,17 +58,17 @@ const ShowCoursePage = () => {
 
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle className="text-2xl">{course.name}</CardTitle>
+            <CardTitle className="text-2xl">{course.title}</CardTitle>
             <CardDescription>
-              {course.type === "free" ? "Curso gratuito" : `Curso pago - R$${course.price?.toFixed(2)}`}
+              {course.is_paid ? `Curso pago - R$${course.price?.toFixed(2)}` : "Curso gratuito"}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="aspect-video bg-gray-100 rounded-md mb-6 flex items-center justify-center">
-              {course.image ? (
+              {course.image_url ? (
                 <img 
-                  src={course.image} 
-                  alt={course.name} 
+                  src={course.image_url} 
+                  alt={course.title} 
                   className="w-full h-full object-cover rounded-md"
                 />
               ) : (

@@ -27,13 +27,25 @@ const MentorDashboardPage = () => {
   // Stats calculations
   const totalCourses = courses.length;
   const totalEnrollments = courses.reduce((sum, course) => {
-    return sum + (course.enrollments?.[0]?.count || 0);
+    // Check if enrollments is an array and has elements with count property
+    if (Array.isArray(course.enrollments) && course.enrollments.length > 0 && 
+        typeof course.enrollments[0] === 'object' && 'count' in course.enrollments[0]) {
+      return sum + (course.enrollments[0].count || 0);
+    }
+    return sum;
   }, 0);
   
   // Calculate estimated revenue (for paid courses)
   const totalRevenue = courses.reduce((sum, course) => {
     if (course.is_paid && course.price) {
-      return sum + (course.price * (course.enrollments?.[0]?.count || 0));
+      // Check if enrollments is an array and has elements with count property
+      const enrollmentCount = Array.isArray(course.enrollments) && 
+        course.enrollments.length > 0 && 
+        typeof course.enrollments[0] === 'object' && 
+        'count' in course.enrollments[0] ? 
+        course.enrollments[0].count : 0;
+      
+      return sum + (course.price * enrollmentCount);
     }
     return sum;
   }, 0);

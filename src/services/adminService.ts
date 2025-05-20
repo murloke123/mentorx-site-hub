@@ -1,8 +1,10 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
-// Função para obter todos os cursos
-export async function getAllCourses(limit = 100) {
+// Modify the function signature to use the query context parameter
+export async function getAllCourses(context?: { queryKey: string[], signal?: AbortSignal }) {
+  const limit = typeof context === 'object' ? 100 : (context || 100);
+  
   try {
     const { data, error } = await supabase
       .from("cursos")
@@ -17,11 +19,11 @@ export async function getAllCourses(limit = 100) {
         profiles:mentor_id (full_name)
       `)
       .order('created_at', { ascending: false })
-      .limit(limit);
+      .limit(typeof limit === 'number' ? limit : 100);
 
     if (error) throw error;
 
-    // Calcular contagem de matrículas para cada curso
+    // Calculate enrollment count for each course
     const coursesWithEnrollments = await Promise.all(
       data.map(async (course) => {
         const { count, error: countError } = await supabase
@@ -142,8 +144,10 @@ export async function getPlatformStats() {
   }
 }
 
-// Função para obter todos os mentores
-export async function getAllMentors(limit = 100) {
+// Função para obter todos os mentores (updated function signature)
+export async function getAllMentors(context?: { queryKey: string[], signal?: AbortSignal }) {
+  const limit = typeof context === 'object' ? 100 : (context || 100);
+  
   try {
     const { data, error } = await supabase
       .from("profiles")
@@ -154,7 +158,7 @@ export async function getAllMentors(limit = 100) {
         bio
       `)
       .eq("role", "mentor")
-      .limit(limit);
+      .limit(typeof limit === 'number' ? limit : 100);
       
     if (error) throw error;
     
@@ -198,8 +202,10 @@ export async function getAllMentors(limit = 100) {
   }
 }
 
-// Função para obter todos os mentorados
-export async function getAllMentorados(limit = 100) {
+// Função para obter todos os mentorados (updated function signature)
+export async function getAllMentorados(context?: { queryKey: string[], signal?: AbortSignal }) {
+  const limit = typeof context === 'object' ? 100 : (context || 100);
+  
   try {
     const { data, error } = await supabase
       .from("profiles")
@@ -210,7 +216,7 @@ export async function getAllMentorados(limit = 100) {
         bio
       `)
       .eq("role", "mentorado")
-      .limit(limit);
+      .limit(typeof limit === 'number' ? limit : 100);
       
     if (error) throw error;
     
