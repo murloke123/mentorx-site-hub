@@ -4,7 +4,6 @@ import { useParams } from 'react-router-dom';
 import { getCourseDetailsForPlayer, markConteudoConcluido, markConteudoIncompleto } from '@/services/coursePlayerService';
 import { toast } from '@/hooks/use-toast';
 import { CursoItemLocal, ConteudoItemLocal } from './types';
-import CourseHeader from './components/CourseHeader';
 import CourseSidebar from './components/CourseSidebar';
 import ContentRenderer from './components/ContentRenderer';
 
@@ -92,6 +91,32 @@ const CoursePlayerPage = () => {
       toast({ title: "Erro ao atualizar status", description: (err as Error).message, variant: "destructive" });
     }
   };
+
+  // Function to handle moving to the next content
+  const handleNextContent = () => {
+    if (!curso || !currentConteudo) return;
+
+    // Find all contents across all modules, sorted by module order then content order
+    const allContents: ConteudoItemLocal[] = [];
+    curso.modulos.sort((a, b) => a.ordem - b.ordem).forEach(modulo => {
+      modulo.conteudos.sort((a, b) => a.ordem - b.ordem).forEach(conteudo => {
+        allContents.push(conteudo as ConteudoItemLocal);
+      });
+    });
+
+    // Find the index of the current content
+    const currentIndex = allContents.findIndex(c => c.id === currentConteudo.id);
+    
+    // If found and not the last content, move to the next one
+    if (currentIndex > -1 && currentIndex < allContents.length - 1) {
+      setCurrentConteudo(allContents[currentIndex + 1]);
+    } else {
+      toast({ 
+        title: "Fim do curso", 
+        description: "Você chegou ao final do conteúdo disponível." 
+      });
+    }
+  };
   
   if (loading) return <div className="flex justify-center items-center h-screen"><p>Carregando curso...</p></div>;
   if (error) return <div className="flex justify-center items-center h-screen text-red-500"><p>{error}</p></div>;
@@ -99,15 +124,13 @@ const CoursePlayerPage = () => {
 
   return (
     <div className="flex flex-col h-screen">
-      {/* Header Section */}
-      <CourseHeader title={curso.title} progress={progress} />
-      
       <div className="flex flex-1 overflow-hidden">
         {/* Main Content Area */}
         <main className="flex-1 overflow-y-auto bg-gray-100">
           <ContentRenderer 
             currentConteudo={currentConteudo}
             modulos={curso.modulos}
+            onNextContent={handleNextContent}
           />
         </main>
 
@@ -118,6 +141,7 @@ const CoursePlayerPage = () => {
           conteudosConcluidos={conteudosConcluidos}
           onConteudoSelect={handleConteudoSelection}
           onToggleConteudoConcluido={handleToggleConteudoConcluido}
+          progress={progress}
         />
       </div>
     </div>
