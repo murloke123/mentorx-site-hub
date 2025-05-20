@@ -22,6 +22,7 @@ interface Course {
     full_name: string;
     avatar_url: string | null;
   };
+  is_public?: boolean; // Added to match the courseService response
 }
 
 const ShowCoursePage = () => {

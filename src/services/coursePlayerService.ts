@@ -1,43 +1,21 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
-export interface Modulo {
-  id: string;
-  nome_modulo: string;
-  descricao: string | null;
-  ordem: number;
-  curso_id: string;
-  created_at: string;
-  updated_at: string;
-  conteudos?: Conteudo[];
-}
-
-// Update the Conteudo type to match what's needed
-interface DadosConteudo {
-  video_url?: string;
-  texto_rico?: string;
-  pdf_url?: string;
-  pdf_filename?: string;
-}
-
-export interface Conteudo {
+// Define interfaces for course player functionality
+export interface ConteudoItem {
   id: string;
   nome_conteudo: string;
-  tipo_conteudo: "video" | "text" | "pdf";
-  dados_conteudo: DadosConteudo;
+  tipo_conteudo: 'video' | 'text' | 'pdf';
+  dados_conteudo: {
+    video_url?: string;
+    texto_rico?: string;
+    pdf_url?: string;
+    pdf_filename?: string;
+  };
   ordem: number;
   modulo_id: string;
   created_at: string;
   updated_at: string;
-}
-
-export interface CursoItem {
-  id: string;
-  title: string;
-  description?: string;
-  image_url?: string;
-  mentor_id: string;
-  modulos: ModuloItem[];
 }
 
 export interface ModuloItem {
@@ -51,96 +29,116 @@ export interface ModuloItem {
   conteudos: ConteudoItem[];
 }
 
-export interface ConteudoItem {
+export interface CursoItem {
   id: string;
-  nome_conteudo: string;
-  tipo_conteudo: "video" | "text" | "pdf";
-  dados_conteudo: {
-    video_url?: string;
-    texto_rico?: string;
-    pdf_url?: string;
-    pdf_filename?: string;
-  };
-  ordem: number;
-  modulo_id: string;
+  title: string;
+  description?: string;
+  image_url?: string;
+  mentor_id: string;
+  is_paid?: boolean;
+  price?: number;
   created_at: string;
   updated_at: string;
+  modulos: ModuloItem[];
 }
 
-export const getCourseDetailsForPlayer = async (cursoId: string) => {
+export interface CoursePlayerData {
+  curso: CursoItem;
+  modulos: ModuloItem[];
+  completedConteudoIds: string[];
+}
+
+// Function to get course details for the player
+export async function getCourseDetailsForPlayer(cursoId: string): Promise<CoursePlayerData> {
   try {
-    // Get the course details
+    // Fetch the course data
     const { data: curso, error: cursoError } = await supabase
-      .from('cursos')
-      .select('*')
-      .eq('id', cursoId)
+      .from("cursos")
+      .select("*")
+      .eq("id", cursoId)
       .single();
 
     if (cursoError) throw cursoError;
 
-    // Get the modules for this course
+    // Fetch the modules for the course
     const { data: modulos, error: modulosError } = await supabase
-      .from('modulos')
-      .select(`
-        *,
-        conteudos (*)
-      `)
-      .eq('curso_id', cursoId)
-      .order('ordem', { ascending: true });
+      .from("modulos")
+      .select("*, conteudos(*)")
+      .eq("curso_id", cursoId)
+      .order("ordem", { ascending: true });
 
     if (modulosError) throw modulosError;
 
-    // Get completed content for this user
-    const { data: completedContent, error: completedError } = await supabase
-      .from('conteudo_concluido')
-      .select('conteudo_id')
-      .eq('curso_id', cursoId);
+    // Get user ID for completed content check
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      throw new Error("Usuário não autenticado");
+    }
 
-    if (completedError) throw completedError;
+    // Fetch completed content IDs
+    const { data: concluidos, error: concluidosError } = await supabase
+      .from("conteudo_concluido")
+      .select("conteudo_id")
+      .eq("user_id", user.id)
+      .eq("curso_id", cursoId);
 
-    const completedConteudoIds = completedContent?.map(item => item.conteudo_id) || [];
+    if (concluidosError) throw concluidosError;
 
-    // Process modules and content data
-    const processedModulos = modulos?.map(modulo => {
-      return {
-        ...modulo,
-        conteudos: modulo.conteudos?.map(conteudo => {
-          return {
-            ...conteudo,
-            tipo_conteudo: conteudo.tipo_conteudo as "video" | "text" | "pdf",
-            dados_conteudo: typeof conteudo.dados_conteudo === 'string'
-              ? JSON.parse(conteudo.dados_conteudo)
-              : conteudo.dados_conteudo
-          };
-        }).sort((a, b) => a.ordem - b.ordem) || []
-      };
-    });
+    const completedConteudoIds = concluidos ? concluidos.map(item => item.conteudo_id) : [];
+
+    // Create the properly structured course data with modules
+    const cursoWithModulos: CursoItem = {
+      ...curso,
+      modulos: modulos as ModuloItem[]
+    };
 
     return {
-      curso,
-      modulos: processedModulos,
+      curso: cursoWithModulos,
+      modulos: modulos as ModuloItem[],
       completedConteudoIds
     };
   } catch (error) {
     console.error("Error fetching course details for player:", error);
     throw error;
   }
-};
+}
 
-export const markConteudoConcluido = async (cursoId: string, moduloId: string, conteudoId: string) => {
+// Mark content as completed
+export async function markConteudoConcluido(cursoId: string, moduloId: string, conteudoId: string) {
   try {
+    // Get the user ID
     const { data: { user } } = await supabase.auth.getUser();
     
-    if (!user) throw new Error("User not authenticated");
-
+    if (!user) {
+      throw new Error("Usuário não autenticado");
+    }
+    
+    // Check if already marked as completed
+    const { data: existing, error: checkError } = await supabase
+      .from("conteudo_concluido")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("conteudo_id", conteudoId)
+      .maybeSingle();
+    
+    if (checkError) throw checkError;
+    
+    if (existing) {
+      return existing;
+    }
+    
+    // Insert new record of completed content
     const { data, error } = await supabase
-      .from('conteudo_concluido')
+      .from("conteudo_concluido")
       .insert({
+        user_id: user.id,
         curso_id: cursoId,
         modulo_id: moduloId,
-        conteudo_id: conteudoId,
-        user_id: user.id
-      });
+        conteudo_id: conteudoId
+      })
+      .select()
+      .single();
 
     if (error) throw error;
     
@@ -149,73 +147,31 @@ export const markConteudoConcluido = async (cursoId: string, moduloId: string, c
     console.error("Error marking content as completed:", error);
     throw error;
   }
-};
+}
 
-export const markConteudoIncompleto = async (cursoId: string, moduloId: string, conteudoId: string) => {
+// Mark content as incomplete
+export async function markConteudoIncompleto(cursoId: string, moduloId: string, conteudoId: string) {
   try {
+    // Get the user ID
     const { data: { user } } = await supabase.auth.getUser();
     
-    if (!user) throw new Error("User not authenticated");
+    if (!user) {
+      throw new Error("Usuário não autenticado");
+    }
 
-    const { data, error } = await supabase
-      .from('conteudo_concluido')
+    // Delete the record
+    const { error } = await supabase
+      .from("conteudo_concluido")
       .delete()
-      .eq('curso_id', cursoId)
-      .eq('modulo_id', moduloId)
-      .eq('conteudo_id', conteudoId)
-      .eq('user_id', user.id);
+      .eq("user_id", user.id)
+      .eq("curso_id", cursoId)
+      .eq("conteudo_id", conteudoId);
 
     if (error) throw error;
     
-    return data;
+    return { success: true };
   } catch (error) {
     console.error("Error marking content as incomplete:", error);
     throw error;
   }
-};
-
-export const getCourseModules = async (courseId: string) => {
-  try {
-    const { data: modulos, error } = await supabase
-      .from('modulos')
-      .select(`
-        *,
-        conteudos (
-          *
-        )
-      `)
-      .eq('curso_id', courseId)
-      .order('ordem', { ascending: true });
-
-    if (error) {
-      console.error("Erro ao buscar módulos:", error);
-      return [];
-    }
-
-    return mapModulos(modulos);
-  } catch (error) {
-    console.error("Erro ao buscar módulos:", error);
-    return [];
-  }
-};
-
-// Update the mapConteudo function to properly handle the datos_conteudo type conversion
-const mapConteudo = (conteudo: any): Conteudo => {
-  return {
-    ...conteudo,
-    tipo_conteudo: conteudo.tipo_conteudo as "video" | "text" | "pdf",
-    dados_conteudo: typeof conteudo.dados_conteudo === 'string'
-      ? JSON.parse(conteudo.dados_conteudo)
-      : conteudo.dados_conteudo
-  };
-};
-
-// Then update the part where you map modulos to properly map conteudos
-export const mapModulos = (modulosData: any): Modulo[] => {
-  if (!modulosData) return [];
-  
-  return modulosData.map((modulo: any) => ({
-    ...modulo,
-    conteudos: modulo.conteudos ? modulo.conteudos.map(mapConteudo) : []
-  }));
-};
+}
