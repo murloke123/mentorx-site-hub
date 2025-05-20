@@ -167,7 +167,7 @@ async function atualizarProgressoCurso(cursoId: string) {
     const percentual = (concluidos || 0) / totalConteudos * 100;
     
     // Criar objeto de progresso
-    const progressData = {
+    const progressData: Progress = {
       percent: percentual,
       completed_lessons: concluidos || 0,
       total_lessons: totalConteudos

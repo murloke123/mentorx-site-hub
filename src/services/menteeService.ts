@@ -1,6 +1,14 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
+type Progress = {
+  percent: number;
+  completed_lessons: number;
+  total_lessons: number;
+  completed_lessons_ids?: string[];
+  last_accessed?: string;
+};
+
 export async function getEnrolledCourses() {
   try {
     // Obter o ID do usuário autenticado
@@ -25,15 +33,12 @@ export async function getEnrolledCourses() {
     // Formatar os dados para o componente
     const enrolledCourses = data.map(enrollment => {
       const course = enrollment.courses;
-      const progressData = enrollment.progress as { 
-        percent?: number; 
-        completed_lessons?: number; 
-        total_lessons?: number; 
-      } | null;
-      
-      const progress = progressData?.percent || 0;
-      const completedLessons = progressData?.completed_lessons || 0;
-      const totalLessons = progressData?.total_lessons || 0;
+      // Safely cast progress to our expected type or use default values
+      const progressData = enrollment.progress as Progress | null || { 
+        percent: 0, 
+        completed_lessons: 0, 
+        total_lessons: 0 
+      };
       
       return {
         id: course.id,
@@ -41,9 +46,9 @@ export async function getEnrolledCourses() {
         description: course.description,
         mentor_id: course.mentor_id,
         mentor_name: course.profiles?.full_name,
-        progress,
-        completed_lessons: completedLessons,
-        total_lessons: totalLessons
+        progress: progressData.percent || 0,
+        completed_lessons: progressData.completed_lessons || 0,
+        total_lessons: progressData.total_lessons || 0
       };
     });
     
@@ -78,18 +83,22 @@ export async function enrollInCourse(courseId: string) {
       return { already_enrolled: true };
     }
     
+    // Criar nova inscrição com progresso inicial
+    const initialProgress: Progress = {
+      percent: 0,
+      completed_lessons: 0,
+      total_lessons: 0,
+      completed_lessons_ids: [],
+      last_accessed: new Date().toISOString()
+    };
+    
     // Criar nova inscrição
     const { data, error } = await supabase
       .from("enrollments")
       .insert({
         user_id: user.id,
         course_id: courseId,
-        progress: {
-          percent: 0,
-          completed_lessons: 0,
-          total_lessons: 0,
-          last_accessed: new Date().toISOString()
-        }
+        progress: initialProgress
       })
       .select()
       .single();
@@ -136,14 +145,16 @@ export async function updateProgress(courseId: string, lessonId: string, complet
     if (countError) throw countError;
     
     // Calcular o progresso atualizado
-    const progressData = enrollment.progress || { 
+    const progress = enrollment.progress as Progress || { 
       completed_lessons: 0,
-      completed_lessons_ids: []
+      completed_lessons_ids: [],
+      percent: 0,
+      total_lessons: 0
     };
     
     // Garantir que temos um array com os ids
-    const completedLessonsIds = Array.isArray(progressData.completed_lessons_ids) 
-      ? [...progressData.completed_lessons_ids] 
+    const completedLessonsIds = Array.isArray(progress.completed_lessons_ids) 
+      ? [...progress.completed_lessons_ids] 
       : [];
     
     if (completed && !completedLessonsIds.includes(lessonId)) {
@@ -158,7 +169,7 @@ export async function updateProgress(courseId: string, lessonId: string, complet
     const completedLessons = completedLessonsIds.length;
     const percentComplete = totalConteudos ? (completedLessons / totalConteudos) * 100 : 0;
     
-    const updatedProgress = {
+    const updatedProgress: Progress = {
       percent: percentComplete,
       completed_lessons: completedLessons,
       total_lessons: totalConteudos || 0,

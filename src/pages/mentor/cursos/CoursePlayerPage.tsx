@@ -1,6 +1,7 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { getCourseDetailsForPlayer, markConteudoAsConcluido, markConteudoAsIncompleto, Curso, Modulo, Conteudo } from '@/services/coursePlayerService';
+import { getCourseDetailsForPlayer, markConteudoConcluido, markConteudoIncompleto } from '@/services/coursePlayerService';
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -8,8 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 
-// Define interfaces based on your Supabase schema
-interface Conteudo {
+// Define interfaces for the component locally (renamed to prevent conflicts)
+interface ConteudoItem {
   id: string;
   nome_conteudo: string;
   tipo_conteudo: 'video' | 'text' | 'pdf';
@@ -25,7 +26,7 @@ interface Conteudo {
   updated_at: string;
 }
 
-interface Modulo {
+interface ModuloItem {
   id: string;
   nome_modulo: string;
   descricao_modulo?: string;
@@ -33,24 +34,24 @@ interface Modulo {
   curso_id: string;
   created_at: string;
   updated_at: string;
-  conteudos: Conteudo[];
+  conteudos: ConteudoItem[];
 }
 
-interface Curso {
+interface CursoItem {
   id: string;
   title: string;
   description?: string;
   image_url?: string;
   mentor_id: string;
-  modulos: Modulo[];
+  modulos: ModuloItem[];
 }
 
 const CoursePlayerPage = () => {
   const { id: cursoId } = useParams<{ id: string }>();
-  const [curso, setCurso] = useState<Curso | null>(null);
+  const [curso, setCurso] = useState<CursoItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [currentConteudo, setCurrentConteudo] = useState<Conteudo | null>(null);
+  const [currentConteudo, setCurrentConteudo] = useState<ConteudoItem | null>(null);
   const [conteudosConcluidos, setConteudosConcluidos] = useState<Set<string>>(new Set());
   const [progress, setProgress] = useState(0);
 
@@ -67,13 +68,13 @@ const CoursePlayerPage = () => {
         const data = await getCourseDetailsForPlayer(cursoId);
         
         // Type safety: Ensure the response matches our expected structure
-        setCurso(data.curso);
+        setCurso(data.curso as CursoItem);
         
         // Set completed content IDs
         setConteudosConcluidos(new Set(data.completedConteudoIds));
         
         if (data.curso && data.curso.modulos.length > 0 && data.curso.modulos[0].conteudos.length > 0) {
-          setCurrentConteudo(data.curso.modulos[0].conteudos[0]);
+          setCurrentConteudo(data.curso.modulos[0].conteudos[0] as ConteudoItem);
         }
         
         setError(null);
@@ -101,7 +102,7 @@ const CoursePlayerPage = () => {
     }
   }, [conteudosConcluidos, curso]);
 
-  const handleConteudoSelection = (conteudo: Conteudo) => {
+  const handleConteudoSelection = (conteudo: ConteudoItem) => {
     setCurrentConteudo(conteudo);
   };
 
@@ -111,7 +112,7 @@ const CoursePlayerPage = () => {
     const isConcluido = conteudosConcluidos.has(conteudoId);
     try {
       if (isConcluido) {
-        await markConteudoAsIncompleto(cursoId, moduloId, conteudoId);
+        await markConteudoIncompleto(cursoId, moduloId, conteudoId);
         setConteudosConcluidos(prev => {
           const newSet = new Set(prev);
           newSet.delete(conteudoId);
@@ -119,7 +120,7 @@ const CoursePlayerPage = () => {
         });
         toast({ title: "Conteúdo marcado como não concluído" });
       } else {
-        await markConteudoAsConcluido(cursoId, moduloId, conteudoId);
+        await markConteudoConcluido(cursoId, moduloId, conteudoId);
         setConteudosConcluidos(prev => new Set(prev).add(conteudoId));
         toast({ title: "Conteúdo marcado como concluído!" });
       }
