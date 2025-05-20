@@ -27,7 +27,7 @@ export async function createCourse(courseData: CourseFormData) {
 
     // Inserir o curso no Supabase
     const { data, error } = await supabase
-      .from("cursos") // Alterado de "courses" para "cursos"
+      .from("cursos") // Atualizado para usar a tabela renomeada
       .insert(courseRecord)
       .select()
       .single();
@@ -63,7 +63,7 @@ export async function updateCourse(courseId: string, courseData: CourseFormData)
 
     // Atualizar o curso no Supabase
     const { data, error } = await supabase
-      .from("cursos") // Alterado de "courses" para "cursos"
+      .from("cursos") // Atualizado para usar a tabela renomeada
       .update(courseRecord)
       .eq("id", courseId)
       .eq("mentor_id", user.id) // Garantir que apenas o mentor do curso possa atualizar
@@ -82,7 +82,7 @@ export async function updateCourse(courseId: string, courseData: CourseFormData)
 export async function getCourseById(courseId: string) {
   try {
     const { data, error } = await supabase
-      .from("cursos") // Alterado de "courses" para "cursos"
+      .from("cursos") // Atualizado para usar a tabela renomeada
       .select("*")
       .eq("id", courseId)
       .single();
@@ -119,7 +119,7 @@ export async function getMentorCourses() {
     }
     
     const { data, error } = await supabase
-      .from("cursos") // Alterado de "courses" para "cursos"
+      .from("cursos") // Atualizado para usar a tabela renomeada
       .select("*, enrollments(count)")
       .eq("mentor_id", user.id)
       .order("created_at", { ascending: false });
@@ -150,7 +150,7 @@ export async function deleteCourse(courseId: string) {
 
     // Deletar o curso
     const { error } = await supabase
-      .from("cursos") // Alterado de "courses" para "cursos"
+      .from("cursos") // Atualizado para usar a tabela renomeada
       .delete()
       .eq("id", courseId)
       .eq("mentor_id", user.id); // Garantir que apenas o mentor do curso possa deletar

@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 export async function getAllCourses() {
   try {
     const { data, error } = await supabase
-      .from("cursos") // Alterado de "courses" para "cursos"
+      .from("cursos") // Atualizado para usar a tabela renomeada
       .select(`
         id, 
         title, 
@@ -50,7 +50,7 @@ export async function getAllCourses() {
 export async function deleteCourse(courseId: string) {
   try {
     const { error } = await supabase
-      .from("cursos") // Alterado de "courses" para "cursos"
+      .from("cursos") // Atualizado para usar a tabela renomeada
       .delete()
       .eq("id", courseId);
 

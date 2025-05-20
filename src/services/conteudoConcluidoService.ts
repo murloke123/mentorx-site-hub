@@ -1,7 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
-// Interface para representar um registro de conteúdo concluído
 interface ConteudoConcluido {
   id?: string;
   user_id: string;
@@ -21,13 +20,6 @@ export async function marcarConteudoConcluido(cursoId: string, moduloId: string,
       throw new Error("Usuário não autenticado");
     }
     
-    const conteudoConcluido: ConteudoConcluido = {
-      user_id: user.id,
-      curso_id: cursoId,
-      modulo_id: moduloId,
-      conteudo_id: conteudoId
-    };
-    
     // Verificar se já está marcado como concluído
     const { data: existente } = await supabase
       .from("conteudo_concluido")
@@ -42,6 +34,13 @@ export async function marcarConteudoConcluido(cursoId: string, moduloId: string,
     }
     
     // Inserir novo registro de conteúdo concluído
+    const conteudoConcluido: ConteudoConcluido = {
+      user_id: user.id,
+      curso_id: cursoId,
+      modulo_id: moduloId,
+      conteudo_id: conteudoId
+    };
+    
     const { data, error } = await supabase
       .from("conteudo_concluido")
       .insert(conteudoConcluido)
