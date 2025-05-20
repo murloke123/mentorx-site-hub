@@ -15,13 +15,31 @@ export async function getCourseDetailsForPlayer(cursoId: string) {
     if (cursoError) throw cursoError;
     
     // Obter módulos do curso
-    const { data: modulos, error: modulosError } = await supabase
+    const { data: modulosData, error: modulosError } = await supabase
       .from("modulos")
-      .select("*, conteudos(*)")
+      .select("*")
       .eq("curso_id", cursoId)
       .order("ordem", { ascending: true });
     
     if (modulosError) throw modulosError;
+
+    // Para cada módulo, obter seus conteúdos
+    const modulos = await Promise.all(
+      (modulosData || []).map(async (modulo) => {
+        const { data: conteudosData, error: conteudosError } = await supabase
+          .from("conteudos")
+          .select("*")
+          .eq("modulo_id", modulo.id)
+          .order("ordem", { ascending: true });
+        
+        if (conteudosError) throw conteudosError;
+        
+        return {
+          ...modulo,
+          conteudos: conteudosData || []
+        };
+      })
+    );
     
     // Obter IDs de conteúdos já concluídos pelo usuário
     const { data: { user } } = await supabase.auth.getUser();
@@ -40,7 +58,10 @@ export async function getCourseDetailsForPlayer(cursoId: string) {
     }
     
     return {
-      curso: curso as unknown as CursoItemLocal,
+      curso: {
+        ...curso,
+        modulos
+      } as CursoItemLocal,
       modulos: modulos as unknown as ModuloItemLocal[],
       completedConteudoIds
     };

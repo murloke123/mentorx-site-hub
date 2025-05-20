@@ -14,9 +14,16 @@ const ContentRenderer: React.FC<ContentRendererProps> = ({ currentConteudo, modu
     return <p className="text-center text-gray-500 mt-10">Selecione um conteúdo para visualizar.</p>;
   }
 
-  const currentModulo = modulos.find(m => m.id === currentConteudo.modulo_id);
+  // Make sure modulos is defined and is an array before using find
+  const currentModulo = Array.isArray(modulos) ? 
+    modulos.find(m => m.id === currentConteudo.modulo_id) : 
+    undefined;
 
   const renderContent = () => {
+    if (!currentConteudo.dados_conteudo) {
+      return <p className="text-gray-500">Dados de conteúdo não disponíveis.</p>;
+    }
+
     switch (currentConteudo.tipo_conteudo) {
       case 'video':
         return currentConteudo.dados_conteudo?.video_url ? (
