@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Json } from "@/integrations/supabase/types";
@@ -247,6 +248,7 @@ export async function criarConteudoPdf(dados: {
         dados_conteudo: {
           pdf_url: publicUrlData.publicUrl,
           pdf_filename: dados.pdfFile.name,
+          storage_path: filePath, // Armazenar o caminho do arquivo para facilitar a exclusão
         },
         ordem: novaOrdem,
       })
@@ -422,15 +424,25 @@ export async function atualizarConteudoPdf(
 
     // Se um novo arquivo PDF for fornecido, faz upload e atualiza pdf_url e pdf_filename
     if (dados.pdfFile) {
-      // Opcional: Excluir o PDF antigo do storage antes de fazer upload do novo
-      // (precisaria buscar o filePath antigo do conteúdo)
+      // Primeiro buscar o conteúdo atual para obter o caminho do arquivo antigo
+      const { data: conteudoAtual } = await supabase
+        .from("conteudos")
+        .select("modulo_id, dados_conteudo")
+        .eq("id", conteudoId)
+        .single();
+      
+      if (!conteudoAtual) throw new Error("Conteúdo não encontrado para atualização do PDF.");
+      
+      // Excluir o arquivo antigo do storage se existir um caminho
+      if (conteudoAtual.dados_conteudo && (conteudoAtual.dados_conteudo as any).storage_path) {
+        const oldFilePath = (conteudoAtual.dados_conteudo as any).storage_path;
+        await supabase.storage
+          .from('mentorxbucket')
+          .remove([oldFilePath]);
+      }
 
       const fileExt = dados.pdfFile.name.split('.').pop();
       const fileName = `${Math.random()}.${fileExt}`;
-      // Para pegar o modulo_id, precisamos buscar o conteúdo primeiro
-      const { data: conteudoAtual } = await supabase.from("conteudos").select("modulo_id, dados_conteudo").eq("id", conteudoId).single();
-      if (!conteudoAtual) throw new Error("Conteúdo não encontrado para atualização do PDF.");
-      
       const filePath = `pdfs/${conteudoAtual.modulo_id}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
@@ -446,11 +458,14 @@ export async function atualizarConteudoPdf(
       if (!publicUrlData || !publicUrlData.publicUrl) {
         throw new Error('Não foi possível obter a URL pública do novo PDF.');
       }
+      
       novosDadosConteudo = {
         ...conteudoAtual.dados_conteudo as object, // Mantém outros dados_conteudo se houver
         pdf_url: publicUrlData.publicUrl,
         pdf_filename: dados.pdfFile.name,
+        storage_path: filePath,
       };
+      
       atualizacoes.dados_conteudo = novosDadosConteudo;
     } else {
       // Se não houver novo PDF, apenas atualiza nome/descrição e mantém dados_conteudo existentes
@@ -499,6 +514,35 @@ export async function atualizarConteudoPdf(
 // Excluir um conteúdo
 export async function excluirConteudo(conteudoId: string): Promise<boolean> {
   try {
+    // 1. Primeiro, obtemos os dados do conteúdo para verificar se é um PDF
+    const { data: conteudo } = await supabase
+      .from("conteudos")
+      .select("*")
+      .eq("id", conteudoId)
+      .single();
+
+    if (!conteudo) {
+      throw new Error("Conteúdo não encontrado");
+    }
+
+    // 2. Se for um PDF, precisamos excluir o arquivo do storage
+    if (conteudo.tipo_conteudo === 'pdf' && conteudo.dados_conteudo) {
+      const dados = conteudo.dados_conteudo as any;
+      
+      // Verificar se temos o caminho do arquivo no storage
+      if (dados.storage_path) {
+        const { error: deleteFileError } = await supabase.storage
+          .from('mentorxbucket')
+          .remove([dados.storage_path]);
+        
+        if (deleteFileError) {
+          console.error("Erro ao excluir arquivo do storage:", deleteFileError);
+          // Não interrompemos o fluxo para permitir a exclusão do registro mesmo se o arquivo falhar
+        }
+      }
+    }
+
+    // 3. Excluir o registro do conteúdo
     const { error } = await supabase
       .from("conteudos")
       .delete()

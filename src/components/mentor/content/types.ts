@@ -1,3 +1,4 @@
+
 import { z } from 'zod';
 
 export const conteudoSchema = z.object({
@@ -12,6 +13,7 @@ export type ConteudoFormValues = z.infer<typeof conteudoSchema> & {
   pdf_file?: File | null;
   pdf_url?: string;
   pdf_filename?: string;
+  storage_path?: string;
 };
 
 export interface ConteudoFormProps {
@@ -25,6 +27,7 @@ export interface ConteudoFormProps {
     provider?: 'youtube' | 'vimeo';
     pdf_url?: string;
     pdf_filename?: string;
+    storage_path?: string;
   };
   isSubmitting: boolean;
   onCancel: () => void;
