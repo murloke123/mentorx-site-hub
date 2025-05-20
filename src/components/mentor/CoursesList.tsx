@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -143,7 +142,7 @@ const CoursesList = ({ courses, isLoading, totalEnrollments }: CoursesListProps)
               </CardContent>
               <div className="flex justify-between p-6 pt-0">
                 <Button variant="outline" asChild>
-                  <Link to={`/mentor/cursos/${course.id}`}>Ver Detalhes</Link>
+                  <Link to={`/mentor/cursos/show/${course.id}`}>Ver Curso</Link>
                 </Button>
                 <Button variant="outline" asChild>
                   <Link to={`/mentor/cursos/${course.id}/editar`}>Editar Curso</Link>
