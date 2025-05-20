@@ -1,7 +1,6 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { getCourseDetailsForPlayer, markConteudoConcluido, markConteudoIncompleto } from '@/services/coursePlayerService';
+import { getCourseDetailsForPlayer, markConteudoConcluido, markConteudoIncompleto, ConteudoItem } from '@/services/coursePlayerService';
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -10,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 
 // Define interfaces for the component locally (renamed to prevent conflicts)
-interface ConteudoItem {
+interface ConteudoItemLocal {
   id: string;
   nome_conteudo: string;
   tipo_conteudo: 'video' | 'text' | 'pdf';
@@ -26,7 +25,7 @@ interface ConteudoItem {
   updated_at: string;
 }
 
-interface ModuloItem {
+interface ModuloItemLocal {
   id: string;
   nome_modulo: string;
   descricao_modulo?: string;
@@ -34,24 +33,24 @@ interface ModuloItem {
   curso_id: string;
   created_at: string;
   updated_at: string;
-  conteudos: ConteudoItem[];
+  conteudos: ConteudoItemLocal[];
 }
 
-interface CursoItem {
+interface CursoItemLocal {
   id: string;
   title: string;
   description?: string;
   image_url?: string;
   mentor_id: string;
-  modulos: ModuloItem[];
+  modulos: ModuloItemLocal[];
 }
 
 const CoursePlayerPage = () => {
   const { id: cursoId } = useParams<{ id: string }>();
-  const [curso, setCurso] = useState<CursoItem | null>(null);
+  const [curso, setCurso] = useState<CursoItemLocal | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [currentConteudo, setCurrentConteudo] = useState<ConteudoItem | null>(null);
+  const [currentConteudo, setCurrentConteudo] = useState<ConteudoItemLocal | null>(null);
   const [conteudosConcluidos, setConteudosConcluidos] = useState<Set<string>>(new Set());
   const [progress, setProgress] = useState(0);
 
@@ -68,13 +67,13 @@ const CoursePlayerPage = () => {
         const data = await getCourseDetailsForPlayer(cursoId);
         
         // Type safety: Ensure the response matches our expected structure
-        setCurso(data.curso as CursoItem);
+        setCurso(data.curso as CursoItemLocal);
         
         // Set completed content IDs
         setConteudosConcluidos(new Set(data.completedConteudoIds));
         
-        if (data.curso && data.curso.modulos.length > 0 && data.curso.modulos[0].conteudos.length > 0) {
-          setCurrentConteudo(data.curso.modulos[0].conteudos[0] as ConteudoItem);
+        if (data.curso && data.modulos.length > 0 && data.modulos[0].conteudos.length > 0) {
+          setCurrentConteudo(data.modulos[0].conteudos[0] as ConteudoItemLocal);
         }
         
         setError(null);
@@ -102,7 +101,7 @@ const CoursePlayerPage = () => {
     }
   }, [conteudosConcluidos, curso]);
 
-  const handleConteudoSelection = (conteudo: ConteudoItem) => {
+  const handleConteudoSelection = (conteudo: ConteudoItemLocal) => {
     setCurrentConteudo(conteudo);
   };
 

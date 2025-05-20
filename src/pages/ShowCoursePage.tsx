@@ -12,7 +12,7 @@ interface Course {
   title: string;
   description: string | null;
   mentor_id: string;
-  mentor_name: string | null;
+  mentor_name?: string | null;
   is_paid: boolean;
   price: number | null;
   image_url: string | null;
