@@ -33,24 +33,24 @@ const ContentRenderer: React.FC<ContentRendererProps> = ({
 
     switch (currentConteudo.tipo_conteudo) {
       case 'video':
-        return currentConteudo.dados_conteudo.url ? (
+        return currentConteudo.dados_conteudo.video_url ? (
           <Card className="mt-4 overflow-hidden">
             <CardContent className="p-0">
               <VideoPlayer 
                 provider={currentConteudo.dados_conteudo.provider || 'youtube'} 
-                url={currentConteudo.dados_conteudo.url}
+                url={currentConteudo.dados_conteudo.video_url}
               />
             </CardContent>
           </Card>
         ) : <p>Vídeo indisponível.</p>;
       
       case 'texto_rico':
-        return currentConteudo.dados_conteudo.html_content ? (
+        return currentConteudo.dados_conteudo.texto_rico ? (
           <Card className="mt-4">
             <CardContent className="py-6 px-6">
               <div 
                 className="prose max-w-none" 
-                dangerouslySetInnerHTML={{ __html: currentConteudo.dados_conteudo.html_content }} 
+                dangerouslySetInnerHTML={{ __html: currentConteudo.dados_conteudo.texto_rico }} 
               />
             </CardContent>
           </Card>

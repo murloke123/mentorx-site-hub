@@ -2,12 +2,13 @@
 export interface ConteudoItemLocal {
   id: string;
   nome_conteudo: string;
-  tipo_conteudo: 'video' | 'text' | 'pdf';
+  tipo_conteudo: 'video' | 'texto_rico' | 'pdf';
   dados_conteudo: {
     video_url?: string;
     texto_rico?: string;
     pdf_url?: string;
     pdf_filename?: string;
+    provider?: 'youtube' | 'vimeo';
   };
   ordem: number;
   modulo_id: string;
