@@ -25,9 +25,15 @@ export async function getEnrolledCourses() {
     // Formatar os dados para o componente
     const enrolledCourses = data.map(enrollment => {
       const course = enrollment.courses;
-      const progress = enrollment.progress?.percent || 0;
-      const completedLessons = enrollment.progress?.completed_lessons || 0;
-      const totalLessons = enrollment.progress?.total_lessons || 0;
+      const progressData = enrollment.progress as { 
+        percent?: number; 
+        completed_lessons?: number; 
+        total_lessons?: number; 
+      } | null;
+      
+      const progress = progressData?.percent || 0;
+      const completedLessons = progressData?.completed_lessons || 0;
+      const totalLessons = progressData?.total_lessons || 0;
       
       return {
         id: course.id,
@@ -130,27 +136,32 @@ export async function updateProgress(courseId: string, lessonId: string, complet
     if (countError) throw countError;
     
     // Calcular o progresso atualizado
-    const progress = enrollment.progress || { 
+    const progressData = enrollment.progress || { 
       completed_lessons: 0,
       completed_lessons_ids: []
     };
     
-    let completedLessonsIds = progress.completed_lessons_ids || [];
+    // Garantir que temos um array com os ids
+    const completedLessonsIds = Array.isArray(progressData.completed_lessons_ids) 
+      ? [...progressData.completed_lessons_ids] 
+      : [];
     
     if (completed && !completedLessonsIds.includes(lessonId)) {
       completedLessonsIds.push(lessonId);
-    } else if (!completed && completedLessonsIds.includes(lessonId)) {
-      completedLessonsIds = completedLessonsIds.filter(id => id !== lessonId);
+    } else if (!completed) {
+      const index = completedLessonsIds.indexOf(lessonId);
+      if (index !== -1) {
+        completedLessonsIds.splice(index, 1);
+      }
     }
     
     const completedLessons = completedLessonsIds.length;
     const percentComplete = totalConteudos ? (completedLessons / totalConteudos) * 100 : 0;
     
     const updatedProgress = {
-      ...progress,
       percent: percentComplete,
       completed_lessons: completedLessons,
-      total_lessons: totalConteudos,
+      total_lessons: totalConteudos || 0,
       completed_lessons_ids: completedLessonsIds,
       last_accessed: new Date().toISOString()
     };

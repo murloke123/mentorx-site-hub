@@ -166,8 +166,8 @@ async function atualizarProgressoCurso(cursoId: string) {
     
     const percentual = (concluidos || 0) / totalConteudos * 100;
     
-    // Criar objeto de progresso com a forma correta
-    const progress: Progress = {
+    // Criar objeto de progresso
+    const progressData = {
       percent: percentual,
       completed_lessons: concluidos || 0,
       total_lessons: totalConteudos
@@ -176,7 +176,7 @@ async function atualizarProgressoCurso(cursoId: string) {
     // Atualizar a matrícula com o progresso
     const { error: updateError } = await supabase
       .from("enrollments")
-      .update({ progress })
+      .update({ progress: progressData })
       .eq("user_id", user.id)
       .eq("course_id", cursoId);
       

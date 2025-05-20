@@ -8,6 +8,19 @@ import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { getCourseById } from "@/services/courseService";
 
+// Define the Course interface to match what the API returns
+interface Course {
+  id: string;
+  title: string;
+  description: string | null;
+  mentor_id: string;
+  is_paid: boolean;
+  price: number | null;
+  image_url: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 const ShowCoursePage = () => {
   const { id } = useParams<{ id: string }>();
   

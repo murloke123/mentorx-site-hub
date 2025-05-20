@@ -1,7 +1,6 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { getCourseDetailsForPlayer, markConteudoAsConcluido, markConteudoAsIncompleto } from '@/services/coursePlayerService';
+import { getCourseDetailsForPlayer, markConteudoAsConcluido, markConteudoAsIncompleto, Curso, Modulo, Conteudo } from '@/services/coursePlayerService';
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -66,10 +65,12 @@ const CoursePlayerPage = () => {
       try {
         setLoading(true);
         const data = await getCourseDetailsForPlayer(cursoId);
+        
+        // Type safety: Ensure the response matches our expected structure
         setCurso(data.curso);
         
         // Set completed content IDs
-        setConteudosConcluidos(new Set(data.completedContentIds));
+        setConteudosConcluidos(new Set(data.completedConteudoIds));
         
         if (data.curso && data.curso.modulos.length > 0 && data.curso.modulos[0].conteudos.length > 0) {
           setCurrentConteudo(data.curso.modulos[0].conteudos[0]);
@@ -229,4 +230,4 @@ const CoursePlayerPage = () => {
   );
 };
 
-export default CoursePlayerPage; 
+export default CoursePlayerPage;

@@ -17,11 +17,14 @@ interface Course {
 }
 
 const AdminCoursesPage = () => {
-  // Buscar cursos - fixed the useQuery call
-  const { data = [], isLoading, refetch } = useQuery({
+  // Fixed the useQuery call
+  const { data, isLoading, refetch } = useQuery({
     queryKey: ['allCourses'],
     queryFn: getAllCourses,
   });
+  
+  // Ensure data is an array
+  const courses = Array.isArray(data) ? data : [];
   
   return (
     <div className="flex">
