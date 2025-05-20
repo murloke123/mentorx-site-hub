@@ -1,109 +1,144 @@
 
-import { useParams } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useParams, Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeftIcon, BookOpenIcon } from "lucide-react";
-import { Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { getCourseById } from "@/services/courseService";
+import { Badge } from "@/components/ui/badge";
+import { User, Clock, BookOpen, Star, ChevronLeft } from "lucide-react";
+import { getCourseDetails } from "@/services/courseService";
 
-// Define the Course interface to match what the API returns
 interface Course {
   id: string;
   title: string;
   description: string | null;
   mentor_id: string;
+  mentor_name: string | null;
   is_paid: boolean;
   price: number | null;
   image_url: string | null;
   created_at: string;
   updated_at: string;
+  mentor?: {
+    full_name: string;
+    avatar_url: string | null;
+  };
 }
 
 const ShowCoursePage = () => {
   const { id } = useParams<{ id: string }>();
-  
-  const { data: course, isLoading } = useQuery({
-    queryKey: ['course', id],
-    queryFn: () => getCourseById(id || ''),
-    enabled: !!id,
-  });
+  const [course, setCourse] = useState<Course | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  if (isLoading) {
+  useEffect(() => {
+    if (!id) return;
+    
+    const fetchCourse = async () => {
+      try {
+        setLoading(true);
+        const data = await getCourseDetails(id);
+        setCourse(data);
+      } catch (err) {
+        setError("Erro ao carregar detalhes do curso");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCourse();
+  }, [id]);
+
+  if (loading) {
     return (
-      <div className="container mx-auto py-8">
-        <div className="w-full max-w-4xl mx-auto">
-          <Skeleton className="h-8 w-64 mb-4" />
-          <Skeleton className="h-64 w-full rounded-lg mb-6" />
-          <Skeleton className="h-6 w-full mb-2" />
-          <Skeleton className="h-6 w-3/4 mb-2" />
-          <Skeleton className="h-6 w-1/2" />
+      <div className="container max-w-4xl mx-auto py-8">
+        <div className="animate-pulse">
+          <div className="h-8 w-3/4 bg-gray-200 rounded mb-4"></div>
+          <div className="h-64 bg-gray-200 rounded mb-6"></div>
+          <div className="h-4 bg-gray-200 rounded mb-2"></div>
+          <div className="h-4 bg-gray-200 rounded mb-2"></div>
+          <div className="h-4 bg-gray-200 rounded mb-2"></div>
         </div>
       </div>
     );
   }
 
-  if (!course) {
+  if (error || !course) {
     return (
-      <div className="container mx-auto py-8 text-center">
-        <BookOpenIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-        <h2 className="text-2xl font-bold mb-2">Curso não encontrado</h2>
-        <p className="text-gray-500 mb-6">O curso solicitado não foi encontrado ou não está disponível.</p>
+      <div className="container max-w-4xl mx-auto py-8 text-center">
+        <h2 className="text-2xl font-bold text-red-500 mb-4">{error || "Curso não encontrado"}</h2>
+        <p className="mb-6">Não foi possível carregar os detalhes deste curso.</p>
         <Button asChild>
-          <Link to="/mentor/cursos">Voltar aos Cursos</Link>
+          <Link to="/courses">Ver todos os cursos</Link>
         </Button>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto py-8">
-      <div className="w-full max-w-4xl mx-auto">
-        <div className="mb-6 flex items-center">
-          <Button variant="outline" size="sm" asChild className="mr-4">
-            <Link to="/mentor/cursos">
-              <ArrowLeftIcon className="mr-2 h-4 w-4" />
-              Voltar aos cursos
-            </Link>
-          </Button>
+    <div className="container max-w-4xl mx-auto py-8">
+      <Link to="/courses" className="flex items-center text-blue-600 hover:text-blue-800 mb-6">
+        <ChevronLeft className="h-4 w-4 mr-1" />
+        Voltar para cursos
+      </Link>
+      
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold mb-2">{course.title}</h1>
+        <div className="flex items-center gap-2 mb-4">
+          <Badge variant={course.is_paid ? "default" : "secondary"}>
+            {course.is_paid ? `R$${course.price?.toFixed(2)}` : "Gratuito"}
+          </Badge>
         </div>
-
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="text-2xl">{course.title}</CardTitle>
-            <CardDescription>
-              {course.is_paid ? `Curso pago - R$${course.price?.toFixed(2)}` : "Curso gratuito"}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="aspect-video bg-gray-100 rounded-md mb-6 flex items-center justify-center">
-              {course.image_url ? (
-                <img 
-                  src={course.image_url} 
-                  alt={course.title} 
-                  className="w-full h-full object-cover rounded-md"
-                />
-              ) : (
-                <BookOpenIcon className="h-12 w-12 text-gray-400" />
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="md:col-span-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Sobre o Curso</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {course.image_url && (
+                <div className="mb-6">
+                  <img 
+                    src={course.image_url} 
+                    alt={course.title} 
+                    className="w-full h-48 object-cover rounded-md"
+                  />
+                </div>
               )}
-            </div>
-            
-            <div className="prose max-w-none">
-              <h3 className="text-lg font-semibold mb-2">Descrição</h3>
-              <p className="whitespace-pre-line">{course.description}</p>
-            </div>
-            
-            <div className="mt-6 flex flex-wrap gap-4">
-              <Button asChild>
-                <Link to={`/mentor/cursos/${id}/editar`}>Editar curso</Link>
-              </Button>
-              <Button asChild>
-                <Link to={`/mentor/cursos/${id}/modulos`}>Gerenciar Módulos</Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+              <p className="text-gray-700">{course.description || "Sem descrição disponível."}</p>
+            </CardContent>
+          </Card>
+        </div>
+        
+        <div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Instrutor</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
+                  {course.mentor?.avatar_url ? (
+                    <img 
+                      src={course.mentor.avatar_url} 
+                      alt={course.mentor.full_name} 
+                      className="w-12 h-12 rounded-full object-cover" 
+                    />
+                  ) : (
+                    <User className="h-6 w-6 text-gray-500" />
+                  )}
+                </div>
+                <div>
+                  <p className="font-medium">{course.mentor?.full_name || course.mentor_name || "Mentor desconhecido"}</p>
+                </div>
+              </div>
+              
+              <Button className="w-full">Matricular-se</Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
