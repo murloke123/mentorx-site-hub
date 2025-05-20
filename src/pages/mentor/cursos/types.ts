@@ -1,11 +1,10 @@
-
 export interface ConteudoItemLocal {
   id: string;
   nome_conteudo: string;
-  tipo_conteudo: 'video' | 'texto_rico' | 'pdf';
+  tipo_conteudo: 'video_externo' | 'texto_rico' | 'pdf';
   dados_conteudo: {
-    video_url?: string;
-    texto_rico?: string;
+    url?: string;
+    html_content?: string;
     pdf_url?: string;
     pdf_filename?: string;
     provider?: 'youtube' | 'vimeo';

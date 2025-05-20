@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, Filter, PlusCircle, Search, Layers } from 'lucide-react';
+import { BookOpen, Filter, PlusCircle, Search, Layers, Edit2, Eye } from 'lucide-react';
 
 interface Course {
   id: string;
@@ -28,12 +28,12 @@ interface CoursesListProps {
 const CoursesList = ({ courses, isLoading, totalEnrollments }: CoursesListProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [visibilityFilter, setVisibilityFilter] = useState<string | null>(null);
+  const [imageLoadErrors, setImageLoadErrors] = useState<Set<string>>(new Set());
   const navigate = useNavigate();
 
   // Filtrar cursos com base na busca e filtro de visibilidade
   const filteredCourses = courses.filter(course => {
-    const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                        (course.description?.toLowerCase().includes(searchQuery.toLowerCase()) || false);
+    const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase());
     
     const matchesFilter = visibilityFilter === null || 
                         (visibilityFilter === 'public' && course.is_public) ||
@@ -58,9 +58,14 @@ const CoursesList = ({ courses, isLoading, totalEnrollments }: CoursesListProps)
     navigate('/mentor/cursos/novo');
   };
 
-  // Navegar para a página de gerenciamento de módulos do curso
-  const handleGerenciarModulos = (courseId: string) => {
-    navigate(`/mentor/cursos/${courseId}/modulos`);
+  // Handler for image loading errors
+  const handleImageError = (courseId: string) => {
+    setImageLoadErrors(prevErrors => new Set(prevErrors).add(courseId));
+  };
+
+  // Navegar para a página de visualização do curso (CoursePlayerPage)
+  const handleViewCourse = (courseId: string) => {
+    navigate(`/mentor/cursos/view/${courseId}`);
   };
 
   return (
@@ -97,22 +102,23 @@ const CoursesList = ({ courses, isLoading, totalEnrollments }: CoursesListProps)
           {filteredCourses.map((course) => (
             <Card key={course.id} className="flex flex-col">
               <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div className="flex items-center gap-4">
-                    {course.image_url ? (
+                <div className="flex justify-between items-start gap-4">
+                  <div className="flex items-start gap-4 min-w-0">
+                    {(course.image_url && course.image_url.trim() !== '' && !imageLoadErrors.has(course.id)) ? (
                       <img 
                         src={course.image_url} 
                         alt={course.title} 
-                        className="w-16 h-16 rounded object-cover" 
+                        className="w-16 h-16 rounded-full object-cover flex-shrink-0"
+                        onError={() => handleImageError(course.id)}
                       />
                     ) : (
-                      <div className="w-16 h-16 rounded bg-muted flex items-center justify-center">
-                        <BookOpen className="h-6 w-6 text-muted-foreground" />
+                      <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                        <BookOpen className="h-8 w-8 text-black" />
                       </div>
                     )}
-                    <div>
-                      <CardTitle>{course.title}</CardTitle>
-                      <div className="flex items-center gap-2 mt-1">
+                    <div className="min-w-0 flex-1">
+                      <CardTitle className="text-lg truncate">{course.title}</CardTitle>
+                      <div className="flex items-center gap-2 mt-1 flex-wrap">
                         <Badge variant={course.is_public ? "outline" : "secondary"}>
                           {course.is_public ? 'Público' : 'Privado'}
                         </Badge>
@@ -121,6 +127,23 @@ const CoursesList = ({ courses, isLoading, totalEnrollments }: CoursesListProps)
                         </Badge>
                       </div>
                     </div>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => handleViewCourse(course.id)}
+                      className="h-auto py-2 px-4"
+                    >
+                      <Eye className="mr-3 h-[30px] w-[30px] flex-shrink-0" /> Ver Curso
+                    </Button>
+                    <Button 
+                      variant="default" 
+                      asChild 
+                    >
+                      <Link to={`/mentor/cursos/${course.id}/editar`}>
+                        <Edit2 className="mr-2 h-4 w-4" /> Editar
+                      </Link>
+                    </Button>
                   </div>
                 </div>
               </CardHeader>
@@ -136,27 +159,18 @@ const CoursesList = ({ courses, isLoading, totalEnrollments }: CoursesListProps)
                     className="h-2"
                   />
                 </div>
-                {course.description && (
-                  <p className="text-sm text-muted-foreground line-clamp-2">{course.description}</p>
-                )}
               </CardContent>
-              <div className="flex justify-between p-6 pt-0">
-                <Button variant="outline" asChild>
-                  <Link to={`/mentor/cursos/show/${course.id}`}>Ver Curso</Link>
-                </Button>
-                <Button variant="outline" asChild>
-                  <Link to={`/mentor/cursos/${course.id}/editar`}>Editar Curso</Link>
-                </Button>
-              </div>
-              <div className="px-6 pb-6">
+              <CardFooter>
                 <Button 
-                  className="w-full" 
+                  className="w-full"
                   variant="default" 
-                  onClick={() => handleGerenciarModulos(course.id)}
+                  asChild
                 >
-                  <Layers className="mr-2 h-4 w-4" /> Gerenciar Módulos e Conteúdo
+                  <Link to={`/mentor/cursos/${course.id}/modulos`}>
+                    <Layers className="mr-2 h-4 w-4" /> Gerenciar Módulos e Conteúdo
+                  </Link>
                 </Button>
-              </div>
+              </CardFooter>
             </Card>
           ))}
         </div>

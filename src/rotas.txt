@@ -56,7 +56,6 @@ const App = () => (
               <Route path="/mentor/cursos/:cursoId/modulos/:moduloId" element={<ConteudosPage />} />
               <Route path="/mentor/followers" element={<MentorFollowersPage />} />
               <Route path="/mentor/mentorados" element={<MentorFollowersPage />} />
-              <Route path="/mentor/configuracoes/rotas" element={<RoutesVisualizationPage />} />
               
               {/* Rotas de Mentorado */}
               <Route path="/mentorado/dashboard" element={<MentoradoDashboardPage />} />
@@ -87,4 +86,4 @@ const App = () => (
   </QueryClientProvider>
 );
 
-export default App;
+export default App; 

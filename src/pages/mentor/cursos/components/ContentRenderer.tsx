@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,25 +31,25 @@ const ContentRenderer: React.FC<ContentRendererProps> = ({
     }
 
     switch (currentConteudo.tipo_conteudo) {
-      case 'video':
-        return currentConteudo.dados_conteudo.video_url ? (
+      case 'video_externo':
+        return currentConteudo.dados_conteudo.url ? (
           <Card className="mt-4 overflow-hidden">
             <CardContent className="p-0">
               <VideoPlayer 
                 provider={currentConteudo.dados_conteudo.provider || 'youtube'} 
-                url={currentConteudo.dados_conteudo.video_url}
+                url={currentConteudo.dados_conteudo.url}
               />
             </CardContent>
           </Card>
         ) : <p>Vídeo indisponível.</p>;
       
       case 'texto_rico':
-        return currentConteudo.dados_conteudo.texto_rico ? (
+        return currentConteudo.dados_conteudo.html_content ? (
           <Card className="mt-4">
             <CardContent className="py-6 px-6">
               <div 
                 className="prose max-w-none" 
-                dangerouslySetInnerHTML={{ __html: currentConteudo.dados_conteudo.texto_rico }} 
+                dangerouslySetInnerHTML={{ __html: currentConteudo.dados_conteudo.html_content }} 
               />
             </CardContent>
           </Card>
