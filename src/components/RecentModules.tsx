@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Edit3, Eye, Plus } from "lucide-react";
@@ -48,9 +47,9 @@ const RecentModules = () => {
                 className="flex items-center justify-between border-b p-4 last:border-0 hover:bg-muted/50"
               >
                 <div className="space-y-1">
-                  <p className="font-medium leading-none">{module.title}</p>
+                  <p className="font-medium leading-none">{module.nome_modulo}</p>
                   <p className="text-xs text-muted-foreground">
-                    {module.courses.title} • {formatDate(module.created_at)}
+                    {module.cursos ? module.cursos.title : 'Curso não encontrado'} • {formatDate(module.created_at)}
                   </p>
                 </div>
                 <div className="flex space-x-1">

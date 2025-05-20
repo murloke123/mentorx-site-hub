@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { CourseFormData } from "@/components/mentor/course-form/FormSchema";
@@ -27,7 +26,7 @@ export async function createCourse(courseData: CourseFormData) {
 
     // Inserir o curso no Supabase
     const { data, error } = await supabase
-      .from("courses") // Mantendo "courses" temporariamente até a migração ser finalizada
+      .from("cursos") // Changed from "courses"
       .insert(courseRecord)
       .select()
       .single();
@@ -63,7 +62,7 @@ export async function updateCourse(courseId: string, courseData: CourseFormData)
 
     // Atualizar o curso no Supabase
     const { data, error } = await supabase
-      .from("courses") // Mantendo "courses" temporariamente até a migração ser finalizada
+      .from("cursos") // Changed from "courses"
       .update(courseRecord)
       .eq("id", courseId)
       .eq("mentor_id", user.id) // Garantir que apenas o mentor do curso possa atualizar
@@ -82,7 +81,7 @@ export async function updateCourse(courseId: string, courseData: CourseFormData)
 export async function getCourseById(courseId: string) {
   try {
     const { data, error } = await supabase
-      .from("courses") // Mantendo "courses" temporariamente até a migração ser finalizada
+      .from("cursos") // Changed from "courses"
       .select("*")
       .eq("id", courseId)
       .single();
@@ -119,7 +118,7 @@ export async function getMentorCourses() {
     }
     
     const { data, error } = await supabase
-      .from("courses") // Mantendo "courses" temporariamente até a migração ser finalizada
+      .from("cursos") // Changed from "courses"
       .select("*, enrollments(count)")
       .eq("mentor_id", user.id)
       .order("created_at", { ascending: false });
@@ -150,7 +149,7 @@ export async function deleteCourse(courseId: string) {
 
     // Deletar o curso
     const { error } = await supabase
-      .from("courses") // Mantendo "courses" temporariamente até a migração ser finalizada
+      .from("cursos") // Changed from "courses"
       .delete()
       .eq("id", courseId)
       .eq("mentor_id", user.id); // Garantir que apenas o mentor do curso possa deletar

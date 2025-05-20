@@ -1,253 +1,207 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
-// Interface for Conteudo
-interface Conteudo {
+// Define interfaces based on your Supabase schema.
+// Ideally, these would align with or be imported from Supabase-generated types if available,
+// or from other service files if they export them (e.g., Conteudo from conteudoService).
+
+// Using 'titulo' for Conteudo to match CoursePlayerPage, but original conteudoService uses 'nome_conteudo' for table 'conteudos'.
+// This might need alignment later if issues arise or if we consolidate types.
+export interface Conteudo {
   id: string;
-  modulo_id: string;
-  nome_conteudo: string;
-  tipo_conteudo: string;
-  descricao_conteudo?: string;
-  ordem: number;
-  dados_conteudo?: {
-    video_url?: string;
-    texto_rico?: string;
-    pdf_url?: string;
-    pdf_filename?: string;
+  titulo: string; // CoursePlayerPage.tsx uses 'titulo'. conteudoService.ts uses 'nome_conteudo' for table 'conteudos'.
+  tipo_conteudo: 'video' | 'text' | 'pdf' | 'video_externo' | 'texto_rico'; // Expanded to include types from conteudoService & player page
+  dados_conteudo: {
+    video_url?: string;    // Used by player page for 'video' type
+    texto_rico?: string;   // Used by player page for 'text' type (maps to html_content from conteudoService)
+    pdf_url?: string;        // Used by player page for 'pdf' type
+    pdf_filename?: string; // Used by player page for 'pdf' type
+    html_content?: string; // from conteudoService for 'texto_rico'
+    provider?: 'youtube' | 'vimeo'; // from conteudoService for 'video_externo'
+    url?: string;            // from conteudoService for 'video_externo'
+    storage_path?: string;   // from conteudoService for 'pdf'
   };
+  ordem: number;
+  modulo_id: string;
   created_at: string;
   updated_at: string;
 }
 
-// Interface for Modulo
-interface Modulo {
+export interface Modulo {
   id: string;
-  curso_id: string;
-  nome_modulo: string;
-  descricao_modulo?: string;
+  titulo: string; // Assuming module table uses 'titulo' or similar for name
+  descricao?: string;
   ordem: number;
+  curso_id: string;
   created_at: string;
   updated_at: string;
   conteudos: Conteudo[];
 }
 
-// Interface for Curso with modulos
-interface Curso {
+// Using 'title' for Curso to match CoursePlayerPage. Table 'cursos' likely has 'title'.
+export interface Curso {
   id: string;
   title: string;
   description?: string;
-  mentor_id: string;
   image_url?: string;
+  mentor_id: string;
   modulos: Modulo[];
 }
 
-// Interface for ConteudoConcluido
-interface ConteudoConcluido {
-  id: string;
+export interface ConteudoConcluido {
+  id?: string;
   user_id: string;
   curso_id: string;
   modulo_id: string;
   conteudo_id: string;
-  created_at: string;
+  created_at?: string;
 }
 
-// Get course details for player
-export async function getCourseDetailsForPlayer(cursoId: string) {
-  try {
-    // Get current user
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error("Usuário não autenticado");
+interface CourseDetailsPlayerResponse {
+  curso: Curso | null;
+  completedConteudoIds: string[];
+}
 
-    // Get curso
-    const { data: curso, error: cursoError } = await supabase
-      .from("courses")
-      .select("id, title, description, mentor_id, image_url")
-      .eq("id", cursoId)
-      .single();
-
-    if (cursoError) throw cursoError;
-    if (!curso) throw new Error("Curso não encontrado");
-
-    // Get modulos
-    const { data: modulos, error: modulosError } = await supabase
-      .from("modulos")
-      .select("*")
-      .eq("curso_id", cursoId)
-      .order("ordem", { ascending: true });
-
-    if (modulosError) throw modulosError;
-
-    // Get conteudos for each modulo
-    const modulosWithContent = await Promise.all(modulos.map(async (modulo) => {
-      const { data: conteudos, error: conteudosError } = await supabase
-        .from("conteudos")
-        .select("*")
-        .eq("modulo_id", modulo.id)
-        .order("ordem", { ascending: true });
-
-      if (conteudosError) throw conteudosError;
-
-      return {
-        ...modulo,
-        conteudos: conteudos || []
-      };
-    }));
-
-    // Get completed conteudos
-    const { data: completedContent, error: completedError } = await supabase
-      .from("conteudo_concluido")
-      .select("conteudo_id")
-      .eq("user_id", user.id)
-      .eq("curso_id", cursoId);
-
-    if (completedError) throw completedError;
-
-    // Prepare complete course data
-    const cursoWithModulos: Curso = {
-      ...curso,
-      modulos: modulosWithContent
-    };
-
-    // Extract completed content IDs
-    const completedContentIds = completedContent?.map(item => item.conteudo_id) || [];
-
-    return {
-      curso: cursoWithModulos,
-      completedContentIds
-    };
-  } catch (error) {
-    console.error("Erro ao buscar detalhes do curso:", error);
-    throw error;
+export async function getCourseDetailsForPlayer(cursoId: string): Promise<CourseDetailsPlayerResponse> {
+  if (!cursoId) {
+    throw new Error("ID do curso é obrigatório.");
   }
-}
 
-// Mark conteudo as concluido
-export async function markConteudoAsConcluido(cursoId: string, moduloId: string, conteudoId: string) {
+  const { data: { user } } = await supabase.auth.getUser();
+
   try {
-    // Get current user
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error("Usuário não autenticado");
-
-    // Check if already completed
-    const { data: existing, error: checkError } = await supabase
-      .from("conteudo_concluido")
-      .select("*")
-      .eq("user_id", user.id)
-      .eq("conteudo_id", conteudoId)
+    // Fetch course details, using 'cursos' table and assuming 'modulos' and 'conteudos' relations
+    // The select string needs to match your actual column names and relationships.
+    const { data: courseData, error: courseError } = await supabase
+      .from('cursos') // Using 'cursos' table name
+      .select(`
+        id,
+        title,
+        description,
+        image_url,
+        mentor_id,
+        modulos (
+          id,
+          titulo,
+          descricao,
+          ordem,
+          curso_id,
+          created_at,
+          updated_at,
+          conteudos (
+            id,
+            nome_conteudo:titulo, /* Corrected Alias: original_column:new_name */
+            tipo_conteudo,
+            dados_conteudo,
+            ordem,
+            modulo_id,
+            created_at,
+            updated_at
+          )
+        )
+      `)
+      .eq('id', cursoId)
       .maybeSingle();
 
-    if (checkError) throw checkError;
-    
-    // If already marked as completed, return it
-    if (existing) return existing;
+    if (courseError) throw courseError;
+    if (!courseData) {
+      return { curso: null, completedConteudoIds: [] };
+    }
 
-    // Insert new completion record
-    const { data, error } = await supabase
-      .from("conteudo_concluido")
-      .insert({
-        user_id: user.id,
-        curso_id: cursoId,
-        modulo_id: moduloId,
-        conteudo_id: conteudoId
-      })
-      .select()
-      .single();
+    // Ensure modulos and their conteudos are sorted by 'ordem'
+    const sortedModulos = (courseData.modulos || []).map(modulo => ({
+      ...modulo,
+      conteudos: (modulo.conteudos || []).map(c => ({
+        ...c,
+        // titulo: c.nome_conteudo, // This aliasing is now done in the SQL select, if supported
+        // If SQL alias doesn't work as expected due to Supabase client limitations or type issues,
+        // manual mapping might be needed here after fetching c.nome_conteudo
+      })).sort((a: Conteudo, b: Conteudo) => a.ordem - b.ordem),
+    })).sort((a: Modulo, b: Modulo) => a.ordem - b.ordem);
 
-    if (error) throw error;
+    const cursoProcessed = { ...courseData, modulos: sortedModulos } as unknown as Curso;
 
-    // Update course progress
-    await updateCourseProgress(cursoId, user.id);
+    let completedConteudoIds: string[] = [];
+    if (user) {
+      const { data: completedData, error: completedError } = await supabase
+        .from('conteudo_concluido')
+        .select('conteudo_id')
+        .eq('user_id', user.id)
+        .eq('curso_id', cursoId);
 
-    return data;
+      if (completedError) {
+        console.error("Erro ao buscar conteúdos concluídos:", completedError);
+      } else if (completedData) {
+        completedConteudoIds = completedData.map((item: { conteudo_id: string }) => item.conteudo_id);
+      }
+    }
+
+    return { curso: cursoProcessed, completedConteudoIds };
   } catch (error) {
+    console.error('Erro ao buscar detalhes do curso para o player:', error);
+    if (error instanceof Error) {
+      throw new Error(`Falha ao carregar dados do curso: ${error.message.replace(/`/g, "\\`")}`);
+    }
+    throw new Error("Uma falha desconhecida ocorreu ao carregar dados do curso.");
+  }
+}
+
+export async function markConteudoAsConcluido(cursoId: string, moduloId: string, conteudoId: string): Promise<ConteudoConcluido | null> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    throw new Error("Usuário não autenticado.");
+  }
+
+  if (!cursoId || !moduloId || !conteudoId) {
+    throw new Error("IDs do curso, módulo e conteúdo são obrigatórios.");
+  }
+
+  const { data, error } = await supabase
+    .from('conteudo_concluido')
+    .insert({
+      user_id: user.id,
+      curso_id: cursoId,
+      modulo_id: moduloId,
+      conteudo_id: conteudoId,
+    })
+    .select()
+    .single();
+
+  if (error) {
     console.error("Erro ao marcar conteúdo como concluído:", error);
+    if (error.code === '23505') { // Unique violation
+      console.warn("Conteúdo já estava marcado como concluído.");
+      const { data: existingData, error: fetchError } = await supabase
+        .from('conteudo_concluido')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('conteudo_id', conteudoId)
+        .single();
+      if (fetchError) throw fetchError;
+      return existingData as ConteudoConcluido;
+    }
     throw error;
   }
+  return data as ConteudoConcluido;
 }
 
-// Mark conteudo as incompleto (remove from completed)
-export async function markConteudoAsIncompleto(cursoId: string, moduloId: string, conteudoId: string) {
-  try {
-    // Get current user
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error("Usuário não autenticado");
-
-    // Delete the completion record
-    const { error } = await supabase
-      .from("conteudo_concluido")
-      .delete()
-      .eq("user_id", user.id)
-      .eq("conteudo_id", conteudoId);
-
-    if (error) throw error;
-
-    // Update course progress
-    await updateCourseProgress(cursoId, user.id);
-
-    return { success: true };
-  } catch (error) {
-    console.error("Erro ao desmarcar conteúdo como concluído:", error);
-    throw error;
+export async function markConteudoAsIncompleto(cursoId: string, moduloId: string, conteudoId: string): Promise<void> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    throw new Error("Usuário não autenticado.");
   }
-}
 
-// Helper function to update course progress
-async function updateCourseProgress(cursoId: string, userId: string) {
-  try {
-    // Count total content in the course
-    const { data: modulos, error: modulosError } = await supabase
-      .from("modulos")
-      .select("id")
-      .eq("curso_id", cursoId);
+  if (!conteudoId) {
+    throw new Error("ID do conteúdo é obrigatório.");
+  }
 
-    if (modulosError) throw modulosError;
-    
-    if (!modulos || modulos.length === 0) return;
-    
-    const moduloIds = modulos.map(m => m.id);
-    
-    // Count total conteudos in the course
-    const { count: totalConteudos, error: countError } = await supabase
-      .from("conteudos")
-      .select("*", { count: 'exact', head: true })
-      .in("modulo_id", moduloIds);
-    
-    if (countError) throw countError;
-    
-    // Count completed conteudos
-    const { count: completedCount, error: completedError } = await supabase
-      .from("conteudo_concluido")
-      .select("*", { count: 'exact', head: true })
-      .eq("user_id", userId)
-      .eq("curso_id", cursoId);
-    
-    if (completedError) throw completedError;
-    
-    // Calculate percentage
-    const percent = totalConteudos > 0 ? (completedCount || 0) / totalConteudos * 100 : 0;
-    
-    // Update enrollment progress
-    const { error: updateError } = await supabase
-      .from("enrollments")
-      .update({
-        progress: {
-          percent,
-          completed_lessons: completedCount || 0,
-          total_lessons: totalConteudos || 0
-        }
-      })
-      .eq("user_id", userId)
-      .eq("course_id", cursoId);
-    
-    if (updateError) throw updateError;
-    
-    return {
-      percent,
-      completed_lessons: completedCount || 0,
-      total_lessons: totalConteudos || 0
-    };
-  } catch (error) {
-    console.error("Erro ao atualizar progresso do curso:", error);
+  const { error } = await supabase
+    .from('conteudo_concluido')
+    .delete()
+    .eq('user_id', user.id)
+    .eq('conteudo_id', conteudoId);
+
+  if (error) {
+    console.error("Erro ao marcar conteúdo como incompleto:", error);
     throw error;
   }
 }

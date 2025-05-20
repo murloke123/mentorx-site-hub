@@ -1,4 +1,3 @@
-
 # Supabase Database Documentation
 
 ## Project ID
@@ -99,15 +98,14 @@ CREATE TABLE public.profiles (
 ### conteudo_concluido
 ```sql
 CREATE TABLE public.conteudo_concluido (
-  id uuid DEFAULT gen_random_uuid() NOT NULL PRIMARY KEY,
-  user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  curso_id uuid NOT NULL REFERENCES public.cursos(id) ON DELETE CASCADE,
-  modulo_id uuid NOT NULL REFERENCES public.modulos(id) ON DELETE CASCADE,
-  conteudo_id uuid NOT NULL REFERENCES public.conteudos(id) ON DELETE CASCADE,
-  created_at timestamp with time zone DEFAULT now() NOT NULL,
-  
-  -- Garantir que um usuário não possa marcar o mesmo conteúdo como concluído múltiplas vezes
-  CONSTRAINT unique_user_content_completion UNIQUE (user_id, conteudo_id)
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  curso_id UUID NOT NULL REFERENCES cursos(id) ON DELETE CASCADE,
+  modulo_id UUID NOT NULL REFERENCES modulos(id) ON DELETE CASCADE,
+  conteudo_id UUID NOT NULL REFERENCES conteudos(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+  CONSTRAINT unique_user_conteudo UNIQUE (user_id, conteudo_id)
 );
 ```
 

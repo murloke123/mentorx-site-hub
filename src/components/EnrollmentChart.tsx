@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,9 +14,9 @@ import { useQuery } from "@tanstack/react-query";
 import { getEnrollmentStats } from "@/services/mentorService";
 
 const PERIODS = [
-  { label: "7 days", days: 7 },
-  { label: "30 days", days: 30 },
-  { label: "90 days", days: 90 },
+  { label: "7 dias", days: 7 },
+  { label: "30 dias", days: 30 },
+  { label: "90 dias", days: 90 },
 ];
 
 const EnrollmentChart = () => {
@@ -32,9 +31,9 @@ const EnrollmentChart = () => {
     <Card className="col-span-3">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <div>
-          <CardTitle>Enrollment Trends</CardTitle>
+          <CardTitle>Tendência de Inscrições</CardTitle>
           <CardDescription>
-            New enrollments over time
+            Novas inscrições ao longo do tempo
           </CardDescription>
         </div>
         <div className="flex gap-1">
@@ -53,11 +52,11 @@ const EnrollmentChart = () => {
       <CardContent className="pt-4">
         {isLoading ? (
           <div className="flex h-[300px] items-center justify-center">
-            <p className="text-muted-foreground">Loading data...</p>
+            <p className="text-muted-foreground">Carregando dados...</p>
           </div>
         ) : chartData && chartData.length > 0 ? (
           <ChartContainer 
-            config={{ enrollments: { color: "#8B5CF6" } }} 
+            config={{ enrollments: { label: 'Inscrições', color: "#8B5CF6" } }}
             className="aspect-[4/3] h-[300px]"
           >
             <ResponsiveContainer width="100%" height="100%">
@@ -81,7 +80,7 @@ const EnrollmentChart = () => {
                   dataKey="count"
                   fill="var(--color-enrollments)"
                   radius={[4, 4, 0, 0]}
-                  name="Enrollments"
+                  name="Inscrições"
                 />
                 <ChartTooltip
                   content={({ active, payload }) => {
@@ -101,7 +100,7 @@ const EnrollmentChart = () => {
           </ChartContainer>
         ) : (
           <div className="flex h-[300px] items-center justify-center">
-            <p className="text-muted-foreground">No enrollment data for this period.</p>
+            <p className="text-muted-foreground">Sem dados de inscrição para este período.</p>
           </div>
         )}
       </CardContent>

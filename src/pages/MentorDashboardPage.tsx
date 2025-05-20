@@ -1,9 +1,8 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { getMentorProfile, getMentorCourses, getMentorFollowersCount } from '@/services/mentorService';
 import StatsSection from '@/components/mentor/StatsSection';
 import AnalyticsSection from '@/components/mentor/AnalyticsSection';
-import CoursesList from '@/components/mentor/CoursesList';
+// import CoursesList from '@/components/mentor/CoursesList'; // Removido
 import MentorSidebar from '@/components/mentor/MentorSidebar';
 
 const MentorDashboardPage = () => {
@@ -13,8 +12,8 @@ const MentorDashboardPage = () => {
     queryFn: getMentorProfile,
   });
   
-  // Fetch mentor courses
-  const { data: courses = [], isLoading: isLoadingCourses } = useQuery({
+  // Fetch mentor courses (ainda necessário para StatsSection, a menos que StatsSection seja alterada)
+  const { data: courses = [] } = useQuery({
     queryKey: ['mentorCourses'],
     queryFn: getMentorCourses,
   });
@@ -45,9 +44,9 @@ const MentorDashboardPage = () => {
       <div className="flex-1 p-6 overflow-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold">
-            {profile ? `Bem-vindo, ${profile.full_name || 'Mentor'}!` : 'Dashboard'}
+            {profile ? `Bem-vindo(a), ${profile.full_name || 'Mentor(a)'}!` : 'Painel do Mentor'}
           </h1>
-          <p className="text-gray-600">Gerencie seus cursos e acompanhe seu desempenho</p>
+          <p className="text-gray-600">Gerencie suas métricas e acompanhe seu desempenho.</p>
         </div>
 
         {/* Stats Section */}
@@ -58,15 +57,17 @@ const MentorDashboardPage = () => {
           totalRevenue={totalRevenue}
         />
 
-        {/* Analytics Section */}
+        {/* Analytics Section - RecentModules estava aqui dentro ou ao lado */}
         <AnalyticsSection />
 
-        {/* Courses Section */}
-        <CoursesList 
-          courses={courses} 
-          isLoading={isLoadingCourses} 
-          totalEnrollments={totalEnrollments} 
-        />
+        {/* Courses Section Removida */}
+        {/* 
+          <CoursesList 
+            courses={courses} 
+            isLoading={isLoadingCourses} 
+            totalEnrollments={totalEnrollments} 
+          />
+        */}
       </div>
     </div>
   );

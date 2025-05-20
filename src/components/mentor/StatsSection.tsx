@@ -1,4 +1,3 @@
-
 import { Users, BookOpen, DollarSign } from 'lucide-react';
 import StatsCard from '@/components/StatsCard';
 import { formatCurrency } from '@/utils/formatters';
@@ -14,28 +13,28 @@ const StatsSection = ({ followersCount, totalCourses, totalEnrollments, totalRev
   return (
     <div className="mb-8 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
       <StatsCard 
-        title="Followers" 
+        title="Seguidores" 
         value={followersCount}
         icon={<Users />} 
-        description="People who follow your profile" 
+        description="Pessoas que seguem seu perfil" 
       />
       <StatsCard 
-        title="Courses" 
+        title="Cursos" 
         value={totalCourses} 
         icon={<BookOpen />} 
-        description="Total courses created" 
+        description="Total de cursos criados" 
       />
       <StatsCard 
-        title="Total Enrollments" 
+        title="Total de Inscrições" 
         value={totalEnrollments} 
         icon={<Users />} 
-        description="Students across all courses" 
+        description="Alunos em todos os cursos" 
       />
       <StatsCard 
-        title="Estimated Revenue" 
+        title="Receita Estimada" 
         value={formatCurrency(totalRevenue)} 
         icon={<DollarSign />} 
-        description="From paid courses" 
+        description="De cursos pagos" 
       />
     </div>
   );

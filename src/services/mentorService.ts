@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
@@ -36,7 +35,7 @@ export async function getMentorCourses() {
     if (!user) throw new Error("Not authenticated");
     
     const { data: courses, error } = await supabase
-      .from("courses")
+      .from("cursos")
       .select("*, enrollments(count)")
       .eq("mentor_id", user.id)
       .order("created_at", { ascending: false });
@@ -62,9 +61,9 @@ export async function getMentorModules(limit = 5) {
     if (!user) throw new Error("Not authenticated");
     
     const { data: modules, error } = await supabase
-      .from("modules")
-      .select("*, courses!inner(*)")
-      .eq("courses.mentor_id", user.id)
+      .from("modulos")
+      .select("*, cursos!inner(*)")
+      .eq("cursos.mentor_id", user.id)
       .order("created_at", { ascending: false })
       .limit(limit);
 
@@ -122,8 +121,8 @@ export async function getEnrollmentStats(periodDays = 30) {
     
     const { data: enrollments, error } = await supabase
       .from("enrollments")
-      .select("enrolled_at, courses!inner(*)")
-      .eq("courses.mentor_id", user.id)
+      .select("enrolled_at, cursos!inner(*)")
+      .eq("cursos.mentor_id", user.id)
       .gte("enrolled_at", startDateStr)
       .order("enrolled_at", { ascending: true });
 
