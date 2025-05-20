@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 export async function getAllCourses() {
   try {
     const { data, error } = await supabase
-      .from("cursos") // Atualizado para usar a tabela renomeada
+      .from("courses") // Mantendo "courses" temporariamente até a migração ser finalizada
       .select(`
         id, 
         title, 
@@ -50,7 +50,7 @@ export async function getAllCourses() {
 export async function deleteCourse(courseId: string) {
   try {
     const { error } = await supabase
-      .from("cursos") // Atualizado para usar a tabela renomeada
+      .from("courses") // Mantendo "courses" temporariamente até a migração ser finalizada
       .delete()
       .eq("id", courseId);
 
@@ -59,6 +59,187 @@ export async function deleteCourse(courseId: string) {
     return true;
   } catch (error) {
     console.error("Erro ao deletar curso:", error);
+    throw error;
+  }
+}
+
+// Implementando as funções ausentes que são necessárias para o AdminDashboardPage
+export async function getAdminProfile() {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) throw new Error("Usuário não autenticado");
+    
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .single();
+      
+    if (error) throw error;
+    
+    return data;
+  } catch (error) {
+    console.error("Erro ao buscar perfil admin:", error);
+    return null;
+  }
+}
+
+export async function getPlatformStats() {
+  try {
+    // Contagem de mentores
+    const { count: mentorsCount, error: mentorsError } = await supabase
+      .from("profiles")
+      .select("*", { count: 'exact', head: true })
+      .eq("role", "mentor");
+      
+    if (mentorsError) throw mentorsError;
+    
+    // Contagem de mentorados
+    const { count: mentoreesCount, error: mentoreesError } = await supabase
+      .from("profiles")
+      .select("*", { count: 'exact', head: true })
+      .eq("role", "mentorado");
+      
+    if (mentoreesError) throw mentoreesError;
+    
+    // Contagem de cursos
+    const { count: coursesCount, error: coursesError } = await supabase
+      .from("courses")
+      .select("*", { count: 'exact', head: true });
+      
+    if (coursesError) throw coursesError;
+    
+    // Contagem de matrículas
+    const { count: enrollmentsCount, error: enrollmentsError } = await supabase
+      .from("enrollments")
+      .select("*", { count: 'exact', head: true });
+      
+    if (enrollmentsError) throw enrollmentsError;
+    
+    return {
+      mentorsCount: mentorsCount || 0,
+      mentoreesCount: mentoreesCount || 0,
+      coursesCount: coursesCount || 0,
+      enrollmentsCount: enrollmentsCount || 0
+    };
+  } catch (error) {
+    console.error("Erro ao buscar estatísticas da plataforma:", error);
+    return {
+      mentorsCount: 0,
+      mentoreesCount: 0,
+      coursesCount: 0,
+      enrollmentsCount: 0
+    };
+  }
+}
+
+export async function getAllMentors() {
+  try {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select(`
+        id,
+        full_name,
+        avatar_url,
+        bio
+      `)
+      .eq("role", "mentor");
+      
+    if (error) throw error;
+    
+    // Calcular número de cursos para cada mentor
+    const mentorsWithStats = await Promise.all(
+      data.map(async (mentor) => {
+        // Contar cursos
+        const { count: coursesCount, error: coursesError } = await supabase
+          .from("courses")
+          .select("*", { count: 'exact', head: true })
+          .eq("mentor_id", mentor.id);
+          
+        if (coursesError) {
+          console.error(`Erro ao contar cursos do mentor ${mentor.id}:`, coursesError);
+          return { ...mentor, courses_count: 0, followers_count: 0 };
+        }
+        
+        // Contar seguidores
+        const { count: followersCount, error: followersError } = await supabase
+          .from("mentor_followers")
+          .select("*", { count: 'exact', head: true })
+          .eq("mentor_id", mentor.id);
+          
+        if (followersError) {
+          console.error(`Erro ao contar seguidores do mentor ${mentor.id}:`, followersError);
+          return { ...mentor, courses_count: coursesCount || 0, followers_count: 0 };
+        }
+        
+        return {
+          ...mentor,
+          courses_count: coursesCount || 0,
+          followers_count: followersCount || 0
+        };
+      })
+    );
+    
+    return mentorsWithStats;
+  } catch (error) {
+    console.error("Erro ao buscar mentores:", error);
+    return [];
+  }
+}
+
+export async function getAllMentorees() {
+  try {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select(`
+        id,
+        full_name,
+        avatar_url,
+        bio
+      `)
+      .eq("role", "mentorado");
+      
+    if (error) throw error;
+    
+    // Calcular estatísticas para cada mentorado
+    const mentoreesWithStats = await Promise.all(
+      data.map(async (mentoree) => {
+        // Contar matrículas
+        const { count: enrollmentsCount, error: enrollmentsError } = await supabase
+          .from("enrollments")
+          .select("*", { count: 'exact', head: true })
+          .eq("user_id", mentoree.id);
+          
+        if (enrollmentsError) {
+          console.error(`Erro ao contar matrículas do mentorado ${mentoree.id}:`, enrollmentsError);
+          return { ...mentoree, enrollments_count: 0 };
+        }
+        
+        return {
+          ...mentoree,
+          enrollments_count: enrollmentsCount || 0
+        };
+      })
+    );
+    
+    return mentoreesWithStats;
+  } catch (error) {
+    console.error("Erro ao buscar mentorados:", error);
+    return [];
+  }
+}
+
+// Esta função é referenciada nos componentes MentoradosList e MentorsList
+export async function deleteUser(userId: string) {
+  try {
+    const { error } = await supabase
+      .auth.admin.deleteUser(userId);
+      
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error("Erro ao deletar usuário:", error);
     throw error;
   }
 }

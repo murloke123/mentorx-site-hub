@@ -7,18 +7,34 @@ import MentorSidebar from "@/components/mentor/MentorSidebar";
 import CoursesList from "@/components/mentor/CoursesList";
 import { getMentorCourses } from '@/services/courseService';
 
+// Interface para representar um curso com matrículas
+interface Course {
+  id: string;
+  title: string;
+  description?: string | null;
+  is_public: boolean;
+  is_paid: boolean;
+  price?: number | null;
+  image_url?: string | null;
+  enrollments?: { count: number }[];
+}
+
 const MeusCursosPage = () => {
   const navigate = useNavigate();
   
   // Fetch mentor courses
-  const { data: courses = [], isLoading } = useQuery({
+  const { data = [], isLoading } = useQuery({
     queryKey: ['mentorCourses'],
     queryFn: getMentorCourses,
   });
   
+  // Converter os dados para o formato esperado pelo componente
+  const courses: Course[] = Array.isArray(data) ? data : [];
+  
   // Calculate total enrollments
   const totalEnrollments = courses.reduce((sum, course) => {
-    return sum + (course.enrollments?.[0]?.count || 0);
+    const enrollmentCount = course.enrollments?.[0]?.count;
+    return sum + (typeof enrollmentCount === 'number' ? enrollmentCount : 0);
   }, 0);
   
   const handleCreateCourse = () => {

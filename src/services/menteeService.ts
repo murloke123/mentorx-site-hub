@@ -16,7 +16,7 @@ export async function getEnrolledCourses() {
         id,
         course_id,
         progress,
-        cursos:course_id (id, title, description, mentor_id, profiles:mentor_id (full_name))
+        courses:course_id (id, title, description, mentor_id, profiles:mentor_id (full_name))
       `)
       .eq("user_id", user.id);
 
@@ -24,7 +24,7 @@ export async function getEnrolledCourses() {
     
     // Formatar os dados para o componente
     const enrolledCourses = data.map(enrollment => {
-      const course = enrollment.cursos;
+      const course = enrollment.courses;
       const progress = enrollment.progress?.percent || 0;
       const completedLessons = enrollment.progress?.completed_lessons || 0;
       const totalLessons = enrollment.progress?.total_lessons || 0;
@@ -169,5 +169,38 @@ export async function updateProgress(courseId: string, lessonId: string, complet
   } catch (error) {
     console.error("Erro ao atualizar progresso:", error);
     throw error;
+  }
+}
+
+// Adicionando funções necessárias para o MentoradoDashboardPage
+export function getMenteeProfile() {
+  return getProfile();
+}
+
+export function getMenteeCourses() {
+  return getEnrolledCourses();
+}
+
+async function getProfile() {
+  try {
+    // Obter o ID do usuário autenticado
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      throw new Error("Usuário não autenticado");
+    }
+    
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .single();
+      
+    if (error) throw error;
+    
+    return data;
+  } catch (error) {
+    console.error("Erro ao buscar perfil:", error);
+    return null;
   }
 }

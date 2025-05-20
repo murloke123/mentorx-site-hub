@@ -7,10 +7,8 @@ interface ConteudoConcluido {
   curso_id: string;
   modulo_id: string;
   conteudo_id: string;
-  created_at?: string;
 }
 
-// Marcar um conteúdo como concluído
 export async function marcarConteudoConcluido(cursoId: string, moduloId: string, conteudoId: string) {
   try {
     // Obter o ID do usuário autenticado
@@ -23,13 +21,13 @@ export async function marcarConteudoConcluido(cursoId: string, moduloId: string,
     // Verificar se já está marcado como concluído
     const { data: existente } = await supabase
       .from("conteudo_concluido")
-      .select()
+      .select("id")
       .eq("user_id", user.id)
       .eq("conteudo_id", conteudoId)
       .maybeSingle();
-      
-    // Se já estiver marcado como concluído, não fazer nada
+    
     if (existente) {
+      // Se já está marcado como concluído, apenas retorna
       return existente;
     }
     
@@ -46,8 +44,11 @@ export async function marcarConteudoConcluido(cursoId: string, moduloId: string,
       .insert(conteudoConcluido)
       .select()
       .single();
-      
+
     if (error) throw error;
+
+    // Atualizar o progresso do curso
+    await atualizarProgressoCurso(cursoId);
     
     return data;
   } catch (error) {
@@ -56,7 +57,6 @@ export async function marcarConteudoConcluido(cursoId: string, moduloId: string,
   }
 }
 
-// Desmarcar um conteúdo como concluído
 export async function desmarcarConteudoConcluido(conteudoId: string) {
   try {
     // Obter o ID do usuário autenticado
@@ -65,24 +65,43 @@ export async function desmarcarConteudoConcluido(conteudoId: string) {
     if (!user) {
       throw new Error("Usuário não autenticado");
     }
+
+    // Buscar o registro para obter o curso_id antes de excluir
+    const { data: registro, error: fetchError } = await supabase
+      .from("conteudo_concluido")
+      .select("curso_id")
+      .eq("user_id", user.id)
+      .eq("conteudo_id", conteudoId)
+      .maybeSingle();
+      
+    if (fetchError) throw fetchError;
     
-    // Remover o registro de conteúdo concluído
+    if (!registro) {
+      // Se não encontrado, retorna
+      return null;
+    }
+
+    const cursoId = registro.curso_id;
+    
+    // Excluir o registro
     const { error } = await supabase
       .from("conteudo_concluido")
       .delete()
       .eq("user_id", user.id)
       .eq("conteudo_id", conteudoId);
-      
+
     if (error) throw error;
+
+    // Atualizar o progresso do curso
+    await atualizarProgressoCurso(cursoId);
     
-    return true;
+    return { success: true };
   } catch (error) {
     console.error("Erro ao desmarcar conteúdo como concluído:", error);
     throw error;
   }
 }
 
-// Verificar se um conteúdo está concluído
 export async function verificarConteudoConcluido(conteudoId: string) {
   try {
     // Obter o ID do usuário autenticado
@@ -92,52 +111,23 @@ export async function verificarConteudoConcluido(conteudoId: string) {
       throw new Error("Usuário não autenticado");
     }
     
-    // Buscar o registro de conteúdo concluído
     const { data, error } = await supabase
       .from("conteudo_concluido")
-      .select()
+      .select("id")
       .eq("user_id", user.id)
       .eq("conteudo_id", conteudoId)
       .maybeSingle();
-      
+
     if (error) throw error;
     
-    return !!data; // Retorna true se o conteúdo estiver concluído, false caso contrário
+    return !!data; // Retorna true se o conteúdo estiver concluído
   } catch (error) {
-    console.error("Erro ao verificar conteúdo concluído:", error);
+    console.error("Erro ao verificar se conteúdo está concluído:", error);
     return false;
   }
 }
 
-// Obter todos os conteúdos concluídos de um curso
-export async function getConteudosConcluidosDoCurso(cursoId: string) {
-  try {
-    // Obter o ID do usuário autenticado
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-      throw new Error("Usuário não autenticado");
-    }
-    
-    // Buscar todos os registros de conteúdos concluídos do curso
-    const { data, error } = await supabase
-      .from("conteudo_concluido")
-      .select("conteudo_id")
-      .eq("user_id", user.id)
-      .eq("curso_id", cursoId);
-      
-    if (error) throw error;
-    
-    // Retorna um array com os IDs dos conteúdos concluídos
-    return data.map(item => item.conteudo_id);
-  } catch (error) {
-    console.error("Erro ao obter conteúdos concluídos do curso:", error);
-    return [];
-  }
-}
-
-// Obter estatísticas de progresso do curso
-export async function getProgressoCurso(cursoId: string) {
+async function atualizarProgressoCurso(cursoId: string) {
   try {
     // Obter o ID do usuário autenticado
     const { data: { user } } = await supabase.auth.getUser();
@@ -147,38 +137,43 @@ export async function getProgressoCurso(cursoId: string) {
     }
     
     // Contar total de conteúdos no curso
-    const { count: totalConteudos, error: errorTotal } = await supabase
+    const { count: totalConteudos, error: totalError } = await supabase
       .from("conteudos")
       .select("id", { count: 'exact', head: true })
-      .in("modulo_id", 
-        supabase.from("modulos").select("id").eq("curso_id", cursoId)
-      );
+      .eq("modulo_id", "modulos.id")
+      .eq("modulos.curso_id", cursoId);
       
-    if (errorTotal) throw errorTotal;
+    if (totalError) throw totalError;
     
-    // Contar conteúdos concluídos
-    const { count: conteudosConcluidos, error: errorConcluidos } = await supabase
+    if (!totalConteudos || totalConteudos === 0) return;
+    
+    // Contar conteúdos concluídos pelo usuário
+    const { count: concluidos, error: concluidosError } = await supabase
       .from("conteudo_concluido")
       .select("id", { count: 'exact', head: true })
       .eq("user_id", user.id)
       .eq("curso_id", cursoId);
       
-    if (errorConcluidos) throw errorConcluidos;
+    if (concluidosError) throw concluidosError;
     
-    // Calcular progresso
-    const percentual = totalConteudos ? (conteudosConcluidos / totalConteudos) * 100 : 0;
+    const percentual = (concluidos || 0) / totalConteudos * 100;
     
-    return {
-      total: totalConteudos || 0,
-      concluidos: conteudosConcluidos || 0,
-      percentual: Math.round(percentual)
-    };
+    // Atualizar a matrícula com o progresso
+    const { error: updateError } = await supabase
+      .from("enrollments")
+      .update({
+        progress: {
+          percent: percentual,
+          completed_lessons: concluidos || 0,
+          total_lessons: totalConteudos
+        }
+      })
+      .eq("user_id", user.id)
+      .eq("course_id", cursoId);
+      
+    if (updateError) throw updateError;
   } catch (error) {
-    console.error("Erro ao obter progresso do curso:", error);
-    return {
-      total: 0,
-      concluidos: 0,
-      percentual: 0
-    };
+    console.error("Erro ao atualizar progresso do curso:", error);
+    throw error;
   }
 }
