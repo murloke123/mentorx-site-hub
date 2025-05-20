@@ -15,6 +15,7 @@ export interface Conteudo {
     url?: string;
     pdf_url?: string;
     pdf_filename?: string;
+    storage_path?: string; // Adicionando storage_path aqui
   };
   ordem: number;
   created_at: string;
@@ -460,7 +461,7 @@ export async function atualizarConteudoPdf(
       }
       
       novosDadosConteudo = {
-        ...conteudoAtual.dados_conteudo as object, // Mantém outros dados_conteudo se houver
+        ...(conteudoAtual.dados_conteudo as object), // Mantém outros dados_conteudo se houver
         pdf_url: publicUrlData.publicUrl,
         pdf_filename: dados.pdfFile.name,
         storage_path: filePath,
