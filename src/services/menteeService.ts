@@ -1,89 +1,173 @@
 
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from "@/integrations/supabase/client";
 
-// Define an interface for the progress object structure
-interface EnrollmentProgress {
-  overall_progress?: number;
-  completed_lessons?: number;
-  total_lessons?: number;
+export async function getEnrolledCourses() {
+  try {
+    // Obter o ID do usuário autenticado
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      throw new Error("Usuário não autenticado");
+    }
+    
+    const { data, error } = await supabase
+      .from("enrollments")
+      .select(`
+        id,
+        course_id,
+        progress,
+        cursos:course_id (id, title, description, mentor_id, profiles:mentor_id (full_name))
+      `)
+      .eq("user_id", user.id);
+
+    if (error) throw error;
+    
+    // Formatar os dados para o componente
+    const enrolledCourses = data.map(enrollment => {
+      const course = enrollment.cursos;
+      const progress = enrollment.progress?.percent || 0;
+      const completedLessons = enrollment.progress?.completed_lessons || 0;
+      const totalLessons = enrollment.progress?.total_lessons || 0;
+      
+      return {
+        id: course.id,
+        title: course.title,
+        description: course.description,
+        mentor_id: course.mentor_id,
+        mentor_name: course.profiles?.full_name,
+        progress,
+        completed_lessons: completedLessons,
+        total_lessons: totalLessons
+      };
+    });
+    
+    return enrolledCourses;
+  } catch (error) {
+    console.error("Erro ao buscar cursos do mentorado:", error);
+    return [];
+  }
 }
 
-export const getMenteeProfile = async () => {
-  const { data: session } = await supabase.auth.getSession();
-  if (!session.session?.user) throw new Error('User not authenticated');
-
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', session.session.user.id)
-    .single();
-
-  if (error) {
-    console.error('Error fetching mentee profile:', error);
+export async function enrollInCourse(courseId: string) {
+  try {
+    // Obter o ID do usuário autenticado
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      throw new Error("Usuário não autenticado");
+    }
+    
+    // Verificar se o usuário já está inscrito neste curso
+    const { data: existingEnrollment, error: checkError } = await supabase
+      .from("enrollments")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("course_id", courseId)
+      .maybeSingle();
+      
+    if (checkError) throw checkError;
+    
+    // Se já estiver inscrito, não fazer nada
+    if (existingEnrollment) {
+      return { already_enrolled: true };
+    }
+    
+    // Criar nova inscrição
+    const { data, error } = await supabase
+      .from("enrollments")
+      .insert({
+        user_id: user.id,
+        course_id: courseId,
+        progress: {
+          percent: 0,
+          completed_lessons: 0,
+          total_lessons: 0,
+          last_accessed: new Date().toISOString()
+        }
+      })
+      .select()
+      .single();
+      
+    if (error) throw error;
+    
+    return data;
+  } catch (error) {
+    console.error("Erro ao se inscrever no curso:", error);
     throw error;
   }
+}
 
-  return data;
-};
-
-export const getMenteeCourses = async () => {
-  const { data: session } = await supabase.auth.getSession();
-  if (!session.session?.user) throw new Error('User not authenticated');
-
-  const { data: enrollments, error: enrollmentsError } = await supabase
-    .from('enrollments')
-    .select(`
-      *,
-      course:course_id (
-        id, 
-        title, 
-        description,
-        mentor_id,
-        mentor:mentor_id (
-          full_name
-        )
-      )
-    `)
-    .eq('user_id', session.session.user.id);
-
-  if (enrollmentsError) {
-    console.error('Error fetching mentee courses:', enrollmentsError);
-    throw enrollmentsError;
-  }
-
-  // Transform the data to match our component expectations
-  const courses = enrollments?.map(enrollment => {
-    // Cast the progress to our interface type
-    const progress = enrollment.progress as unknown as EnrollmentProgress;
+export async function updateProgress(courseId: string, lessonId: string, completed: boolean) {
+  try {
+    // Obter o ID do usuário autenticado
+    const { data: { user } } = await supabase.auth.getUser();
     
-    return {
-      id: enrollment.course?.id,
-      title: enrollment.course?.title,
-      description: enrollment.course?.description,
-      mentor_id: enrollment.course?.mentor_id,
-      mentor_name: enrollment.course?.mentor?.full_name,
-      progress: progress?.overall_progress || 0,
-      completed_lessons: progress?.completed_lessons || 0,
-      total_lessons: progress?.total_lessons || 0
+    if (!user) {
+      throw new Error("Usuário não autenticado");
+    }
+    
+    // Obter a inscrição atual e o progresso
+    const { data: enrollment, error: enrollmentError } = await supabase
+      .from("enrollments")
+      .select("progress")
+      .eq("user_id", user.id)
+      .eq("course_id", courseId)
+      .single();
+      
+    if (enrollmentError) throw enrollmentError;
+    
+    if (!enrollment) {
+      throw new Error("Inscrição não encontrada");
+    }
+    
+    // Obter total de aulas do curso
+    const { count: totalLessons, error: countError } = await supabase
+      .from("lessons")
+      .select("*", { count: 'exact', head: true })
+      .eq("course_id", courseId);
+      
+    if (countError) throw countError;
+    
+    // Calcular o progresso atualizado
+    const progress = enrollment.progress || { 
+      completed_lessons: 0,
+      completed_lessons_ids: []
     };
-  }) || [];
-
-  return courses;
-};
-
-export const getMenteeCoursesCount = async () => {
-  const { data: session } = await supabase.auth.getSession();
-  if (!session.session?.user) return 0;
-
-  const { count, error } = await supabase
-    .from('enrollments')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', session.session.user.id);
-
-  if (error) {
-    console.error('Error fetching mentee courses count:', error);
-    return 0;
+    
+    let completedLessonsIds = progress.completed_lessons_ids || [];
+    
+    if (completed && !completedLessonsIds.includes(lessonId)) {
+      completedLessonsIds.push(lessonId);
+    } else if (!completed && completedLessonsIds.includes(lessonId)) {
+      completedLessonsIds = completedLessonsIds.filter(id => id !== lessonId);
+    }
+    
+    const completedLessons = completedLessonsIds.length;
+    const percentComplete = totalLessons ? (completedLessons / totalLessons) * 100 : 0;
+    
+    const updatedProgress = {
+      ...progress,
+      percent: percentComplete,
+      completed_lessons: completedLessons,
+      total_lessons: totalLessons,
+      completed_lessons_ids: completedLessonsIds,
+      last_accessed: new Date().toISOString()
+    };
+    
+    // Atualizar o progresso na inscrição
+    const { data, error } = await supabase
+      .from("enrollments")
+      .update({ progress: updatedProgress })
+      .eq("user_id", user.id)
+      .eq("course_id", courseId)
+      .select()
+      .single();
+      
+    if (error) throw error;
+    
+    return data;
+  } catch (error) {
+    console.error("Erro ao atualizar progresso:", error);
+    throw error;
   }
-
-  return count || 0;
-};
+}
