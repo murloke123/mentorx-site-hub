@@ -1,4 +1,3 @@
-
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -74,6 +73,14 @@ const BasicContentFields = ({ form, isSubmitting }: BasicContentFieldsProps) => 
                     </FormControl>
                     <FormLabel className="font-normal cursor-pointer">
                       Vídeo (YouTube/Vimeo)
+                    </FormLabel>
+                  </FormItem>
+                  <FormItem className="flex items-center space-x-2 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="pdf" />
+                    </FormControl>
+                    <FormLabel className="font-normal cursor-pointer">
+                      PDF (Máx. 5MB)
                     </FormLabel>
                   </FormItem>
                 </RadioGroup>

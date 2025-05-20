@@ -1,8 +1,7 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { PlusCircle, FileText, FileVideo, Edit, Trash2 } from 'lucide-react';
+import { PlusCircle, FileText, FileVideo, Edit, Trash2, FileIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Conteudo } from '@/services/conteudoService';
 import {
@@ -84,8 +83,10 @@ const ConteudoList = ({
                   <div className="flex items-center gap-2">
                     {conteudo.tipo_conteudo === 'texto_rico' ? (
                       <FileText className="h-5 w-5 text-primary" />
-                    ) : (
+                    ) : conteudo.tipo_conteudo === 'video_externo' ? (
                       <FileVideo className="h-5 w-5 text-primary" />
+                    ) : (
+                      <FileIcon className="h-5 w-5 text-primary" />
                     )}
                     <div>
                       <CardTitle className="text-lg">{conteudo.nome_conteudo}</CardTitle>
@@ -97,54 +98,85 @@ const ConteudoList = ({
                     </div>
                   </div>
                   <Badge variant="outline">
-                    {conteudo.tipo_conteudo === 'texto_rico' ? 'Texto' : 'Vídeo'}
+                    {conteudo.tipo_conteudo === 'texto_rico' ? 'Texto' 
+                      : conteudo.tipo_conteudo === 'video_externo' ? 'Vídeo' 
+                      : 'PDF'}
                   </Badge>
                 </div>
               </CardHeader>
               <CardContent>
-                {conteudo.tipo_conteudo === 'video_externo' && conteudo.dados_conteudo?.url && (
-                  <div className="mb-4">
-                    <VideoPlayer 
-                      provider={conteudo.dados_conteudo.provider || 'youtube'} 
-                      url={conteudo.dados_conteudo.url}
-                      height="200px"
-                    />
-                  </div>
-                )}
-                
-                {conteudo.tipo_conteudo === 'texto_rico' && (
+                {/* Botão unificado para Visualizar/Ocultar Conteúdo */}
+                {conteudo.tipo_conteudo === 'texto_rico' || (conteudo.tipo_conteudo === 'video_externo' && conteudo.dados_conteudo?.url) || conteudo.tipo_conteudo === 'pdf' ? (
                   <div className="mb-4">
                     {expandedContent === conteudo.id ? (
-                      <div 
-                        className="border p-4 rounded-md max-h-[300px] overflow-y-auto"
-                        dangerouslySetInnerHTML={{ 
-                          __html: conteudo.dados_conteudo?.html_content || '<p>Sem conteúdo</p>' 
-                        }}
-                      />
+                      <>
+                        {/* BOTÃO OCULTAR CONTEÚDO MOVIDO PARA O TOPO */}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setExpandedContent(null)}
+                          className="mb-2 w-full text-left justify-start"
+                        >
+                          Ocultar Conteúdo
+                        </Button>
+                        {/* CONTEÚDO RENDERIZADO ABAIXO DO BOTÃO OCULTAR */}
+                        {conteudo.tipo_conteudo === 'texto_rico' && (
+                          <div
+                            className="border p-4 rounded-md max-h-[300px] overflow-y-auto prose"
+                            dangerouslySetInnerHTML={{
+                              __html: conteudo.dados_conteudo?.html_content || '<p>Sem conteúdo</p>'
+                            }}
+                          />
+                        )}
+                        {conteudo.tipo_conteudo === 'video_externo' && conteudo.dados_conteudo?.url && (
+                          <VideoPlayer
+                            provider={conteudo.dados_conteudo.provider || 'youtube'}
+                            url={conteudo.dados_conteudo.url}
+                            height="300px"
+                          />
+                        )}
+                        {conteudo.tipo_conteudo === 'pdf' && conteudo.dados_conteudo?.pdf_url && (
+                          <div className="mt-2 space-y-2">
+                            <p className="text-sm font-medium">
+                              Visualizando: {conteudo.dados_conteudo.pdf_filename || 'Documento PDF'}
+                            </p>
+                            <iframe 
+                              src={conteudo.dados_conteudo.pdf_url} 
+                              width="100%" 
+                              height="500px" 
+                              title={conteudo.nome_conteudo}
+                              className="border rounded-md"
+                            ></iframe>
+                             <a 
+                              href={conteudo.dados_conteudo.pdf_url} 
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              className="text-sm text-primary hover:underline mt-2 inline-block"
+                            >
+                              Abrir PDF em nova aba
+                            </a>
+                          </div>
+                        )}
+                      </>
                     ) : (
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         onClick={() => toggleContentExpansion(conteudo.id)}
                         className="w-full text-left justify-start"
                       >
                         Visualizar Conteúdo
                       </Button>
                     )}
-                    
-                    {expandedContent === conteudo.id && (
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => setExpandedContent(null)}
-                        className="mt-2"
-                      >
-                        Ocultar
-                      </Button>
-                    )}
                   </div>
-                )}
+                ) : null}
                 
                 <div className="flex justify-end gap-2 mt-2">
+                  {/* Botão Editar movido para a esquerda */}
+                  <Button size="sm" onClick={() => onEditConteudo(conteudo.id)}>
+                    <Edit className="h-4 w-4 mr-1" /> Editar
+                  </Button>
+
+                  {/* Botão Excluir (AlertDialog) agora à direita */}
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
@@ -175,10 +207,6 @@ const ConteudoList = ({
                       </AlertDialogFooter>
                     </AlertDialogContent>
                   </AlertDialog>
-                  
-                  <Button size="sm" onClick={() => onEditConteudo(conteudo.id)}>
-                    <Edit className="h-4 w-4 mr-1" /> Editar
-                  </Button>
                 </div>
               </CardContent>
             </Card>

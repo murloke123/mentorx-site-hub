@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -19,9 +18,12 @@ import {
   getConteudoById,
   atualizarConteudoTextoRico,
   atualizarConteudoVideo,
-  excluirConteudo
+  excluirConteudo,
+  criarConteudoPdf,
+  atualizarConteudoPdf
 } from '@/services/conteudoService';
 import { toast } from '@/hooks/use-toast';
+import { ConteudoFormValues } from '@/components/mentor/content/types';
 
 const ConteudosPage = () => {
   const { cursoId, moduloId } = useParams<{ cursoId: string; moduloId: string }>();
@@ -90,13 +92,9 @@ const ConteudosPage = () => {
     setEditingId(null);
   };
 
-  const handleSubmitConteudo = async (values: {
-    nome_conteudo: string;
-    descricao_conteudo?: string;
-    tipo_conteudo: 'texto_rico' | 'video_externo';
-    html_content?: string;
-    video_url?: string;
-    provider?: 'youtube' | 'vimeo';
+  const handleSubmitConteudo = async (values: ConteudoFormValues & { 
+    provider?: 'youtube' | 'vimeo'; 
+    pdf_file?: File | null; 
   }) => {
     if (!moduloId) return;
     
@@ -110,12 +108,18 @@ const ConteudosPage = () => {
             descricao_conteudo: values.descricao_conteudo,
             html_content: values.html_content,
           });
-        } else {
+        } else if (values.tipo_conteudo === 'video_externo') {
           await atualizarConteudoVideo(editingId, {
             nome_conteudo: values.nome_conteudo,
             descricao_conteudo: values.descricao_conteudo,
             provider: values.provider,
             url: values.video_url,
+          });
+        } else if (values.tipo_conteudo === 'pdf') {
+          await atualizarConteudoPdf(editingId, {
+            nome_conteudo: values.nome_conteudo,
+            descricao_conteudo: values.descricao_conteudo,
+            pdfFile: values.pdf_file,
           });
         }
       } else {
@@ -127,7 +131,7 @@ const ConteudosPage = () => {
             descricao_conteudo: values.descricao_conteudo,
             html_content: values.html_content || '<p>Conteúdo em branco</p>',
           });
-        } else {
+        } else if (values.tipo_conteudo === 'video_externo') {
           await criarConteudoVideo({
             modulo_id: moduloId,
             nome_conteudo: values.nome_conteudo,
@@ -135,6 +139,24 @@ const ConteudosPage = () => {
             provider: values.provider || 'youtube',
             url: values.video_url || '',
           });
+        } else if (values.tipo_conteudo === 'pdf') {
+          if (values.pdf_file) {
+            await criarConteudoPdf({
+              modulo_id: moduloId,
+              nome_conteudo: values.nome_conteudo,
+              descricao_conteudo: values.descricao_conteudo,
+              pdfFile: values.pdf_file,
+            });
+          } else {
+            toast({ 
+              title: "Arquivo PDF não selecionado", 
+              description: "Por favor, selecione um arquivo PDF para upload antes de salvar.", 
+              variant: "default"
+            });
+            // Manter o modal aberto e não submeter se o arquivo for obrigatório para novo PDF
+            setIsSubmitting(false);
+            return;
+          }
         }
       }
       
@@ -220,7 +242,11 @@ const ConteudosPage = () => {
           onSubmit={handleSubmitConteudo}
           onCancel={handleCloseModal}
           editingId={editingId}
-          conteudoParaEditar={conteudoParaEditar}
+          conteudoParaEditar={{
+            ...conteudoParaEditar,
+            pdf_url: conteudoParaEditar?.dados_conteudo?.pdf_url,
+            pdf_filename: conteudoParaEditar?.dados_conteudo?.pdf_filename,
+          }}
         />
       </div>
     </div>

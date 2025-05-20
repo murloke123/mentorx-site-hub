@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Json } from "@/integrations/supabase/types";
@@ -8,11 +7,13 @@ export interface Conteudo {
   modulo_id: string;
   nome_conteudo: string;
   descricao_conteudo?: string;
-  tipo_conteudo: 'texto_rico' | 'video_externo';
+  tipo_conteudo: 'texto_rico' | 'video_externo' | 'pdf';
   dados_conteudo?: {
     html_content?: string;
     provider?: 'youtube' | 'vimeo';
     url?: string;
+    pdf_url?: string;
+    pdf_filename?: string;
   };
   ordem: number;
   created_at: string;
@@ -33,7 +34,7 @@ export async function getConteudosByModuloId(moduloId: string): Promise<Conteudo
     // Garantir que os dados retornados sejam do tipo Conteudo[]
     return (data || []).map(item => ({
       ...item,
-      tipo_conteudo: item.tipo_conteudo as 'texto_rico' | 'video_externo',
+      tipo_conteudo: item.tipo_conteudo as 'texto_rico' | 'video_externo' | 'pdf',
       dados_conteudo: item.dados_conteudo as Conteudo['dados_conteudo']
     }));
   } catch (error) {
@@ -62,7 +63,7 @@ export async function getConteudoById(conteudoId: string): Promise<Conteudo | nu
     
     return {
       ...data,
-      tipo_conteudo: data.tipo_conteudo as 'texto_rico' | 'video_externo',
+      tipo_conteudo: data.tipo_conteudo as 'texto_rico' | 'video_externo' | 'pdf',
       dados_conteudo: data.dados_conteudo as Conteudo['dados_conteudo']
     };
   } catch (error) {
@@ -120,7 +121,7 @@ export async function criarConteudoTextoRico(dados: {
     
     return {
       ...data,
-      tipo_conteudo: data.tipo_conteudo as 'texto_rico' | 'video_externo',
+      tipo_conteudo: data.tipo_conteudo as 'texto_rico' | 'video_externo' | 'pdf',
       dados_conteudo: data.dados_conteudo as Conteudo['dados_conteudo']
     };
   } catch (error) {
@@ -180,7 +181,7 @@ export async function criarConteudoVideo(dados: {
     
     return {
       ...data,
-      tipo_conteudo: data.tipo_conteudo as 'texto_rico' | 'video_externo',
+      tipo_conteudo: data.tipo_conteudo as 'texto_rico' | 'video_externo' | 'pdf',
       dados_conteudo: data.dados_conteudo as Conteudo['dados_conteudo']
     };
   } catch (error) {
@@ -188,6 +189,87 @@ export async function criarConteudoVideo(dados: {
     toast({
       title: "Erro ao criar conteúdo",
       description: "Não foi possível criar o conteúdo. Tente novamente.",
+      variant: "destructive",
+    });
+    return null;
+  }
+}
+
+// Criar um novo conteúdo de PDF
+export async function criarConteudoPdf(dados: {
+  modulo_id: string;
+  nome_conteudo: string;
+  descricao_conteudo?: string;
+  pdfFile: File;
+}): Promise<Conteudo | null> {
+  try {
+    // 1. Fazer upload do PDF para o Supabase Storage
+    const fileExt = dados.pdfFile.name.split('.').pop();
+    const fileName = `${Math.random()}.${fileExt}`;
+    const filePath = `pdfs/${dados.modulo_id}/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('mentorxbucket')
+      .upload(filePath, dados.pdfFile);
+
+    if (uploadError) {
+      throw uploadError;
+    }
+
+    // 2. Obter a URL pública do arquivo
+    const { data: publicUrlData } = supabase.storage
+      .from('mentorxbucket')
+      .getPublicUrl(filePath);
+
+    if (!publicUrlData || !publicUrlData.publicUrl) {
+      throw new Error('Não foi possível obter a URL pública do PDF.');
+    }
+
+    // 3. Salvar informações na tabela conteudos
+    const { data: conteudosExistentes } = await supabase
+      .from("conteudos")
+      .select("ordem")
+      .eq("modulo_id", dados.modulo_id)
+      .order("ordem", { ascending: false })
+      .limit(1);
+
+    const novaOrdem = conteudosExistentes && conteudosExistentes.length > 0 
+      ? conteudosExistentes[0].ordem + 1 
+      : 0;
+
+    const { data, error: insertError } = await supabase
+      .from("conteudos")
+      .insert({
+        modulo_id: dados.modulo_id,
+        nome_conteudo: dados.nome_conteudo,
+        descricao_conteudo: dados.descricao_conteudo,
+        tipo_conteudo: 'pdf' as const,
+        dados_conteudo: {
+          pdf_url: publicUrlData.publicUrl,
+          pdf_filename: dados.pdfFile.name,
+        },
+        ordem: novaOrdem,
+      })
+      .select()
+      .single();
+
+    if (insertError) throw insertError;
+    
+    toast({
+      title: "Conteúdo PDF criado com sucesso",
+      description: "O arquivo PDF foi adicionado ao módulo.",
+    });
+    
+    return {
+      ...data,
+      tipo_conteudo: data.tipo_conteudo as 'pdf', // Garantir o tipo correto
+      dados_conteudo: data.dados_conteudo as Conteudo['dados_conteudo']
+    };
+  } catch (error: any) {
+    console.error("Erro ao criar conteúdo PDF:", error);
+    toast({
+      title: "Erro ao criar conteúdo PDF",
+      description: error.message || "Não foi possível criar o conteúdo PDF. Verifique o console para mais detalhes.",
       variant: "destructive",
     });
     return null;
@@ -242,7 +324,7 @@ export async function atualizarConteudoTextoRico(
     
     return {
       ...data,
-      tipo_conteudo: data.tipo_conteudo as 'texto_rico' | 'video_externo',
+      tipo_conteudo: data.tipo_conteudo as 'texto_rico' | 'video_externo' | 'pdf',
       dados_conteudo: data.dados_conteudo as Conteudo['dados_conteudo']
     };
   } catch (error) {
@@ -308,7 +390,7 @@ export async function atualizarConteudoVideo(
     
     return {
       ...data,
-      tipo_conteudo: data.tipo_conteudo as 'texto_rico' | 'video_externo',
+      tipo_conteudo: data.tipo_conteudo as 'texto_rico' | 'video_externo' | 'pdf',
       dados_conteudo: data.dados_conteudo as Conteudo['dados_conteudo']
     };
   } catch (error) {
@@ -316,6 +398,98 @@ export async function atualizarConteudoVideo(
     toast({
       title: "Erro ao atualizar conteúdo",
       description: "Não foi possível salvar as alterações. Tente novamente.",
+      variant: "destructive",
+    });
+    return null;
+  }
+}
+
+// Atualizar um conteúdo PDF existente
+export async function atualizarConteudoPdf(
+  conteudoId: string,
+  dados: {
+    nome_conteudo?: string;
+    descricao_conteudo?: string;
+    pdfFile?: File; // Opcional, só atualiza o PDF se um novo for fornecido
+  }
+): Promise<Conteudo | null> {
+  try {
+    const atualizacoes: any = {};
+    if (dados.nome_conteudo !== undefined) atualizacoes.nome_conteudo = dados.nome_conteudo;
+    if (dados.descricao_conteudo !== undefined) atualizacoes.descricao_conteudo = dados.descricao_conteudo;
+
+    let novosDadosConteudo: Conteudo['dados_conteudo'] = {};
+
+    // Se um novo arquivo PDF for fornecido, faz upload e atualiza pdf_url e pdf_filename
+    if (dados.pdfFile) {
+      // Opcional: Excluir o PDF antigo do storage antes de fazer upload do novo
+      // (precisaria buscar o filePath antigo do conteúdo)
+
+      const fileExt = dados.pdfFile.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      // Para pegar o modulo_id, precisamos buscar o conteúdo primeiro
+      const { data: conteudoAtual } = await supabase.from("conteudos").select("modulo_id, dados_conteudo").eq("id", conteudoId).single();
+      if (!conteudoAtual) throw new Error("Conteúdo não encontrado para atualização do PDF.");
+      
+      const filePath = `pdfs/${conteudoAtual.modulo_id}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('mentorxbucket')
+        .upload(filePath, dados.pdfFile);
+
+      if (uploadError) throw uploadError;
+
+      const { data: publicUrlData } = supabase.storage
+        .from('mentorxbucket')
+        .getPublicUrl(filePath);
+
+      if (!publicUrlData || !publicUrlData.publicUrl) {
+        throw new Error('Não foi possível obter a URL pública do novo PDF.');
+      }
+      novosDadosConteudo = {
+        ...conteudoAtual.dados_conteudo as object, // Mantém outros dados_conteudo se houver
+        pdf_url: publicUrlData.publicUrl,
+        pdf_filename: dados.pdfFile.name,
+      };
+      atualizacoes.dados_conteudo = novosDadosConteudo;
+    } else {
+      // Se não houver novo PDF, apenas atualiza nome/descrição e mantém dados_conteudo existentes
+      const { data: conteudoExistente } = await supabase.from("conteudos").select("dados_conteudo").eq("id", conteudoId).single();
+      if (conteudoExistente && conteudoExistente.dados_conteudo) {
+        atualizacoes.dados_conteudo = conteudoExistente.dados_conteudo;
+      }
+    }
+    
+    // Só atualiza se houver alguma alteração
+    if (Object.keys(atualizacoes).length === 0 && !dados.pdfFile) {
+      toast({ title: "Nenhuma alteração detectada." });
+      return getConteudoById(conteudoId); // Retorna o conteúdo existente sem alteração
+    }
+
+    const { data, error } = await supabase
+      .from("conteudos")
+      .update(atualizacoes)
+      .eq("id", conteudoId)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    toast({
+      title: "Conteúdo PDF atualizado",
+      description: "As alterações foram salvas com sucesso.",
+    });
+
+    return {
+      ...data,
+      tipo_conteudo: data.tipo_conteudo as 'pdf',
+      dados_conteudo: data.dados_conteudo as Conteudo['dados_conteudo']
+    };
+  } catch (error: any) {
+    console.error("Erro ao atualizar conteúdo PDF:", error);
+    toast({
+      title: "Erro ao atualizar conteúdo PDF",
+      description: error.message || "Não foi possível salvar as alterações. Verifique o console.",
       variant: "destructive",
     });
     return null;

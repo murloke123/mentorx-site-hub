@@ -1,9 +1,8 @@
-
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { PlusCircle, FileText, ChevronRight } from 'lucide-react';
+import { PlusCircle, FileText, ChevronRight, Edit, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Modulo } from '@/services/moduloService';
 import {
@@ -22,11 +21,12 @@ interface ModuloListProps {
   modulos: Modulo[];
   cursoId: string;
   onAddModulo: () => void;
+  onEditModulo: (modulo: Modulo) => void;
   onDeleteModulo: (moduloId: string) => Promise<void>;
   isLoading: boolean;
 }
 
-const ModuloList = ({ modulos, cursoId, onAddModulo, onDeleteModulo, isLoading }: ModuloListProps) => {
+const ModuloList = ({ modulos, cursoId, onAddModulo, onEditModulo, onDeleteModulo, isLoading }: ModuloListProps) => {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   if (isLoading) {
@@ -82,43 +82,50 @@ const ModuloList = ({ modulos, cursoId, onAddModulo, onDeleteModulo, isLoading }
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="flex justify-between items-center mt-2">
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
-                        Excluir Módulo
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Excluir módulo?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Esta ação não pode ser desfeita. Isso excluirá permanentemente o módulo
-                          "{modulo.nome_modulo}" e todos os seus conteúdos.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() => {
-                            setDeletingId(modulo.id);
-                            onDeleteModulo(modulo.id).finally(() => {
-                              setDeletingId(null);
-                            });
-                          }}
-                          disabled={deletingId === modulo.id}
-                        >
-                          {deletingId === modulo.id ? 'Excluindo...' : 'Confirmar Exclusão'}
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                  
+                <div className="flex justify-between items-center mt-4">
                   <Button asChild>
                     <Link to={`/mentor/cursos/${cursoId}/modulos/${modulo.id}`}>
                       Gerenciar Conteúdos <ChevronRight className="ml-2 h-4 w-4" />
                     </Link>
                   </Button>
+
+                  <div className="flex items-center space-x-2">
+                    <Button variant="default" size="sm" onClick={() => onEditModulo(modulo)} className="bg-gray-800 hover:bg-gray-700 text-white">
+                      <Edit className="mr-2 h-4 w-4" /> 
+                      Editar
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="outline" size="sm" className="text-destructive border-destructive hover:bg-destructive/10 hover:text-destructive">
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Excluir
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Excluir módulo?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Esta ação não pode ser desfeita. Isso excluirá permanentemente o módulo
+                            "{modulo.nome_modulo}" e todos os seus conteúdos.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => {
+                              setDeletingId(modulo.id);
+                              onDeleteModulo(modulo.id).finally(() => {
+                                setDeletingId(null);
+                              });
+                            }}
+                            disabled={deletingId === modulo.id}
+                          >
+                            {deletingId === modulo.id ? 'Excluindo...' : 'Confirmar Exclusão'}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
                 </div>
               </CardContent>
             </Card>

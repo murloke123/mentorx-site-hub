@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -16,7 +15,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { 
   getModulosByCursoId, 
   excluirModulo, 
-  criarModulo 
+  criarModulo, 
+  atualizarModulo,
+  Modulo
 } from '@/services/moduloService';
 import { toast } from '@/hooks/use-toast';
 
@@ -24,7 +25,9 @@ const ModulosPage = () => {
   const { cursoId } = useParams<{ cursoId: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingModulo, setEditingModulo] = useState<Modulo | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Redirecionar se não tem cursoId
@@ -53,11 +56,18 @@ const ModulosPage = () => {
 
   // Lidar com a criação de um novo módulo
   const handleAddModulo = () => {
-    setIsModalOpen(true);
+    setEditingModulo(null);
+    setIsAddModalOpen(true);
   };
 
-  // Lidar com o envio do formulário de módulo
-  const handleSubmitModulo = async (values: { nome_modulo: string; descricao_modulo?: string }) => {
+  // Lidar com a abertura do modal de edição
+  const handleEditModulo = (modulo: Modulo) => {
+    setEditingModulo(modulo);
+    setIsEditModalOpen(true);
+  };
+
+  // Lidar com o envio do formulário de módulo (Criação)
+  const handleSubmitAddModulo = async (values: { nome_modulo: string; descricao_modulo?: string }) => {
     if (!cursoId) return;
     
     setIsSubmitting(true);
@@ -70,12 +80,42 @@ const ModulosPage = () => {
       
       // Atualizar a lista de módulos
       await queryClient.invalidateQueries({ queryKey: ['modulos', cursoId] });
-      setIsModalOpen(false);
+      setIsAddModalOpen(false);
     } catch (error) {
       console.error('Erro ao criar módulo:', error);
       toast({
         title: 'Erro ao criar módulo',
         description: 'Não foi possível criar o módulo. Tente novamente.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Lidar com o envio do formulário de módulo (Edição)
+  const handleSubmitEditModulo = async (values: { nome_modulo: string; descricao_modulo?: string }) => {
+    if (!editingModulo || !cursoId) return;
+
+    setIsSubmitting(true);
+    try {
+      await atualizarModulo(editingModulo.id, {
+        nome_modulo: values.nome_modulo,
+        descricao_modulo: values.descricao_modulo,
+      });
+      
+      await queryClient.invalidateQueries({ queryKey: ['modulos', cursoId] });
+      setIsEditModalOpen(false);
+      setEditingModulo(null);
+      toast({
+        title: 'Módulo atualizado!',
+        description: 'As alterações no módulo foram salvas com sucesso.',
+      });
+    } catch (error) {
+      console.error('Erro ao atualizar módulo:', error);
+      toast({
+        title: 'Erro ao atualizar módulo',
+        description: 'Não foi possível salvar as alterações. Tente novamente.',
         variant: 'destructive',
       });
     } finally {
@@ -147,23 +187,45 @@ const ModulosPage = () => {
             modulos={modulos}
             cursoId={cursoId!}
             onAddModulo={handleAddModulo}
+            onEditModulo={handleEditModulo}
             onDeleteModulo={handleDeleteModulo}
             isLoading={isLoading}
           />
         )}
 
-        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        {/* Modal de Adicionar Módulo */}
+        <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Adicionar Novo Módulo</DialogTitle>
             </DialogHeader>
             <ModuloForm
-              onSubmit={handleSubmitModulo}
-              onCancel={() => setIsModalOpen(false)}
+              onSubmit={handleSubmitAddModulo}
+              onCancel={() => setIsAddModalOpen(false)}
               isSubmitting={isSubmitting}
             />
           </DialogContent>
         </Dialog>
+
+        {/* Modal de Editar Módulo */}
+        {editingModulo && (
+          <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Editar Módulo: {editingModulo.nome_modulo}</DialogTitle>
+              </DialogHeader>
+              <ModuloForm
+                onSubmit={handleSubmitEditModulo}
+                onCancel={() => {
+                  setIsEditModalOpen(false);
+                  setEditingModulo(null);
+                }}
+                isSubmitting={isSubmitting}
+                initialData={editingModulo}
+              />
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
     </div>
   );
