@@ -1,11 +1,10 @@
-
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { User, BookOpen, Users } from 'lucide-react';
+import { User, Book, AlertCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Alert, AlertCircle, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface Mentor {
   id: string;
@@ -26,11 +25,11 @@ const RecentMentorsTab = ({ mentors, isLoading }: RecentMentorsTabProps) => {
     <Card>
       <CardHeader>
         <CardTitle className="text-xl flex items-center">
-          <Users className="mr-2 h-5 w-5" />
+          <User className="mr-2 h-5 w-5" />
           Mentores Recentes
         </CardTitle>
         <CardDescription>
-          Últimos mentores registrados na plataforma
+          Mentores que se juntaram à plataforma recentemente
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -38,10 +37,11 @@ const RecentMentorsTab = ({ mentors, isLoading }: RecentMentorsTabProps) => {
           <div className="space-y-4">
             {[...Array(3)].map((_, i) => (
               <div key={i} className="flex items-center gap-3">
-                <Skeleton className="h-10 w-10 rounded-full" />
+                <Skeleton className="h-16 w-16 rounded-full" />
                 <div className="flex-1">
                   <Skeleton className="h-5 w-40 mb-1" />
-                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-4 w-24 mb-1" />
+                  <Skeleton className="h-4 w-32" />
                 </div>
               </div>
             ))}
@@ -50,21 +50,25 @@ const RecentMentorsTab = ({ mentors, isLoading }: RecentMentorsTabProps) => {
           <div className="space-y-4">
             {mentors.map((mentor) => (
               <div key={mentor.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-md">
-                <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden">
                   {mentor.avatar_url ? (
-                    <img src={mentor.avatar_url} alt={mentor.full_name} className="w-10 h-10 rounded-full object-cover" />
+                    <img
+                      src={mentor.avatar_url}
+                      alt={mentor.full_name}
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
-                    <User className="h-5 w-5 text-gray-500" />
+                    <User className="h-6 w-6 text-gray-400" />
                   )}
                 </div>
                 <div className="flex-1">
-                  <p className="font-medium">{mentor.full_name || "Mentor sem nome"}</p>
-                  <div className="flex items-center text-sm text-gray-500">
-                    <BookOpen className="h-3 w-3 mr-1" />
-                    <span>{mentor.courses_count} cursos</span>
-                    <span className="mx-2">•</span>
-                    <Users className="h-3 w-3 mr-1" />
-                    <span>{mentor.followers_count} seguidores</span>
+                  <p className="font-medium">{mentor.full_name}</p>
+                  <p className="text-sm text-gray-500">{mentor.bio || "Sem bio"}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Badge variant="outline" className="text-gray-500">
+                      <Book className="mr-1 h-3 w-3" />
+                      {mentor.courses_count} cursos
+                    </Badge>
                   </div>
                 </div>
               </div>
@@ -81,7 +85,7 @@ const RecentMentorsTab = ({ mentors, isLoading }: RecentMentorsTabProps) => {
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Nenhum mentor encontrado</AlertTitle>
             <AlertDescription>
-              Não há mentores registrados na plataforma ainda.
+              Não há mentores cadastrados na plataforma ainda.
             </AlertDescription>
           </Alert>
         )}

@@ -1,10 +1,10 @@
-
 import { Link } from 'react-router-dom';
-import { User, BookOpen, GraduationCap } from 'lucide-react';
+import { User, AlertCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Alert, AlertCircle, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface Mentorado {
   id: string;
@@ -24,11 +24,11 @@ const RecentMentoradosTab = ({ mentorados, isLoading }: RecentMentoradosTabProps
     <Card>
       <CardHeader>
         <CardTitle className="text-xl flex items-center">
-          <GraduationCap className="mr-2 h-5 w-5" />
+          <User className="mr-2 h-5 w-5" />
           Mentorados Recentes
         </CardTitle>
         <CardDescription>
-          Últimos mentorados registrados na plataforma
+          Últimos mentorados que se juntaram à plataforma
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -36,10 +36,11 @@ const RecentMentoradosTab = ({ mentorados, isLoading }: RecentMentoradosTabProps
           <div className="space-y-4">
             {[...Array(3)].map((_, i) => (
               <div key={i} className="flex items-center gap-3">
-                <Skeleton className="h-10 w-10 rounded-full" />
+                <Skeleton className="h-16 w-16 rounded-full" />
                 <div className="flex-1">
                   <Skeleton className="h-5 w-40 mb-1" />
-                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-4 w-24 mb-1" />
+                  <Skeleton className="h-4 w-32" />
                 </div>
               </div>
             ))}
@@ -48,19 +49,23 @@ const RecentMentoradosTab = ({ mentorados, isLoading }: RecentMentoradosTabProps
           <div className="space-y-4">
             {mentorados.map((mentorado) => (
               <div key={mentorado.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-md">
-                <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center">
                   {mentorado.avatar_url ? (
-                    <img src={mentorado.avatar_url} alt={mentorado.full_name} className="w-10 h-10 rounded-full object-cover" />
+                    <img
+                      src={mentorado.avatar_url}
+                      alt={mentorado.full_name}
+                      className="w-16 h-16 rounded-full object-cover"
+                    />
                   ) : (
-                    <User className="h-5 w-5 text-gray-500" />
+                    <User className="h-6 w-6 text-gray-400" />
                   )}
                 </div>
                 <div className="flex-1">
-                  <p className="font-medium">{mentorado.full_name || "Mentorado sem nome"}</p>
-                  <div className="flex items-center text-sm text-gray-500">
-                    <BookOpen className="h-3 w-3 mr-1" />
-                    <span>{mentorado.enrollments_count} cursos matriculados</span>
-                  </div>
+                  <p className="font-medium">{mentorado.full_name}</p>
+                  <p className="text-sm text-gray-500">{mentorado.bio || "Sem bio"}</p>
+                  <Badge variant="outline" className="mt-1 text-gray-500">
+                    {mentorado.enrollments_count} cursos
+                  </Badge>
                 </div>
               </div>
             ))}

@@ -108,6 +108,25 @@ export async function getCourseById(courseId: string) {
   }
 }
 
+export async function getCourseDetails(courseId: string) {
+  try {
+    const { data, error } = await supabase
+      .from("cursos")
+      .select(`
+        *,
+        mentor:profiles(full_name, avatar_url)
+      `)
+      .eq("id", courseId)
+      .single();
+      
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error("Error fetching course details:", error);
+    throw error;
+  }
+}
+
 export async function getMentorCourses() {
   try {
     // Obter o ID do usuário autenticado
