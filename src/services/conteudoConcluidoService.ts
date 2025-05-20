@@ -9,6 +9,12 @@ interface ConteudoConcluido {
   conteudo_id: string;
 }
 
+interface Progress {
+  percent: number;
+  completed_lessons: number;
+  total_lessons: number;
+}
+
 export async function marcarConteudoConcluido(cursoId: string, moduloId: string, conteudoId: string) {
   try {
     // Obter o ID do usuário autenticado
@@ -160,16 +166,17 @@ async function atualizarProgressoCurso(cursoId: string) {
     
     const percentual = (concluidos || 0) / totalConteudos * 100;
     
+    // Criar objeto de progresso com a forma correta
+    const progress: Progress = {
+      percent: percentual,
+      completed_lessons: concluidos || 0,
+      total_lessons: totalConteudos
+    };
+    
     // Atualizar a matrícula com o progresso
     const { error: updateError } = await supabase
       .from("enrollments")
-      .update({
-        progress: {
-          percent: percentual,
-          completed_lessons: concluidos || 0,
-          total_lessons: totalConteudos
-        }
-      })
+      .update({ progress })
       .eq("user_id", user.id)
       .eq("course_id", cursoId);
       

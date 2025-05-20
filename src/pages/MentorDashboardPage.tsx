@@ -1,8 +1,8 @@
+
 import { useQuery } from '@tanstack/react-query';
-import { getMentorProfile, getMentorCourses, getMentorFollowersCount } from '@/services/mentorService';
+import { getMentorProfile, getMentorCourses, getMentorFollowersCount, MentorCourse } from '@/services/mentorService';
 import StatsSection from '@/components/mentor/StatsSection';
 import AnalyticsSection from '@/components/mentor/AnalyticsSection';
-// import CoursesList from '@/components/mentor/CoursesList'; // Removido
 import MentorSidebar from '@/components/mentor/MentorSidebar';
 
 const MentorDashboardPage = () => {
@@ -12,14 +12,14 @@ const MentorDashboardPage = () => {
     queryFn: getMentorProfile,
   });
   
-  // Fetch mentor courses (ainda necessário para StatsSection, a menos que StatsSection seja alterada)
-  const { data: courses = [] } = useQuery({
+  // Fetch mentor courses
+  const { data: courses = [] } = useQuery<MentorCourse[]>({
     queryKey: ['mentorCourses'],
     queryFn: getMentorCourses,
   });
   
   // Fetch follower count
-  const { data: followersCount = 0 } = useQuery({
+  const { data: followersCount = 0 } = useQuery<number>({
     queryKey: ['mentorFollowers'],
     queryFn: getMentorFollowersCount,
   });
@@ -57,17 +57,8 @@ const MentorDashboardPage = () => {
           totalRevenue={totalRevenue}
         />
 
-        {/* Analytics Section - RecentModules estava aqui dentro ou ao lado */}
+        {/* Analytics Section */}
         <AnalyticsSection />
-
-        {/* Courses Section Removida */}
-        {/* 
-          <CoursesList 
-            courses={courses} 
-            isLoading={isLoadingCourses} 
-            totalEnrollments={totalEnrollments} 
-          />
-        */}
       </div>
     </div>
   );

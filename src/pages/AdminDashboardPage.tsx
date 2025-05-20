@@ -1,3 +1,4 @@
+
 import { useQuery } from '@tanstack/react-query';
 import { getAdminProfile, getPlatformStats, getAllMentors, getAllMentorados, getAllCourses } from '@/services/adminService';
 import AdminSidebar from '@/components/admin/AdminSidebar';
@@ -11,11 +12,27 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Link } from 'react-router-dom';
 
+interface AdminProfile {
+  id: string;
+  full_name: string;
+  avatar_url?: string;
+  bio?: string;
+  role: string;
+  updated_at: string;
+}
+
+interface PlatformStats {
+  mentorsCount: number;
+  mentoreesCount: number;
+  coursesCount: number;
+  enrollmentsCount: number;
+}
+
 interface Mentor {
   id: string;
   full_name: string;
-  avatar_url: string;
-  bio: string;
+  avatar_url: string | null;
+  bio: string | null;
   courses_count: number;
   followers_count: number;
 }
@@ -23,8 +40,8 @@ interface Mentor {
 interface Mentorado {
   id: string;
   full_name: string;
-  avatar_url: string;
-  bio: string;
+  avatar_url: string | null;
+  bio: string | null;
   enrollments_count: number;
 }
 
@@ -42,44 +59,38 @@ interface Course {
 
 const AdminDashboardPage = () => {
   // Fetch admin profile
-  const { data: profile, isLoading: isLoadingProfile } = useQuery({
+  const { data: profile, isLoading: isLoadingProfile } = useQuery<AdminProfile | null>({
     queryKey: ['adminProfile'],
     queryFn: getAdminProfile,
   });
   
   // Fetch platform statistics
-  const { data: stats, isLoading: isLoadingStats } = useQuery({
+  const { data: stats, isLoading: isLoadingStats } = useQuery<PlatformStats>({
     queryKey: ['platformStats'],
     queryFn: getPlatformStats,
   });
   
   // Fetch recent mentors
-  const { data: mentors = [], isLoading: isLoadingMentors } = useQuery({
+  const { data: mentors = [], isLoading: isLoadingMentors } = useQuery<Mentor[]>({
     queryKey: ['recentMentors'],
     queryFn: () => getAllMentors(5),
   });
   
   // Fetch recent mentorados
-  const { data: mentorados = [], isLoading: isLoadingMentorados } = useQuery({
+  const { data: mentorados = [], isLoading: isLoadingMentorados } = useQuery<Mentorado[]>({
     queryKey: ['recentMentorados'],
     queryFn: () => getAllMentorados(5),
   });
   
   // Fetch recent courses
-  const { data: courses = [], isLoading: isLoadingCourses } = useQuery({
+  const { data: courses = [], isLoading: isLoadingCourses } = useQuery<Course[]>({
     queryKey: ['recentCourses'],
     queryFn: () => getAllCourses(5),
   });
   
   // Handle display of mentor_name from courses data
-  const getCourseMentorName = (course: any) => {
-    if ('mentor_name' in course) {
-      return course.mentor_name;
-    }
-    if (course.profiles?.full_name) {
-      return course.profiles.full_name;
-    }
-    return "Mentor desconhecido";
+  const getCourseMentorName = (course: Course) => {
+    return course.mentor_name || "Mentor desconhecido";
   };
   
   return (
@@ -266,7 +277,7 @@ const AdminDashboardPage = () => {
                   </div>
                 ) : courses.length > 0 ? (
                   <div className="space-y-4">
-                    {(courses as Course[]).map((course) => (
+                    {courses.map((course) => (
                       <div key={course.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-md">
                         <div className="w-16 h-16 rounded bg-gray-100 flex items-center justify-center">
                           <BookOpen className="h-6 w-6 text-gray-400" />

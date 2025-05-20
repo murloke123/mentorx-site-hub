@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Edit3, Eye, Plus } from "lucide-react";
@@ -12,6 +13,17 @@ const formatDate = (dateString: string) => {
     year: 'numeric'
   });
 };
+
+// Definindo a interface para garantir tipagem correta
+interface Module {
+  id: string;
+  nome_modulo: string;
+  created_at: string;
+  cursos?: {
+    id: string;
+    title: string;
+  };
+}
 
 const RecentModules = () => {
   const { data: modules, isLoading } = useQuery({
@@ -41,7 +53,7 @@ const RecentModules = () => {
           </div>
         ) : modules && modules.length > 0 ? (
           <div>
-            {modules.map((module) => (
+            {(modules as Module[]).map((module) => (
               <div 
                 key={module.id} 
                 className="flex items-center justify-between border-b p-4 last:border-0 hover:bg-muted/50"

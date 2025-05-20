@@ -47,6 +47,58 @@ export type Database = {
           },
         ]
       }
+      conteudo_concluido: {
+        Row: {
+          conteudo_id: string
+          created_at: string
+          curso_id: string
+          id: string
+          modulo_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          conteudo_id: string
+          created_at?: string
+          curso_id: string
+          id?: string
+          modulo_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          conteudo_id?: string
+          created_at?: string
+          curso_id?: string
+          id?: string
+          modulo_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conteudo_concluido_conteudo_id_fkey"
+            columns: ["conteudo_id"]
+            isOneToOne: false
+            referencedRelation: "conteudos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conteudo_concluido_curso_id_fkey"
+            columns: ["curso_id"]
+            isOneToOne: false
+            referencedRelation: "cursos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conteudo_concluido_modulo_id_fkey"
+            columns: ["modulo_id"]
+            isOneToOne: false
+            referencedRelation: "modulos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conteudos: {
         Row: {
           created_at: string

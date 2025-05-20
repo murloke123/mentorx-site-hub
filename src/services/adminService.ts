@@ -1,10 +1,11 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
+// Função para obter todos os cursos
 export async function getAllCourses(limit = 100) {
   try {
     const { data, error } = await supabase
-      .from("courses") // Mantendo "courses" para compatibilidade com a tabela renomeada
+      .from("cursos")
       .select(`
         id, 
         title, 
@@ -52,10 +53,11 @@ export async function getAllCourses(limit = 100) {
   }
 }
 
+// Função para deletar um curso
 export async function deleteCourse(courseId: string) {
   try {
     const { error } = await supabase
-      .from("courses") // Mantendo "courses" para compatibilidade com a tabela renomeada
+      .from("cursos")
       .delete()
       .eq("id", courseId);
 
@@ -68,7 +70,7 @@ export async function deleteCourse(courseId: string) {
   }
 }
 
-// Implementando as funções ausentes que são necessárias para o AdminDashboardPage
+// Função para obter o perfil do administrador
 export async function getAdminProfile() {
   try {
     const { data: { user } } = await supabase.auth.getUser();
@@ -90,6 +92,7 @@ export async function getAdminProfile() {
   }
 }
 
+// Função para obter estatísticas da plataforma
 export async function getPlatformStats() {
   try {
     // Contagem de mentores
@@ -110,7 +113,7 @@ export async function getPlatformStats() {
     
     // Contagem de cursos
     const { count: coursesCount, error: coursesError } = await supabase
-      .from("courses") // Mantendo "courses" para compatibilidade com a tabela renomeada
+      .from("cursos")
       .select("*", { count: 'exact', head: true });
       
     if (coursesError) throw coursesError;
@@ -139,6 +142,7 @@ export async function getPlatformStats() {
   }
 }
 
+// Função para obter todos os mentores
 export async function getAllMentors(limit = 100) {
   try {
     const { data, error } = await supabase
@@ -154,12 +158,12 @@ export async function getAllMentors(limit = 100) {
       
     if (error) throw error;
     
-    // Calcular número de cursos para cada mentor
+    // Calcular estatísticas para cada mentor
     const mentorsWithStats = await Promise.all(
       data.map(async (mentor) => {
         // Contar cursos
         const { count: coursesCount, error: coursesError } = await supabase
-          .from("courses") // Mantendo "courses" para compatibilidade com a tabela renomeada
+          .from("cursos")
           .select("*", { count: 'exact', head: true })
           .eq("mentor_id", mentor.id);
           
@@ -194,6 +198,7 @@ export async function getAllMentors(limit = 100) {
   }
 }
 
+// Função para obter todos os mentorados
 export async function getAllMentorados(limit = 100) {
   try {
     const { data, error } = await supabase
@@ -237,12 +242,15 @@ export async function getAllMentorados(limit = 100) {
   }
 }
 
-// Esta função é referenciada nos componentes MentoradosList e MentorsList
+// Função para deletar um usuário
 export async function deleteUser(userId: string) {
   try {
-    // Note: this is a placeholder - in a real application, you would need
-    // admin rights or use Supabase Edge Functions to delete users
-    const { error } = await supabase.auth.admin.deleteUser(userId);
+    // Note: em uma aplicação real, você precisaria de permissões de administrador 
+    // ou usar Supabase Edge Functions para deletar usuários
+    const { error } = await supabase
+      .from("profiles")
+      .delete()
+      .eq("id", userId);
       
     if (error) throw error;
     return true;

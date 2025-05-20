@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
@@ -27,7 +28,21 @@ export async function getMentorProfile() {
   }
 }
 
-export async function getMentorCourses() {
+export interface MentorCourse {
+  id: string;
+  title: string;
+  description?: string | null;
+  is_public: boolean;
+  is_paid: boolean;
+  price?: number | null;
+  image_url?: string | null;
+  created_at: string;
+  updated_at: string;
+  mentor_id: string;
+  enrollments?: { count: number }[];
+}
+
+export async function getMentorCourses(): Promise<MentorCourse[]> {
   try {
     // Get current user ID
     const { data: { user } } = await supabase.auth.getUser();
@@ -41,7 +56,7 @@ export async function getMentorCourses() {
       .order("created_at", { ascending: false });
 
     if (error) throw error;
-    return courses;
+    return courses || [];
   } catch (error) {
     console.error("Error fetching mentor courses:", error);
     toast({
@@ -53,7 +68,21 @@ export async function getMentorCourses() {
   }
 }
 
-export async function getMentorModules(limit = 5) {
+export interface Module {
+  id: string;
+  nome_modulo: string;
+  descricao_modulo?: string;
+  curso_id: string;
+  created_at: string;
+  updated_at: string;
+  ordem: number;
+  cursos?: {
+    id: string;
+    title: string;
+  };
+}
+
+export async function getMentorModules(limit = 5): Promise<Module[]> {
   try {
     // Get current user ID
     const { data: { user } } = await supabase.auth.getUser();
@@ -68,7 +97,7 @@ export async function getMentorModules(limit = 5) {
       .limit(limit);
 
     if (error) throw error;
-    return modules;
+    return modules || [];
   } catch (error) {
     console.error("Error fetching mentor modules:", error);
     toast({
@@ -80,7 +109,7 @@ export async function getMentorModules(limit = 5) {
   }
 }
 
-export async function getMentorFollowersCount() {
+export async function getMentorFollowersCount(): Promise<number> {
   try {
     // Get current user ID
     const { data: { user } } = await supabase.auth.getUser();
@@ -105,7 +134,12 @@ export async function getMentorFollowersCount() {
   }
 }
 
-export async function getEnrollmentStats(periodDays = 30) {
+export interface EnrollmentDataPoint {
+  date: string;
+  count: number;
+}
+
+export async function getEnrollmentStats(periodDays = 30): Promise<EnrollmentDataPoint[]> {
   try {
     // Get current user ID
     const { data: { user } } = await supabase.auth.getUser();
@@ -134,7 +168,7 @@ export async function getEnrollmentStats(periodDays = 30) {
       const date = new Date(enrollment.enrolled_at).toLocaleDateString();
       acc[date] = (acc[date] || 0) + 1;
       return acc;
-    }, {}) || {};
+    }, {} as Record<string, number>) || {};
     
     // Convert to array format for charts
     const chartData = Object.entries(enrollmentByDate).map(([date, count]) => ({
