@@ -1,5 +1,4 @@
 
-
 # Supabase Database Documentation
 
 ## Project ID
@@ -35,9 +34,9 @@ CREATE TABLE public.conteudos (
 );
 ```
 
-### courses
+### cursos
 ```sql
-CREATE TABLE public.courses (
+CREATE TABLE public.cursos (
   id uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   mentor_id uuid NOT NULL REFERENCES auth.users(id),
   title text NOT NULL,
@@ -56,26 +55,9 @@ CREATE TABLE public.courses (
 CREATE TABLE public.enrollments (
   id uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id uuid NOT NULL REFERENCES auth.users(id),
-  course_id uuid NOT NULL REFERENCES public.courses(id),
+  course_id uuid NOT NULL REFERENCES public.cursos(id),
   progress jsonb,
   enrolled_at timestamptz NOT NULL DEFAULT timezone('utc'::text, now())
-);
-```
-
-### lessons
-```sql
-CREATE TABLE public.lessons (
-  id uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
-  module_id uuid NOT NULL REFERENCES public.modules(id),
-  title text NOT NULL,
-  type text NOT NULL,
-  content text,
-  file_url text,
-  video_url text,
-  is_published boolean DEFAULT true,
-  lesson_order integer NOT NULL DEFAULT 0,
-  created_at timestamptz NOT NULL DEFAULT now(),
-  updated_at timestamptz NOT NULL DEFAULT now()
 );
 ```
 
@@ -89,27 +71,11 @@ CREATE TABLE public.mentor_followers (
 );
 ```
 
-### modules
-```sql
-CREATE TABLE public.modules (
-  id uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
-  course_id uuid NOT NULL REFERENCES public.courses(id),
-  title text NOT NULL,
-  description text,
-  content_type text NOT NULL,
-  content_data jsonb,
-  module_order integer NOT NULL DEFAULT 0,
-  is_free boolean NOT NULL DEFAULT false,
-  created_at timestamptz NOT NULL DEFAULT timezone('utc'::text, now()),
-  updated_at timestamptz NOT NULL DEFAULT timezone('utc'::text, now())
-);
-```
-
 ### modulos
 ```sql
 CREATE TABLE public.modulos (
   id uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
-  curso_id uuid NOT NULL REFERENCES public.courses(id),
+  curso_id uuid NOT NULL REFERENCES public.cursos(id),
   nome_modulo text NOT NULL,
   descricao_modulo text,
   ordem integer NOT NULL DEFAULT 0,
@@ -130,12 +96,12 @@ CREATE TABLE public.profiles (
 );
 ```
 
-### conteudo_concluido (Supabase error shows this table doesn't exist yet)
+### conteudo_concluido
 ```sql
 CREATE TABLE public.conteudo_concluido (
   id uuid DEFAULT gen_random_uuid() NOT NULL PRIMARY KEY,
   user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  curso_id uuid NOT NULL REFERENCES public.courses(id) ON DELETE CASCADE,
+  curso_id uuid NOT NULL REFERENCES public.cursos(id) ON DELETE CASCADE,
   modulo_id uuid NOT NULL REFERENCES public.modulos(id) ON DELETE CASCADE,
   conteudo_id uuid NOT NULL REFERENCES public.conteudos(id) ON DELETE CASCADE,
   created_at timestamp with time zone DEFAULT now() NOT NULL,
@@ -223,17 +189,15 @@ CREATE INDEX idx_conteudo_concluido_user_conteudo ON public.conteudo_concluido(u
 ### Foreign Keys
 - admin_actions.admin_id → profiles.id
 - conteudos.modulo_id → modulos.id
-- courses.mentor_id → profiles.id
+- cursos.mentor_id → profiles.id
 - enrollments.user_id → profiles.id
-- enrollments.course_id → courses.id
-- lessons.module_id → modules.id
+- enrollments.course_id → cursos.id
 - mentor_followers.mentor_id → profiles.id
 - mentor_followers.follower_id → profiles.id
-- modules.course_id → courses.id
-- modulos.curso_id → courses.id
+- modulos.curso_id → cursos.id
 - profiles.id → auth.users.id
 - conteudo_concluido.user_id → auth.users.id
-- conteudo_concluido.curso_id → courses.id
+- conteudo_concluido.curso_id → cursos.id
 - conteudo_concluido.modulo_id → modulos.id
 - conteudo_concluido.conteudo_id → conteudos.id
 
@@ -241,33 +205,3 @@ CREATE INDEX idx_conteudo_concluido_user_conteudo ON public.conteudo_concluido(u
 1. This documentation will be updated whenever schema changes occur.
 2. The database still uses the "courses" table instead of "cursos" in production.
 3. There appears to be a pending migration for the "conteudo_concluido" table that hasn't been successfully applied yet.
-
-```
-
-## SQL Commands To Run in Supabase SQL Editor
-
-```sql
--- 1. First, drop the tables we want to remove (modules and lessons)
--- Be careful with the order due to foreign key constraints
-DROP TABLE IF EXISTS public.lessons;
-DROP TABLE IF EXISTS public.modules;
-
--- 2. Rename courses table to cursos (if you want to go ahead with this change)
--- CAUTION: This will require updating all references in your code!
-ALTER TABLE IF EXISTS public.courses RENAME TO cursos;
-
--- 3. Update foreign key references in other tables
-ALTER TABLE IF EXISTS public.enrollments
-    DROP CONSTRAINT IF EXISTS enrollments_course_id_fkey,
-    ADD CONSTRAINT enrollments_course_id_fkey FOREIGN KEY (course_id) REFERENCES public.cursos(id);
-
-ALTER TABLE IF EXISTS public.modulos
-    DROP CONSTRAINT IF EXISTS modulos_curso_id_fkey,
-    ADD CONSTRAINT modulos_curso_id_fkey FOREIGN KEY (curso_id) REFERENCES public.cursos(id);
-
-ALTER TABLE IF EXISTS public.conteudo_concluido
-    DROP CONSTRAINT IF EXISTS conteudo_concluido_curso_id_fkey,
-    ADD CONSTRAINT conteudo_concluido_curso_id_fkey FOREIGN KEY (curso_id) REFERENCES public.cursos(id);
-```
-
-IMPORTANT: Before running these SQL commands, I need to warn you that renaming the "courses" table to "cursos" will require significant code changes throughout the application. The current codebase has many references to the "courses" table that would need to be updated. You might want to reconsider this change or plan for a more comprehensive update of the codebase.

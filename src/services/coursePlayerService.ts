@@ -1,232 +1,253 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast";
 
-export interface CourseContent {
-  modules: Module[];
-  currentModule?: Module;
-  currentContent?: Content;
+// Interface for Conteudo
+interface Conteudo {
+  id: string;
+  modulo_id: string;
+  nome_conteudo: string;
+  tipo_conteudo: string;
+  descricao_conteudo?: string;
+  ordem: number;
+  dados_conteudo?: {
+    video_url?: string;
+    texto_rico?: string;
+    pdf_url?: string;
+    pdf_filename?: string;
+  };
+  created_at: string;
+  updated_at: string;
 }
 
-export interface Module {
+// Interface for Modulo
+interface Modulo {
+  id: string;
+  curso_id: string;
+  nome_modulo: string;
+  descricao_modulo?: string;
+  ordem: number;
+  created_at: string;
+  updated_at: string;
+  conteudos: Conteudo[];
+}
+
+// Interface for Curso with modulos
+interface Curso {
   id: string;
   title: string;
-  order: number;
-  contents: Content[];
+  description?: string;
+  mentor_id: string;
+  image_url?: string;
+  modulos: Modulo[];
 }
 
-export interface Content {
+// Interface for ConteudoConcluido
+interface ConteudoConcluido {
   id: string;
-  title: string;
-  type: string;
-  order: number;
-  data: any;
-  isCompleted?: boolean;
+  user_id: string;
+  curso_id: string;
+  modulo_id: string;
+  conteudo_id: string;
+  created_at: string;
 }
 
-export async function getCoursePlayerData(courseId: string, userId: string): Promise<CourseContent | null> {
+// Get course details for player
+export async function getCourseDetailsForPlayer(cursoId: string) {
   try {
-    // Fetch modules
-    const { data: modulesData, error: modulesError } = await supabase
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("Usuário não autenticado");
+
+    // Get curso
+    const { data: curso, error: cursoError } = await supabase
+      .from("courses")
+      .select("id, title, description, mentor_id, image_url")
+      .eq("id", cursoId)
+      .single();
+
+    if (cursoError) throw cursoError;
+    if (!curso) throw new Error("Curso não encontrado");
+
+    // Get modulos
+    const { data: modulos, error: modulosError } = await supabase
       .from("modulos")
       .select("*")
-      .eq("curso_id", courseId)
+      .eq("curso_id", cursoId)
       .order("ordem", { ascending: true });
 
-    if (modulesError) throw modulesError;
-    
-    if (!modulesData || modulesData.length === 0) {
-      return { modules: [] };
-    }
-    
-    // Fetch all contents for this course's modules
-    const moduleIds = modulesData.map(module => module.id);
-    
-    const { data: contentsData, error: contentsError } = await supabase
-      .from("conteudos")
-      .select("*")
-      .in("modulo_id", moduleIds)
-      .order("ordem", { ascending: true });
-    
-    if (contentsError) throw contentsError;
-    
-    // Get completion data for this user and course
-    const { data: completionData, error: completionError } = await supabase
-      .from("conteudo_concluido")
-      .select("*")
-      .eq("user_id", userId)
-      .eq("curso_id", courseId);
-    
-    if (completionError) throw completionError;
-    
-    // Map of completed content IDs for quick lookup
-    const completedContentIds = new Set(
-      completionData?.map(item => item.conteudo_id) || []
-    );
-    
-    // Organize data into the desired structure
-    const modules: Module[] = modulesData.map(module => {
-      // Get contents for this module
-      const moduleContents = contentsData?.filter(
-        content => content.modulo_id === module.id
-      ) || [];
-      
-      // Format contents with completion status
-      const contents: Content[] = moduleContents.map(content => ({
-        id: content.id,
-        title: content.nome_conteudo,
-        type: content.tipo_conteudo,
-        order: content.ordem,
-        data: content.dados_conteudo,
-        isCompleted: completedContentIds.has(content.id)
-      }));
-      
-      // Return formatted module
+    if (modulosError) throw modulosError;
+
+    // Get conteudos for each modulo
+    const modulosWithContent = await Promise.all(modulos.map(async (modulo) => {
+      const { data: conteudos, error: conteudosError } = await supabase
+        .from("conteudos")
+        .select("*")
+        .eq("modulo_id", modulo.id)
+        .order("ordem", { ascending: true });
+
+      if (conteudosError) throw conteudosError;
+
       return {
-        id: module.id,
-        title: module.nome_modulo,
-        order: module.ordem,
-        contents: contents
+        ...modulo,
+        conteudos: conteudos || []
       };
-    });
-    
-    // Find the first incomplete content across all modules for initial position
-    let currentModule: Module | undefined = undefined;
-    let currentContent: Content | undefined = undefined;
-    
-    // Logic to find current position
-    let foundIncomplete = false;
-    
-    for (const module of modules) {
-      if (foundIncomplete) break;
-      
-      for (const content of module.contents) {
-        if (!content.isCompleted) {
-          currentModule = module;
-          currentContent = content;
-          foundIncomplete = true;
-          break;
-        }
-      }
-    }
-    
-    // If all content is complete, set to the last module and content
-    if (!currentModule && modules.length > 0) {
-      currentModule = modules[modules.length - 1];
-      const moduleContents = currentModule.contents;
-      currentContent = moduleContents.length > 0 ? moduleContents[moduleContents.length - 1] : undefined;
-    }
-    
-    return {
-      modules,
-      currentModule,
-      currentContent
+    }));
+
+    // Get completed conteudos
+    const { data: completedContent, error: completedError } = await supabase
+      .from("conteudo_concluido")
+      .select("conteudo_id")
+      .eq("user_id", user.id)
+      .eq("curso_id", cursoId);
+
+    if (completedError) throw completedError;
+
+    // Prepare complete course data
+    const cursoWithModulos: Curso = {
+      ...curso,
+      modulos: modulosWithContent
     };
-    
+
+    // Extract completed content IDs
+    const completedContentIds = completedContent?.map(item => item.conteudo_id) || [];
+
+    return {
+      curso: cursoWithModulos,
+      completedContentIds
+    };
   } catch (error) {
-    console.error("Error fetching course player data:", error);
-    toast({
-      title: "Erro ao carregar curso",
-      description: "Não foi possível carregar os dados do curso.",
-      variant: "destructive",
-    });
-    return null;
+    console.error("Erro ao buscar detalhes do curso:", error);
+    throw error;
   }
 }
 
-export async function markContentAsCompleted(
-  userId: string,
-  courseId: string,
-  moduleId: string,
-  contentId: string
-) {
+// Mark conteudo as concluido
+export async function markConteudoAsConcluido(cursoId: string, moduloId: string, conteudoId: string) {
   try {
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("Usuário não autenticado");
+
+    // Check if already completed
+    const { data: existing, error: checkError } = await supabase
+      .from("conteudo_concluido")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("conteudo_id", conteudoId)
+      .maybeSingle();
+
+    if (checkError) throw checkError;
+    
+    // If already marked as completed, return it
+    if (existing) return existing;
+
+    // Insert new completion record
     const { data, error } = await supabase
       .from("conteudo_concluido")
       .insert({
-        user_id: userId,
-        curso_id: courseId,
-        modulo_id: moduleId,
-        conteudo_id: contentId,
+        user_id: user.id,
+        curso_id: cursoId,
+        modulo_id: moduloId,
+        conteudo_id: conteudoId
       })
       .select()
       .single();
 
-    if (error) {
-      // Check if this is just a unique constraint violation (already completed)
-      if (error.code === "23505") { // Unique violation in PostgreSQL
-        console.log("Conteúdo já foi marcado como concluído anteriormente");
-        return true;
-      }
-      throw error;
-    }
+    if (error) throw error;
 
-    return true;
+    // Update course progress
+    await updateCourseProgress(cursoId, user.id);
+
+    return data;
   } catch (error) {
-    console.error("Error marking content as completed:", error);
-    toast({
-      title: "Erro",
-      description: "Não foi possível marcar o conteúdo como concluído.",
-      variant: "destructive",
-    });
-    return false;
+    console.error("Erro ao marcar conteúdo como concluído:", error);
+    throw error;
   }
 }
 
-export async function getCourseProgress(userId: string, courseId: string) {
+// Mark conteudo as incompleto (remove from completed)
+export async function markConteudoAsIncompleto(cursoId: string, moduloId: string, conteudoId: string) {
   try {
-    // First get all conteúdos for this course
-    const { data: moduleData, error: moduleError } = await supabase
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("Usuário não autenticado");
+
+    // Delete the completion record
+    const { error } = await supabase
+      .from("conteudo_concluido")
+      .delete()
+      .eq("user_id", user.id)
+      .eq("conteudo_id", conteudoId);
+
+    if (error) throw error;
+
+    // Update course progress
+    await updateCourseProgress(cursoId, user.id);
+
+    return { success: true };
+  } catch (error) {
+    console.error("Erro ao desmarcar conteúdo como concluído:", error);
+    throw error;
+  }
+}
+
+// Helper function to update course progress
+async function updateCourseProgress(cursoId: string, userId: string) {
+  try {
+    // Count total content in the course
+    const { data: modulos, error: modulosError } = await supabase
       .from("modulos")
       .select("id")
-      .eq("curso_id", courseId);
+      .eq("curso_id", cursoId);
 
-    if (moduleError) throw moduleError;
+    if (modulosError) throw modulosError;
     
-    if (!moduleData || moduleData.length === 0) {
-      return { completed: 0, total: 0, percentage: 0 };
-    }
+    if (!modulos || modulos.length === 0) return;
     
-    const moduleIds = moduleData.map(module => module.id);
-
-    // Get all conteúdos for these modules
-    const { data: contentData, error: contentError } = await supabase
+    const moduloIds = modulos.map(m => m.id);
+    
+    // Count total conteudos in the course
+    const { count: totalConteudos, error: countError } = await supabase
       .from("conteudos")
-      .select("id")
-      .in("modulo_id", moduleIds);
-      
-    if (contentError) throw contentError;
+      .select("*", { count: 'exact', head: true })
+      .in("modulo_id", moduloIds);
     
-    const totalContents = contentData?.length || 0;
+    if (countError) throw countError;
     
-    if (totalContents === 0) {
-      return { completed: 0, total: 0, percentage: 0 };
-    }
-    
-    // Now get completed contents
-    const { data: completedData, error: completedError } = await supabase
+    // Count completed conteudos
+    const { count: completedCount, error: completedError } = await supabase
       .from("conteudo_concluido")
-      .select("conteudo_id")
+      .select("*", { count: 'exact', head: true })
       .eq("user_id", userId)
-      .eq("curso_id", courseId);
-      
+      .eq("curso_id", cursoId);
+    
     if (completedError) throw completedError;
     
-    const completedContents = completedData?.length || 0;
-    
     // Calculate percentage
-    const percentage = totalContents > 0 
-      ? Math.round((completedContents / totalContents) * 100) 
-      : 0;
-      
-    return {
-      completed: completedContents,
-      total: totalContents,
-      percentage: percentage
-    };
+    const percent = totalConteudos > 0 ? (completedCount || 0) / totalConteudos * 100 : 0;
     
+    // Update enrollment progress
+    const { error: updateError } = await supabase
+      .from("enrollments")
+      .update({
+        progress: {
+          percent,
+          completed_lessons: completedCount || 0,
+          total_lessons: totalConteudos || 0
+        }
+      })
+      .eq("user_id", userId)
+      .eq("course_id", cursoId);
+    
+    if (updateError) throw updateError;
+    
+    return {
+      percent,
+      completed_lessons: completedCount || 0,
+      total_lessons: totalConteudos || 0
+    };
   } catch (error) {
-    console.error("Error getting course progress:", error);
-    return { completed: 0, total: 0, percentage: 0 };
+    console.error("Erro ao atualizar progresso do curso:", error);
+    throw error;
   }
 }

@@ -1,21 +1,18 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getCourseDetailsForPlayer, markConteudoAsConcluido, markConteudoAsIncompleto } from '@/services/coursePlayerService';
-// import { Header } from '@/components/layout/Header'; // Assuming a Header component exists
-// import { Sidebar } from '@/components/layout/Sidebar'; // Assuming a Sidebar component exists for course navigation
-// import { VideoPlayer } from '@/components/media/VideoPlayer'; // Assuming a VideoPlayer component exists
-import { Progress } from "@/components/ui/progress"; //shadcn/ui
-import { Checkbox } from "@/components/ui/checkbox"; //shadcn/ui
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"; //shadcn/ui
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"; //shadcn/ui
+import { Progress } from "@/components/ui/progress";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 
 // Define interfaces based on your Supabase schema
-// These might need to be adjusted or imported if defined elsewhere
 interface Conteudo {
   id: string;
-  titulo: string;
+  nome_conteudo: string;
   tipo_conteudo: 'video' | 'text' | 'pdf';
   dados_conteudo: {
     video_url?: string;
@@ -31,8 +28,8 @@ interface Conteudo {
 
 interface Modulo {
   id: string;
-  titulo: string;
-  descricao?: string;
+  nome_modulo: string;
+  descricao_modulo?: string;
   ordem: number;
   curso_id: string;
   created_at: string;
@@ -47,15 +44,6 @@ interface Curso {
   image_url?: string;
   mentor_id: string;
   modulos: Modulo[];
-}
-
-interface ConteudoConcluido {
-  id: string;
-  user_id: string;
-  curso_id: string;
-  modulo_id: string;
-  conteudo_id: string;
-  created_at: string;
 }
 
 const CoursePlayerPage = () => {
@@ -79,11 +67,14 @@ const CoursePlayerPage = () => {
         setLoading(true);
         const data = await getCourseDetailsForPlayer(cursoId);
         setCurso(data.curso);
-        // Assuming getCourseDetailsForPlayer also returns completed content IDs for the user
-        // setConteudosConcluidos(new Set(data.completedConteudoIds)); 
+        
+        // Set completed content IDs
+        setConteudosConcluidos(new Set(data.completedContentIds));
+        
         if (data.curso && data.curso.modulos.length > 0 && data.curso.modulos[0].conteudos.length > 0) {
           setCurrentConteudo(data.curso.modulos[0].conteudos[0]);
         }
+        
         setError(null);
       } catch (err) {
         console.error("Erro ao buscar dados do curso:", err);
@@ -146,14 +137,13 @@ const CoursePlayerPage = () => {
 
     switch (currentConteudo.tipo_conteudo) {
       case 'video':
-        return currentConteudo.dados_conteudo.video_url ? (
-          // <VideoPlayer src={currentConteudo.dados_conteudo.video_url} />
+        return currentConteudo.dados_conteudo?.video_url ? (
           <div className="aspect-video bg-gray-300 flex items-center justify-center">
             <p>Video Player Placeholder (URL: {currentConteudo.dados_conteudo.video_url})</p>
           </div>
         ) : <p>Vídeo indisponível.</p>;
       case 'text':
-        return currentConteudo.dados_conteudo.texto_rico ? (
+        return currentConteudo.dados_conteudo?.texto_rico ? (
           <Card className="mt-4">
             <CardHeader><CardTitle>Conteúdo Textual</CardTitle></CardHeader>
             <CardContent>
@@ -162,7 +152,7 @@ const CoursePlayerPage = () => {
           </Card>
         ) : <p>Texto indisponível.</p>;
       case 'pdf':
-        return currentConteudo.dados_conteudo.pdf_url ? (
+        return currentConteudo.dados_conteudo?.pdf_url ? (
            <Card className="mt-4">
             <CardHeader><CardTitle>{currentConteudo.dados_conteudo.pdf_filename || "Documento PDF"}</CardTitle></CardHeader>
             <CardContent>
@@ -175,17 +165,12 @@ const CoursePlayerPage = () => {
     }
   };
 
-  // Placeholder for company logo and course name - to be passed to Header or styled here
-  const companyLogoUrl = "/logo.png"; // Replace with actual logo URL or import
-  const courseName = curso.title;
-
   return (
     <div className="flex flex-col h-screen">
-      {/* Header Section - Assuming a generic Header component that can take logo, course name etc. */}
+      {/* Header Section */}
       <header className="bg-gray-800 text-white p-4 shadow-md flex items-center justify-between">
           <div className="flex items-center">
-            {/* <img src={companyLogoUrl} alt="Company Logo" className="h-8 w-auto mr-3" /> */}
-            <h1 className="text-xl font-semibold">{courseName}</h1>
+            <h1 className="text-xl font-semibold">{curso.title}</h1>
           </div>
           <div className="flex items-center">
               <span className="text-sm mr-2">{Math.round(progress)}% concluído</span>
@@ -196,9 +181,9 @@ const CoursePlayerPage = () => {
       <div className="flex flex-1 overflow-hidden">
         {/* Main Content Area */}
         <main className="flex-1 p-6 overflow-y-auto bg-gray-100">
-          <h2 className="text-2xl font-semibold mb-2">{currentConteudo?.titulo || "Bem-vindo!"}</h2>
+          <h2 className="text-2xl font-semibold mb-2">{currentConteudo?.nome_conteudo || "Bem-vindo!"}</h2>
           <p className="text-sm text-gray-600 mb-4">
-            {currentConteudo ? `Módulo: ${curso.modulos.find(m => m.id === currentConteudo.modulo_id)?.titulo}` : ''}
+            {currentConteudo ? `Módulo: ${curso.modulos.find(m => m.id === currentConteudo.modulo_id)?.nome_modulo}` : ''}
           </p>
           {renderConteudo()}
         </main>
@@ -210,7 +195,7 @@ const CoursePlayerPage = () => {
             {curso.modulos.map((modulo) => (
               <AccordionItem value={modulo.id} key={modulo.id}>
                 <AccordionTrigger className="font-medium hover:bg-gray-50 p-2 rounded">
-                  {modulo.titulo}
+                  {modulo.nome_modulo}
                 </AccordionTrigger>
                 <AccordionContent className="pl-4 pr-1 pt-1 pb-1">
                   <ul className="space-y-1">
@@ -222,7 +207,7 @@ const CoursePlayerPage = () => {
                           onClick={() => handleConteudoSelection(conteudo)}
                         >
                           <div className="flex items-center justify-between w-full">
-                            <span className="flex-1 truncate" title={conteudo.titulo}>{conteudo.titulo}</span>
+                            <span className="flex-1 truncate" title={conteudo.nome_conteudo}>{conteudo.nome_conteudo}</span>
                             <Checkbox
                               checked={conteudosConcluidos.has(conteudo.id)}
                               onCheckedChange={() => handleToggleConteudoConcluido(conteudo.id, modulo.id)}

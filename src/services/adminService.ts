@@ -1,10 +1,10 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
-export async function getAllCourses() {
+export async function getAllCourses(limit = 100) {
   try {
     const { data, error } = await supabase
-      .from("courses") // Mantendo "courses" temporariamente até a migração ser finalizada
+      .from("courses") // Mantendo "courses" para compatibilidade com a tabela renomeada
       .select(`
         id, 
         title, 
@@ -15,7 +15,8 @@ export async function getAllCourses() {
         created_at,
         profiles:mentor_id (full_name)
       `)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .limit(limit);
 
     if (error) throw error;
 
@@ -29,7 +30,11 @@ export async function getAllCourses() {
 
         if (countError) {
           console.error("Erro ao contar matrículas:", countError);
-          return { ...course, enrollments_count: 0 };
+          return { 
+            ...course, 
+            enrollments_count: 0,
+            mentor_name: course.profiles?.full_name
+          };
         }
 
         return {
@@ -50,7 +55,7 @@ export async function getAllCourses() {
 export async function deleteCourse(courseId: string) {
   try {
     const { error } = await supabase
-      .from("courses") // Mantendo "courses" temporariamente até a migração ser finalizada
+      .from("courses") // Mantendo "courses" para compatibilidade com a tabela renomeada
       .delete()
       .eq("id", courseId);
 
@@ -105,7 +110,7 @@ export async function getPlatformStats() {
     
     // Contagem de cursos
     const { count: coursesCount, error: coursesError } = await supabase
-      .from("courses")
+      .from("courses") // Mantendo "courses" para compatibilidade com a tabela renomeada
       .select("*", { count: 'exact', head: true });
       
     if (coursesError) throw coursesError;
@@ -134,7 +139,7 @@ export async function getPlatformStats() {
   }
 }
 
-export async function getAllMentors() {
+export async function getAllMentors(limit = 100) {
   try {
     const { data, error } = await supabase
       .from("profiles")
@@ -144,7 +149,8 @@ export async function getAllMentors() {
         avatar_url,
         bio
       `)
-      .eq("role", "mentor");
+      .eq("role", "mentor")
+      .limit(limit);
       
     if (error) throw error;
     
@@ -153,7 +159,7 @@ export async function getAllMentors() {
       data.map(async (mentor) => {
         // Contar cursos
         const { count: coursesCount, error: coursesError } = await supabase
-          .from("courses")
+          .from("courses") // Mantendo "courses" para compatibilidade com a tabela renomeada
           .select("*", { count: 'exact', head: true })
           .eq("mentor_id", mentor.id);
           
@@ -188,7 +194,7 @@ export async function getAllMentors() {
   }
 }
 
-export async function getAllMentorees() {
+export async function getAllMentorados(limit = 100) {
   try {
     const { data, error } = await supabase
       .from("profiles")
@@ -198,7 +204,8 @@ export async function getAllMentorees() {
         avatar_url,
         bio
       `)
-      .eq("role", "mentorado");
+      .eq("role", "mentorado")
+      .limit(limit);
       
     if (error) throw error;
     
@@ -233,8 +240,9 @@ export async function getAllMentorees() {
 // Esta função é referenciada nos componentes MentoradosList e MentorsList
 export async function deleteUser(userId: string) {
   try {
-    const { error } = await supabase
-      .auth.admin.deleteUser(userId);
+    // Note: this is a placeholder - in a real application, you would need
+    // admin rights or use Supabase Edge Functions to delete users
+    const { error } = await supabase.auth.admin.deleteUser(userId);
       
     if (error) throw error;
     return true;

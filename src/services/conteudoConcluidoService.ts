@@ -19,12 +19,14 @@ export async function marcarConteudoConcluido(cursoId: string, moduloId: string,
     }
     
     // Verificar se já está marcado como concluído
-    const { data: existente } = await supabase
+    const { data: existente, error: checkError } = await supabase
       .from("conteudo_concluido")
       .select("id")
       .eq("user_id", user.id)
       .eq("conteudo_id", conteudoId)
       .maybeSingle();
+    
+    if (checkError) throw checkError;
     
     if (existente) {
       // Se já está marcado como concluído, apenas retorna

@@ -1,14 +1,16 @@
+
 import { useState } from 'react';
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, User, Users } from "lucide-react";
+import { GraduationCap, AlertCircle } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,40 +25,41 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { deleteUser } from "@/services/adminService";
 
-interface Mentoree {
+interface Mentorado {
   id: string;
-  full_name: string | null;
-  avatar_url: string | null;
-  bio: string | null;
+  full_name: string;
+  avatar_url: string;
+  bio: string;
   enrollments_count: number;
 }
 
 interface MentoradosListProps {
-  mentorados: Mentoree[];
+  mentorados: Mentorado[];
   isLoading: boolean;
+  onDelete?: () => void;
 }
 
-const MentoradosList = ({ mentorados, isLoading }: MentoradosListProps) => {
+const MentoradosList = ({ mentorados, isLoading, onDelete }: MentoradosListProps) => {
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<Mentoree | null>(null);
+  const [selectedMentorado, setSelectedMentorado] = useState<Mentorado | null>(null);
   const { toast } = useToast();
   
-  const handleDeleteClick = (user: Mentoree) => {
-    setSelectedUser(user);
+  const handleDeleteClick = (mentorado: Mentorado) => {
+    setSelectedMentorado(mentorado);
     setOpenDeleteDialog(true);
   };
   
   const handleConfirmDelete = async () => {
-    if (!selectedUser) return;
+    if (!selectedMentorado) return;
     
     try {
-      await deleteUser(selectedUser.id);
+      await deleteUser(selectedMentorado.id);
       toast({
         title: "Usuário removido",
-        description: `O usuário "${selectedUser.full_name}" foi removido com sucesso.`,
+        description: `O mentorado "${selectedMentorado.full_name}" foi removido com sucesso.`,
       });
       setOpenDeleteDialog(false);
-      //if (onDelete) onDelete(); // If you need to refresh the list after deletion
+      if (onDelete) onDelete();
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -79,7 +82,6 @@ const MentoradosList = ({ mentorados, isLoading }: MentoradosListProps) => {
               <Skeleton className="h-20 mb-3" />
               <div className="flex justify-between">
                 <Skeleton className="h-5 w-24" />
-                <Skeleton className="h-5 w-24" />
               </div>
             </CardContent>
             <CardFooter>
@@ -96,9 +98,9 @@ const MentoradosList = ({ mentorados, isLoading }: MentoradosListProps) => {
       <Card className="w-full p-6 flex items-center justify-center bg-gray-50 border-dashed">
         <div className="text-center">
           <AlertCircle className="mx-auto h-12 w-12 text-gray-400 mb-3" />
-          <h3 className="text-lg font-medium">Nenhum usuário encontrado</h3>
+          <h3 className="text-lg font-medium">Nenhum mentorado encontrado</h3>
           <p className="text-sm text-gray-500 mt-2">
-            Não há usuários cadastrados na plataforma.
+            Não há mentorados cadastrados na plataforma.
           </p>
         </div>
       </Card>
@@ -108,20 +110,31 @@ const MentoradosList = ({ mentorados, isLoading }: MentoradosListProps) => {
   return (
     <>
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {mentorados.map((user) => (
-          <Card key={user.id}>
+        {mentorados.map((mentorado) => (
+          <Card key={mentorado.id}>
             <CardHeader>
-              <CardTitle className="text-lg line-clamp-1">{user.full_name || 'Sem nome'}</CardTitle>
-              <CardDescription className="flex items-center gap-1">
-                <User className="h-3 w-3" /> {user.bio || 'Sem bio'}
-              </CardDescription>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                  {mentorado.avatar_url ? (
+                    <img src={mentorado.avatar_url} alt={mentorado.full_name} className="w-10 h-10 rounded-full object-cover" />
+                  ) : (
+                    <GraduationCap className="h-5 w-5 text-gray-500" />
+                  )}
+                </div>
+                <div>
+                  <CardTitle className="text-lg">{mentorado.full_name || "Usuário sem nome"}</CardTitle>
+                  <CardDescription>{mentorado.id.slice(0, 8)}</CardDescription>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
+              <p className="text-sm text-gray-500 line-clamp-3 h-12 mb-3">
+                {mentorado.bio || 'Este usuário não possui biografia.'}
+              </p>
               <div className="flex justify-between items-center">
-                <div className="flex items-center text-sm text-gray-500 gap-1">
-                  <Users className="h-3 w-3" /> 
-                  <span>{user.enrollments_count} matrículas</span>
-                </div>
+                <Badge variant="outline">
+                  {mentorado.enrollments_count} cursos
+                </Badge>
               </div>
             </CardContent>
             <CardFooter>
@@ -129,7 +142,7 @@ const MentoradosList = ({ mentorados, isLoading }: MentoradosListProps) => {
                 variant="destructive" 
                 size="sm" 
                 className="w-full"
-                onClick={() => handleDeleteClick(user)}
+                onClick={() => handleDeleteClick(mentorado)}
               >
                 Remover usuário
               </Button>
@@ -143,8 +156,8 @@ const MentoradosList = ({ mentorados, isLoading }: MentoradosListProps) => {
           <AlertDialogHeader>
             <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação não pode ser desfeita. Isso removerá permanentemente o usuário{" "}
-              <strong>"{selectedUser?.full_name}"</strong> da plataforma.
+              Esta ação não pode ser desfeita. Isso removerá permanentemente o mentorado{" "}
+              <strong>"{selectedMentorado?.full_name}"</strong> e todos os seus dados da plataforma.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

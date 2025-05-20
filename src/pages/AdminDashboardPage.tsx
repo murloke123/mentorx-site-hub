@@ -1,236 +1,308 @@
 import { useQuery } from '@tanstack/react-query';
-import { getAdminProfile, getPlatformStats, getAllMentors, getAllCourses } from '@/services/adminService';
+import { getAdminProfile, getPlatformStats, getAllMentors, getAllMentorados, getAllCourses } from '@/services/adminService';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import StatsSection from '@/components/admin/StatsSection';
-import MentorsList from '@/components/admin/MentorsList';
-import CoursesList from '@/components/admin/CoursesList';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge"; // Added Badge import
-import { useToast } from "@/hooks/use-toast";
-import { useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertCircle, BookOpen, GraduationCap, User, Users } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Link } from 'react-router-dom';
+
+interface Mentor {
+  id: string;
+  full_name: string;
+  avatar_url: string;
+  bio: string;
+  courses_count: number;
+  followers_count: number;
+}
+
+interface Mentorado {
+  id: string;
+  full_name: string;
+  avatar_url: string;
+  bio: string;
+  enrollments_count: number;
+}
+
+interface Course {
+  id: string;
+  title: string;
+  description: string | null;
+  mentor_id: string;
+  mentor_name: string | null;
+  is_paid: boolean;
+  price: number | null;
+  enrollments_count: number;
+  created_at: string;
+}
 
 const AdminDashboardPage = () => {
-  const { toast } = useToast();
-  const navigate = useNavigate();
-  
-  // Verificar se o usuário é um administrador
-  useEffect(() => {
-    const checkAdminStatus = async () => {
-      const { data: session } = await supabase.auth.getSession();
-      
-      if (!session.session?.user) {
-        toast({
-          variant: "destructive",
-          title: "Acesso negado",
-          description: "Você precisa estar logado para acessar esta página."
-        });
-        navigate('/login');
-        return;
-      }
-      
-      const { data } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', session.session.user.id)
-        .single();
-      
-      if (data?.role !== 'admin') {
-        toast({
-          variant: "destructive",
-          title: "Acesso negado",
-          description: "Apenas administradores podem acessar esta página."
-        });
-        navigate('/');
-      }
-    };
-    
-    checkAdminStatus();
-  }, [navigate, toast]);
-  
-  // Buscar o perfil do admin
-  const { data: profile } = useQuery({
+  // Fetch admin profile
+  const { data: profile, isLoading: isLoadingProfile } = useQuery({
     queryKey: ['adminProfile'],
     queryFn: getAdminProfile,
   });
   
-  // Buscar estatísticas da plataforma
-  const { data: stats = { 
-    mentorsCount: 0, 
-    mentoreesCount: 0, 
-    coursesCount: 0, 
-    enrollmentsCount: 0 
-  }, isLoading: isLoadingStats } = useQuery({
+  // Fetch platform statistics
+  const { data: stats, isLoading: isLoadingStats } = useQuery({
     queryKey: ['platformStats'],
     queryFn: getPlatformStats,
   });
   
-  // Buscar lista de mentores populares
+  // Fetch recent mentors
   const { data: mentors = [], isLoading: isLoadingMentors } = useQuery({
-    queryKey: ['allMentors'],
-    queryFn: getAllMentors,
+    queryKey: ['recentMentors'],
+    queryFn: () => getAllMentors(5),
   });
   
-  // Buscar lista de cursos populares
+  // Fetch recent mentorados
+  const { data: mentorados = [], isLoading: isLoadingMentorados } = useQuery({
+    queryKey: ['recentMentorados'],
+    queryFn: () => getAllMentorados(5),
+  });
+  
+  // Fetch recent courses
   const { data: courses = [], isLoading: isLoadingCourses } = useQuery({
-    queryKey: ['allCourses'],
-    queryFn: getAllCourses,
+    queryKey: ['recentCourses'],
+    queryFn: () => getAllCourses(5),
   });
   
-  // Top mentores com mais cursos
-  const topMentorsByCourses = [...mentors]
-    .sort((a, b) => b.courses_count - a.courses_count)
-    .slice(0, 5);
-  
-  // Top mentores com mais seguidores
-  const topMentorsByFollowers = [...mentors]
-    .sort((a, b) => b.followers_count - a.followers_count)
-    .slice(0, 5);
-  
-  // Cursos com mais matrículas
-  const coursesWithMostEnrollments = [...courses]
-    .sort((a, b) => b.enrollments_count - a.enrollments_count)
-    .slice(0, 5);
+  // Handle display of mentor_name from courses data
+  const getCourseMentorName = (course: any) => {
+    if ('mentor_name' in course) {
+      return course.mentor_name;
+    }
+    if (course.profiles?.full_name) {
+      return course.profiles.full_name;
+    }
+    return "Mentor desconhecido";
+  };
   
   return (
     <div className="flex">
       <AdminSidebar />
       <div className="flex-1 p-6 overflow-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold">
-            {profile ? `Dashboard Admin - ${profile.full_name || 'Administrador'}` : 'Dashboard Admin'}
-          </h1>
-          <p className="text-gray-600">Gerencie a plataforma e acompanhe estatísticas</p>
+          <h1 className="text-3xl font-bold">Dashboard de Administração</h1>
+          <p className="text-gray-600">Bem-vindo {profile?.full_name || 'Administrador'}</p>
         </div>
-
+        
         {/* Stats Section */}
-        {isLoadingStats ? (
-          <div className="mb-8 grid gap-6 md:grid-cols-4">
-            {[...Array(4)].map((_, i) => (
-              <Skeleton key={i} className="h-32 w-full" />
-            ))}
-          </div>
-        ) : (
-          <StatsSection
-            mentorsCount={stats.mentorsCount}
-            mentoreesCount={stats.mentoreesCount}
-            coursesCount={stats.coursesCount}
-            enrollmentsCount={stats.enrollmentsCount}
-          />
-        )}
-
-        {/* Tabs for different views */}
-        <Tabs defaultValue="mentors" className="mb-8">
+        <StatsSection 
+          isLoading={isLoadingStats} 
+          mentorsCount={stats?.mentorsCount || 0}
+          mentoreesCount={stats?.mentoreesCount || 0}
+          coursesCount={stats?.coursesCount || 0}
+          enrollmentsCount={stats?.enrollmentsCount || 0}
+        />
+        
+        {/* Recent Activity Tabs */}
+        <Tabs defaultValue="mentors" className="mt-10">
           <TabsList className="mb-4">
-            <TabsTrigger value="mentors">Top Mentores</TabsTrigger>
-            <TabsTrigger value="courses">Cursos Populares</TabsTrigger>
+            <TabsTrigger value="mentors">Mentores Recentes</TabsTrigger>
+            <TabsTrigger value="mentorados">Mentorados Recentes</TabsTrigger>
+            <TabsTrigger value="courses">Cursos Recentes</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="mentors" className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              {/* Mentores com mais cursos */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Top Mentores por Cursos</CardTitle>
-                  <CardDescription>Mentores que têm mais cursos na plataforma</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {isLoadingMentors ? (
-                    <div className="space-y-2">
-                      {[...Array(5)].map((_, i) => (
-                        <Skeleton key={i} className="h-8 w-full" />
-                      ))}
-                    </div>
-                  ) : (
-                    <ul className="space-y-2">
-                      {topMentorsByCourses.map((mentor) => (
-                        <li key={mentor.id} className="flex justify-between items-center p-2 hover:bg-gray-50 rounded">
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium">{mentor.full_name || 'Sem nome'}</span>
-                          </div>
-                          <Badge variant="outline">{mentor.courses_count} cursos</Badge>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </CardContent>
-              </Card>
-              
-              {/* Mentores com mais seguidores */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Top Mentores por Seguidores</CardTitle>
-                  <CardDescription>Mentores que têm mais seguidores na plataforma</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {isLoadingMentors ? (
-                    <div className="space-y-2">
-                      {[...Array(5)].map((_, i) => (
-                        <Skeleton key={i} className="h-8 w-full" />
-                      ))}
-                    </div>
-                  ) : (
-                    <ul className="space-y-2">
-                      {topMentorsByFollowers.map((mentor) => (
-                        <li key={mentor.id} className="flex justify-between items-center p-2 hover:bg-gray-50 rounded">
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium">{mentor.full_name || 'Sem nome'}</span>
-                          </div>
-                          <Badge variant="outline">{mentor.followers_count} seguidores</Badge>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-            
-            {/* Lista completa de mentores */}
-            <h2 className="text-xl font-bold mt-8 mb-4">Todos os Mentores</h2>
-            <MentorsList 
-              mentors={mentors} 
-              isLoading={isLoadingMentors} 
-            />
-          </TabsContent>
-          
-          <TabsContent value="courses">
-            <Card className="mb-6">
+          <TabsContent value="mentors">
+            <Card>
               <CardHeader>
-                <CardTitle>Top Cursos por Matrículas</CardTitle>
-                <CardDescription>Cursos com mais alunos matriculados</CardDescription>
+                <CardTitle className="text-xl flex items-center">
+                  <Users className="mr-2 h-5 w-5" />
+                  Mentores Recentes
+                </CardTitle>
+                <CardDescription>
+                  Últimos mentores registrados na plataforma
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                {isLoadingCourses ? (
-                  <div className="space-y-2">
-                    {[...Array(5)].map((_, i) => (
-                      <Skeleton key={i} className="h-8 w-full" />
+                {isLoadingMentors ? (
+                  <div className="space-y-4">
+                    {[...Array(3)].map((_, i) => (
+                      <div key={i} className="flex items-center gap-3">
+                        <Skeleton className="h-10 w-10 rounded-full" />
+                        <div className="flex-1">
+                          <Skeleton className="h-5 w-40 mb-1" />
+                          <Skeleton className="h-4 w-24" />
+                        </div>
+                      </div>
                     ))}
                   </div>
-                ) : (
-                  <ul className="space-y-2">
-                    {coursesWithMostEnrollments.map((course) => (
-                      <li key={course.id} className="flex justify-between items-center p-2 hover:bg-gray-50 rounded">
-                        <div>
-                          <span className="font-medium">{course.title}</span>
-                          <p className="text-xs text-gray-500">por {course.mentor_name || 'Mentor desconhecido'}</p>
+                ) : mentors.length > 0 ? (
+                  <div className="space-y-4">
+                    {mentors.map((mentor) => (
+                      <div key={mentor.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-md">
+                        <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                          {mentor.avatar_url ? (
+                            <img src={mentor.avatar_url} alt={mentor.full_name} className="w-10 h-10 rounded-full object-cover" />
+                          ) : (
+                            <User className="h-5 w-5 text-gray-500" />
+                          )}
                         </div>
-                        <Badge variant="outline">{course.enrollments_count} matrículas</Badge>
-                      </li>
+                        <div className="flex-1">
+                          <p className="font-medium">{mentor.full_name || "Mentor sem nome"}</p>
+                          <div className="flex items-center text-sm text-gray-500">
+                            <BookOpen className="h-3 w-3 mr-1" />
+                            <span>{mentor.courses_count} cursos</span>
+                            <span className="mx-2">•</span>
+                            <Users className="h-3 w-3 mr-1" />
+                            <span>{mentor.followers_count} seguidores</span>
+                          </div>
+                        </div>
+                      </div>
                     ))}
-                  </ul>
+                    
+                    <div className="pt-4">
+                      <Button asChild variant="outline" className="w-full">
+                        <Link to="/admin/mentores">Ver todos os mentores</Link>
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <Alert>
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Nenhum mentor encontrado</AlertTitle>
+                    <AlertDescription>
+                      Não há mentores registrados na plataforma ainda.
+                    </AlertDescription>
+                  </Alert>
                 )}
               </CardContent>
             </Card>
-            
-            {/* Lista completa de cursos */}
-            <h2 className="text-xl font-bold mt-8 mb-4">Todos os Cursos</h2>
-            <CoursesList 
-              courses={courses} 
-              isLoading={isLoadingCourses} 
-            />
+          </TabsContent>
+          
+          <TabsContent value="mentorados">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl flex items-center">
+                  <GraduationCap className="mr-2 h-5 w-5" />
+                  Mentorados Recentes
+                </CardTitle>
+                <CardDescription>
+                  Últimos mentorados registrados na plataforma
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {isLoadingMentorados ? (
+                  <div className="space-y-4">
+                    {[...Array(3)].map((_, i) => (
+                      <div key={i} className="flex items-center gap-3">
+                        <Skeleton className="h-10 w-10 rounded-full" />
+                        <div className="flex-1">
+                          <Skeleton className="h-5 w-40 mb-1" />
+                          <Skeleton className="h-4 w-24" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : mentorados.length > 0 ? (
+                  <div className="space-y-4">
+                    {mentorados.map((mentorado) => (
+                      <div key={mentorado.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-md">
+                        <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                          {mentorado.avatar_url ? (
+                            <img src={mentorado.avatar_url} alt={mentorado.full_name} className="w-10 h-10 rounded-full object-cover" />
+                          ) : (
+                            <User className="h-5 w-5 text-gray-500" />
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium">{mentorado.full_name || "Mentorado sem nome"}</p>
+                          <div className="flex items-center text-sm text-gray-500">
+                            <BookOpen className="h-3 w-3 mr-1" />
+                            <span>{mentorado.enrollments_count} cursos matriculados</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    <div className="pt-4">
+                      <Button asChild variant="outline" className="w-full">
+                        <Link to="/admin/mentorados">Ver todos os mentorados</Link>
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <Alert>
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Nenhum mentorado encontrado</AlertTitle>
+                    <AlertDescription>
+                      Não há mentorados registrados na plataforma ainda.
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="courses">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl flex items-center">
+                  <BookOpen className="mr-2 h-5 w-5" />
+                  Cursos Recentes
+                </CardTitle>
+                <CardDescription>
+                  Últimos cursos criados na plataforma
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {isLoadingCourses ? (
+                  <div className="space-y-4">
+                    {[...Array(3)].map((_, i) => (
+                      <div key={i} className="flex items-center gap-3">
+                        <Skeleton className="h-16 w-16 rounded" />
+                        <div className="flex-1">
+                          <Skeleton className="h-5 w-40 mb-1" />
+                          <Skeleton className="h-4 w-24 mb-1" />
+                          <Skeleton className="h-4 w-32" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : courses.length > 0 ? (
+                  <div className="space-y-4">
+                    {(courses as Course[]).map((course) => (
+                      <div key={course.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-md">
+                        <div className="w-16 h-16 rounded bg-gray-100 flex items-center justify-center">
+                          <BookOpen className="h-6 w-6 text-gray-400" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium">{course.title}</p>
+                          <p className="text-sm text-gray-500">Por {getCourseMentorName(course)}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Badge variant={course.is_paid ? "default" : "secondary"}>
+                              {course.is_paid ? `R$${course.price?.toFixed(2)}` : "Gratuito"}
+                            </Badge>
+                            <Badge variant="outline" className="text-gray-500">
+                              {course.enrollments_count} matrículas
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    <div className="pt-4">
+                      <Button asChild variant="outline" className="w-full">
+                        <Link to="/admin/cursos">Ver todos os cursos</Link>
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <Alert>
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Nenhum curso encontrado</AlertTitle>
+                    <AlertDescription>
+                      Não há cursos criados na plataforma ainda.
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>

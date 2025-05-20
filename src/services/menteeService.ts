@@ -120,11 +120,12 @@ export async function updateProgress(courseId: string, lessonId: string, complet
       throw new Error("Inscrição não encontrada");
     }
     
-    // Obter total de aulas do curso
-    const { count: totalLessons, error: countError } = await supabase
-      .from("lessons")
+    // Obter total de conteúdos do curso
+    const { count: totalConteudos, error: countError } = await supabase
+      .from("conteudos")
       .select("*", { count: 'exact', head: true })
-      .eq("course_id", courseId);
+      .eq("modulo_id", "modulos.id")
+      .eq("modulos.curso_id", courseId);
       
     if (countError) throw countError;
     
@@ -143,13 +144,13 @@ export async function updateProgress(courseId: string, lessonId: string, complet
     }
     
     const completedLessons = completedLessonsIds.length;
-    const percentComplete = totalLessons ? (completedLessons / totalLessons) * 100 : 0;
+    const percentComplete = totalConteudos ? (completedLessons / totalConteudos) * 100 : 0;
     
     const updatedProgress = {
       ...progress,
       percent: percentComplete,
       completed_lessons: completedLessons,
-      total_lessons: totalLessons,
+      total_lessons: totalConteudos,
       completed_lessons_ids: completedLessonsIds,
       last_accessed: new Date().toISOString()
     };

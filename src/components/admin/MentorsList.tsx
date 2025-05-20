@@ -1,13 +1,16 @@
+
+import { useState } from 'react';
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Verified } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { User, Users, BookOpen, AlertCircle } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,17 +21,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-
 import { deleteUser } from "@/services/adminService";
 
 interface Mentor {
   id: string;
-  full_name: string | null;
-  avatar_url: string | null;
-  bio: string | null;
+  full_name: string;
+  avatar_url: string;
+  bio: string;
   courses_count: number;
   followers_count: number;
 }
@@ -36,35 +37,35 @@ interface Mentor {
 interface MentorsListProps {
   mentors: Mentor[];
   isLoading: boolean;
+  onDelete?: () => void;
 }
 
-const MentorsList = ({ mentors, isLoading }: MentorsListProps) => {
-  const [open, setOpen] = useState(false);
-  const [selectedMentorId, setSelectedMentorId] = useState<string | null>(null);
+const MentorsList = ({ mentors, isLoading, onDelete }: MentorsListProps) => {
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [selectedMentor, setSelectedMentor] = useState<Mentor | null>(null);
   const { toast } = useToast();
   
-  const handleDeleteClick = (mentorId: string) => {
-    setSelectedMentorId(mentorId);
-    setOpen(true);
+  const handleDeleteClick = (mentor: Mentor) => {
+    setSelectedMentor(mentor);
+    setOpenDeleteDialog(true);
   };
   
   const handleConfirmDelete = async () => {
-    if (!selectedMentorId) return;
+    if (!selectedMentor) return;
     
     try {
-      await deleteUser(selectedMentorId);
+      await deleteUser(selectedMentor.id);
       toast({
-        title: "Usuário removido",
-        description: "O usuário foi removido com sucesso.",
+        title: "Mentor removido",
+        description: `O mentor "${selectedMentor.full_name}" foi removido com sucesso.`,
       });
-      setOpen(false);
-      // Lógica para atualizar a lista de mentores após a exclusão
-      // Pode ser um refetch dos dados ou uma atualização local do estado
+      setOpenDeleteDialog(false);
+      if (onDelete) onDelete();
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Erro ao remover usuário",
-        description: error.message || "Ocorreu um erro ao tentar remover o usuário.",
+        title: "Erro ao remover mentor",
+        description: error.message || "Ocorreu um erro ao tentar remover o mentor.",
       });
     }
   };
@@ -75,22 +76,36 @@ const MentorsList = ({ mentors, isLoading }: MentorsListProps) => {
         {[...Array(6)].map((_, i) => (
           <Card key={i} className="overflow-hidden">
             <CardHeader className="pb-2">
-              <Skeleton className="h-6 w-32 mb-2" />
-              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-6 w-48 mb-2" />
+              <Skeleton className="h-4 w-32" />
             </CardHeader>
             <CardContent>
-              <div className="flex items-center space-x-4 mb-3">
-                <Skeleton className="h-12 w-12 rounded-full" />
-                <div>
-                  <Skeleton className="h-5 w-48" />
-                  <Skeleton className="h-4 w-32" />
-                </div>
+              <Skeleton className="h-20 mb-3" />
+              <div className="flex justify-between">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-5 w-24" />
               </div>
-              <Skeleton className="h-16" />
             </CardContent>
+            <CardFooter>
+              <Skeleton className="h-9 w-full" />
+            </CardFooter>
           </Card>
         ))}
       </div>
+    );
+  }
+
+  if (mentors.length === 0) {
+    return (
+      <Card className="w-full p-6 flex items-center justify-center bg-gray-50 border-dashed">
+        <div className="text-center">
+          <AlertCircle className="mx-auto h-12 w-12 text-gray-400 mb-3" />
+          <h3 className="text-lg font-medium">Nenhum mentor encontrado</h3>
+          <p className="text-sm text-gray-500 mt-2">
+            Não há mentores cadastrados na plataforma.
+          </p>
+        </div>
+      </Card>
     );
   }
 
@@ -100,49 +115,56 @@ const MentorsList = ({ mentors, isLoading }: MentorsListProps) => {
         {mentors.map((mentor) => (
           <Card key={mentor.id}>
             <CardHeader>
-              <CardTitle className="text-lg">{mentor.full_name || 'Sem nome'}</CardTitle>
-              <CardDescription>Mentor</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center space-x-4 mb-3">
-                <Avatar>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
                   {mentor.avatar_url ? (
-                    <AvatarImage src={mentor.avatar_url} alt={mentor.full_name || 'Mentor'} />
+                    <img src={mentor.avatar_url} alt={mentor.full_name} className="w-10 h-10 rounded-full object-cover" />
                   ) : (
-                    <AvatarFallback>{mentor.full_name?.charAt(0).toUpperCase() || '?'}</AvatarFallback>
+                    <User className="h-5 w-5 text-gray-500" />
                   )}
-                </Avatar>
+                </div>
                 <div>
-                  <p className="text-sm font-medium leading-none">{mentor.full_name || 'Sem nome'}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {mentor.courses_count} cursos | {mentor.followers_count} seguidores
-                  </p>
+                  <CardTitle className="text-lg">{mentor.full_name || "Mentor sem nome"}</CardTitle>
+                  <CardDescription>{mentor.id.slice(0, 8)}</CardDescription>
                 </div>
               </div>
-              <p className="text-sm text-muted-foreground line-clamp-3">
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-gray-500 line-clamp-3 h-12 mb-3">
                 {mentor.bio || 'Este mentor não possui biografia.'}
               </p>
+              <div className="flex justify-between items-center">
+                <div className="flex items-center text-sm text-gray-500 gap-1">
+                  <BookOpen className="h-3 w-3" /> 
+                  <span>{mentor.courses_count} cursos</span>
+                </div>
+                <div className="flex items-center text-sm text-gray-500 gap-1">
+                  <Users className="h-3 w-3" /> 
+                  <span>{mentor.followers_count} seguidores</span>
+                </div>
+              </div>
             </CardContent>
-            <div className="p-6">
+            <CardFooter>
               <Button 
                 variant="destructive" 
                 size="sm" 
                 className="w-full"
-                onClick={() => handleDeleteClick(mentor.id)}
+                onClick={() => handleDeleteClick(mentor)}
               >
-                Remover usuário
+                Remover mentor
               </Button>
-            </div>
+            </CardFooter>
           </Card>
         ))}
       </div>
 
-      <AlertDialog open={open} onOpenChange={setOpen}>
+      <AlertDialog open={openDeleteDialog} onOpenChange={setOpenDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação não pode ser desfeita. Isso removerá permanentemente este mentor da plataforma.
+              Esta ação não pode ser desfeita. Isso removerá permanentemente o mentor{" "}
+              <strong>"{selectedMentor?.full_name}"</strong> e todos os seus dados da plataforma.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
