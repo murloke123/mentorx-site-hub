@@ -1,24 +1,34 @@
-
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import CourseCard from "@/components/CourseCard";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Course } from "@/types";
 import { Search } from "lucide-react";
-import { mockCourses } from "@/data/mockData";
+import { getPublicCourses } from "@/services/courseService";
 
 const CoursesPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState("all"); // "all", "free", "paid"
 
-  const filteredCourses = mockCourses.filter((course) => {
+  // Fetch public courses
+  const { data: courses = [], isLoading, error } = useQuery({
+    queryKey: ['publicCourses'],
+    queryFn: getPublicCourses
+  });
+
+  // Debug logging
+  console.log('CoursesPage - Courses:', courses);
+  console.log('CoursesPage - Loading:', isLoading);
+  console.log('CoursesPage - Error:', error);
+
+  const filteredCourses = courses.filter((course) => {
     const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         course.description.toLowerCase().includes(searchTerm.toLowerCase());
+                         (course.description || "").toLowerCase().includes(searchTerm.toLowerCase());
     
     if (filter === "all") return matchesSearch;
-    if (filter === "free") return matchesSearch && course.price === 0;
-    if (filter === "paid") return matchesSearch && course.price > 0;
+    if (filter === "free") return matchesSearch && !course.is_paid;
+    if (filter === "paid") return matchesSearch && course.is_paid;
     return matchesSearch;
   });
 
@@ -69,10 +79,28 @@ const CoursesPage = () => {
         </div>
       </div>
 
-      {filteredCourses.length > 0 ? (
+      {isLoading ? (
+        <div className="text-center py-12">
+          <p className="text-gray-500 text-lg">
+            Carregando cursos...
+          </p>
+        </div>
+      ) : filteredCourses.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredCourses.map((course) => (
-            <CourseCard key={course.id} course={course} />
+            <CourseCard 
+              key={course.id} 
+              course={{
+                id: course.id,
+                title: course.title,
+                description: course.description || "",
+                mentorId: course.mentor_id,
+                mentorName: course.mentor_name,
+                price: course.price || 0,
+                imageUrl: course.image_url,
+                public: course.is_public
+              }} 
+            />
           ))}
         </div>
       ) : (

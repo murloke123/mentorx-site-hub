@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getCourseDetailsForPlayer, markConteudoConcluido, markConteudoIncompleto } from '@/services/coursePlayerService';
@@ -35,8 +34,8 @@ const CoursePlayerPage = () => {
         setConteudosConcluidos(new Set(data.completedConteudoIds));
         
         // Set initial content if available
-        if (data.curso && data.modulos.length > 0 && data.modulos[0].conteudos.length > 0) {
-          setCurrentConteudo(data.modulos[0].conteudos[0] as ConteudoItemLocal);
+        if (data.curso && data.curso.modulos.length > 0 && data.curso.modulos[0].conteudos.length > 0) {
+          setCurrentConteudo(data.curso.modulos[0].conteudos[0] as ConteudoItemLocal);
         }
         
         setError(null);
@@ -83,37 +82,95 @@ const CoursePlayerPage = () => {
         toast({ title: "Conteúdo marcado como não concluído" });
       } else {
         await markConteudoConcluido(cursoId, moduloId, conteudoId);
-        setConteudosConcluidos(prev => new Set(prev).add(conteudoId));
+        setConteudosConcluidos(prev => new Set([...prev, conteudoId]));
         toast({ title: "Conteúdo marcado como concluído!" });
       }
-    } catch (err) {
-      console.error("Erro ao atualizar status do conteúdo:", err);
-      toast({ title: "Erro ao atualizar status", description: (err as Error).message, variant: "destructive" });
+    } catch (error) {
+      console.error('Erro ao atualizar status do conteúdo:', error);
+      toast({
+        title: "Erro ao atualizar status",
+        description: "Não foi possível atualizar o status do conteúdo.",
+        variant: "destructive",
+      });
     }
   };
 
-  // Function to handle moving to the next content
-  const handleNextContent = () => {
-    if (!curso || !currentConteudo) return;
+  const findNextContent = () => {
+    if (!curso || !currentConteudo) return null;
 
-    // Find all contents across all modules, sorted by module order then content order
-    const allContents: ConteudoItemLocal[] = [];
-    curso.modulos.sort((a, b) => a.ordem - b.ordem).forEach(modulo => {
-      modulo.conteudos.sort((a, b) => a.ordem - b.ordem).forEach(conteudo => {
-        allContents.push(conteudo as ConteudoItemLocal);
-      });
-    });
+    // Encontrar o módulo atual
+    const currentModuleIndex = curso.modulos.findIndex(m => m.id === currentConteudo.modulo_id);
+    if (currentModuleIndex === -1) return null;
 
-    // Find the index of the current content
-    const currentIndex = allContents.findIndex(c => c.id === currentConteudo.id);
+    const currentModule = curso.modulos[currentModuleIndex];
     
-    // If found and not the last content, move to the next one
-    if (currentIndex > -1 && currentIndex < allContents.length - 1) {
-      setCurrentConteudo(allContents[currentIndex + 1]);
+    // Encontrar o índice do conteúdo atual no módulo
+    const currentContentIndex = currentModule.conteudos.findIndex(c => c.id === currentConteudo.id);
+    
+    // Se há mais conteúdo no módulo atual
+    if (currentContentIndex < currentModule.conteudos.length - 1) {
+      return currentModule.conteudos[currentContentIndex + 1];
+    }
+    
+    // Se não há mais conteúdo no módulo atual, procurar no próximo módulo
+    if (currentModuleIndex < curso.modulos.length - 1) {
+      const nextModule = curso.modulos[currentModuleIndex + 1];
+      if (nextModule.conteudos.length > 0) {
+        return nextModule.conteudos[0];
+      }
+    }
+    
+    return null;
+  };
+
+  const findPreviousContent = () => {
+    if (!curso || !currentConteudo) return null;
+
+    // Encontrar o módulo atual
+    const currentModuleIndex = curso.modulos.findIndex(m => m.id === currentConteudo.modulo_id);
+    if (currentModuleIndex === -1) return null;
+
+    const currentModule = curso.modulos[currentModuleIndex];
+    
+    // Encontrar o índice do conteúdo atual no módulo
+    const currentContentIndex = currentModule.conteudos.findIndex(c => c.id === currentConteudo.id);
+    
+    // Se há conteúdo anterior no módulo atual
+    if (currentContentIndex > 0) {
+      return currentModule.conteudos[currentContentIndex - 1];
+    }
+    
+    // Se não há conteúdo anterior no módulo atual, procurar no módulo anterior
+    if (currentModuleIndex > 0) {
+      const previousModule = curso.modulos[currentModuleIndex - 1];
+      if (previousModule.conteudos.length > 0) {
+        return previousModule.conteudos[previousModule.conteudos.length - 1];
+      }
+    }
+    
+    return null;
+  };
+
+  const handleNextContent = () => {
+    const nextContent = findNextContent();
+    if (nextContent) {
+      setCurrentConteudo(nextContent);
     } else {
-      toast({ 
-        title: "Fim do curso", 
-        description: "Você chegou ao final do conteúdo disponível." 
+      toast({
+        title: "Fim do curso",
+        description: "Você chegou ao último conteúdo do curso.",
+      });
+    }
+  };
+
+  const handlePreviousContent = () => {
+    const previousContent = findPreviousContent();
+    if (previousContent) {
+      setCurrentConteudo(previousContent);
+    } else {
+      toast({
+        title: "Início do curso",
+        description: "Você está no primeiro conteúdo do curso.",
       });
     }
   };
@@ -131,6 +188,7 @@ const CoursePlayerPage = () => {
             currentConteudo={currentConteudo}
             modulos={curso.modulos}
             onNextContent={handleNextContent}
+            onPreviousContent={handlePreviousContent}
           />
         </main>
 

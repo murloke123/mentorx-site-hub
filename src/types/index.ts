@@ -1,4 +1,3 @@
-
 export interface User {
   id: string;
   name: string;
@@ -12,12 +11,16 @@ export interface User {
 export interface Course {
   id: string;
   title: string;
-  description: string;
-  mentorId: string;
-  price: number; // 0 for free courses
-  imageUrl?: string;
-  materials?: Material[];
-  public?: boolean; // Whether the course is visible to non-followers
+  description?: string | null;
+  mentor_id: string;
+  mentor_name?: string;
+  is_public: boolean;
+  is_paid: boolean;
+  price?: number | null;
+  image_url?: string | null;
+  enrollments?: { count: number }[];
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface Material {

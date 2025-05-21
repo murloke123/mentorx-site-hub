@@ -1,45 +1,89 @@
-
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import MentorSidebar from "@/components/mentor/MentorSidebar";
 import CoursesList from "@/components/mentor/CoursesList";
-import { getMentorCourses } from '@/services/courseService';
-
-// Interface para representar um curso com matrículas
-interface Course {
-  id: string;
-  title: string;
-  description?: string | null;
-  is_public: boolean;
-  is_paid: boolean;
-  price?: number | null;
-  image_url?: string | null;
-  enrollments?: { count: number }[];
-}
+import { getMentorCourses, Course } from '@/services/courseService';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { Session } from '@supabase/supabase-js';
 
 const MeusCursosPage = () => {
   const navigate = useNavigate();
-  
-  // Fetch mentor courses
-  const { data = [], isLoading } = useQuery({
-    queryKey: ['mentorCourses'],
-    queryFn: getMentorCourses,
+  const queryClient = useQueryClient();
+  const [currentSession, setCurrentSession] = useState<Session | null>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
+
+  useEffect(() => {
+    setIsAuthLoading(true);
+    supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
+      setCurrentSession(initialSession);
+      setIsAuthLoading(false);
+      if (initialSession?.user?.id) {
+        queryClient.invalidateQueries({ queryKey: ['mentorCourses', initialSession.user.id] });
+      }
+    }).catch((error) => {
+      console.error("Error getting initial session:", error);
+      setIsAuthLoading(false);
+    });
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      const oldUserId = currentSession?.user?.id;
+      const newUserId = newSession?.user?.id;
+      
+      setCurrentSession(newSession);
+      setIsAuthLoading(false);
+
+      if (oldUserId !== newUserId) {
+        queryClient.invalidateQueries({ queryKey: ['mentorCourses', oldUserId] });
+        queryClient.invalidateQueries({ queryKey: ['mentorCourses', newUserId] });
+      }
+    });
+
+    return () => {
+      if (authListener && authListener.subscription) {
+        authListener.subscription.unsubscribe();
+      }
+    };
+  }, [queryClient]);
+
+  const userId = currentSession?.user?.id;
+
+  const { data: coursesData = [], isLoading: queryIsLoading, isFetching: queryIsFetching, isError, error } = useQuery<Course[], Error>({
+    queryKey: ['mentorCourses', userId],
+    queryFn: () => {
+      if (!userId) return Promise.resolve([]);
+      return getMentorCourses();
+    },
+    enabled: !!userId && !isAuthLoading,
+    staleTime: 1000 * 60 * 1,
+    retry: 1,
   });
-  
-  // Converter os dados para o formato esperado pelo componente
-  const courses: Course[] = Array.isArray(data) ? data : [];
-  
-  // Calculate total enrollments
-  const totalEnrollments = courses.reduce((sum, course) => {
-    const enrollmentCount = course.enrollments?.[0]?.count;
+
+  useEffect(() => {
+    if (isError && error) {
+      console.error("Error fetching mentor courses:", error);
+    }
+  }, [isError, error]);
+
+  const courses: Course[] = Array.isArray(coursesData) ? coursesData : [];
+
+  const totalEnrollments = courses.reduce((sum, courseItem) => {
+    const enrollmentCount = courseItem.enrollments?.[0]?.count;
     return sum + (typeof enrollmentCount === 'number' ? enrollmentCount : 0);
   }, 0);
-  
+
   const handleCreateCourse = () => {
     navigate('/mentor/cursos/novo');
   };
+
+  let listIsLoading = isAuthLoading;
+  if (!isAuthLoading && !!userId) {
+    listIsLoading = queryIsLoading || queryIsFetching;
+  } else if (!isAuthLoading && !userId) {
+    listIsLoading = false;
+  }
 
   return (
     <div className="flex">
@@ -55,9 +99,16 @@ const MeusCursosPage = () => {
           </Button>
         </div>
         
+        {isError && (
+          <div className="text-red-500 p-4 border border-red-500 rounded-md">
+            <p>Ocorreu um erro ao carregar seus cursos:</p>
+            <p className="text-sm">{error?.message || "Tente recarregar a página."}</p>
+          </div>
+        )}
+
         <CoursesList 
           courses={courses} 
-          isLoading={isLoading} 
+          isLoading={listIsLoading} 
           totalEnrollments={totalEnrollments} 
         />
       </div>

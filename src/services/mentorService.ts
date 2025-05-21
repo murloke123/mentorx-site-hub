@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
@@ -30,16 +29,16 @@ export async function getMentorProfile() {
 
 export interface MentorCourse {
   id: string;
-  title: string;
-  description?: string | null;
-  is_public: boolean;
-  is_paid: boolean;
-  price?: number | null;
-  image_url?: string | null;
-  created_at: string;
-  updated_at: string;
+  titulo: string;
+  descricao?: string | null;
+  eh_publico: boolean;
+  eh_pago: boolean;
+  preco?: number | null;
+  url_imagem?: string | null;
+  criado_em: string;
+  atualizado_em: string;
   mentor_id: string;
-  enrollments?: { count: number }[];
+  inscricoes?: { count: number }[];
 }
 
 export async function getMentorCourses(): Promise<MentorCourse[]> {
@@ -51,9 +50,9 @@ export async function getMentorCourses(): Promise<MentorCourse[]> {
     
     const { data: courses, error } = await supabase
       .from("cursos")
-      .select("*, enrollments(count)")
+      .select("id, titulo, descricao, eh_publico, eh_pago, preco, url_imagem, criado_em, atualizado_em, mentor_id, inscricoes(count)")
       .eq("mentor_id", user.id)
-      .order("created_at", { ascending: false });
+      .order("criado_em", { ascending: false });
 
     if (error) throw error;
     return courses || [];
@@ -73,12 +72,12 @@ export interface Module {
   nome_modulo: string;
   descricao_modulo?: string;
   curso_id: string;
-  created_at: string;
-  updated_at: string;
+  criado_em: string;
+  atualizado_em: string;
   ordem: number;
   cursos?: {
     id: string;
-    title: string;
+    titulo: string;
   };
 }
 
@@ -91,9 +90,9 @@ export async function getMentorModules(limit = 5): Promise<Module[]> {
     
     const { data: modules, error } = await supabase
       .from("modulos")
-      .select("*, cursos!inner(*)")
+      .select("id, nome_modulo, descricao_modulo, curso_id, criado_em, atualizado_em, ordem, cursos!inner(id, titulo, mentor_id)")
       .eq("cursos.mentor_id", user.id)
-      .order("created_at", { ascending: false })
+      .order("criado_em", { ascending: false })
       .limit(limit);
 
     if (error) throw error;
@@ -153,20 +152,24 @@ export async function getEnrollmentStats(periodDays = 30): Promise<EnrollmentDat
     // Format date for Supabase query
     const startDateStr = startDate.toISOString();
     
-    const { data: enrollments, error } = await supabase
-      .from("enrollments")
-      .select("enrolled_at, cursos!inner(*)")
-      .eq("cursos.mentor_id", user.id)
-      .gte("enrolled_at", startDateStr)
-      .order("enrolled_at", { ascending: true });
+    // Querying 'inscricoes' table with Portuguese column names
+    const { data: enrollments, error } = await supabase // Variable name 'enrollments' kept for simplicity, but it queries 'inscricoes'
+      .from("inscricoes") // Changed from enrollments
+      .select("data_inscricao, cursos!inner(id, mentor_id)") // Changed from enrolled_at, selecting only necessary fields from cursos
+      .eq("cursos.mentor_id", user.id) // Ensure this join condition is correct based on your schema
+      .gte("data_inscricao", startDateStr) // Changed from enrolled_at
+      .order("data_inscricao", { ascending: true }); // Changed from enrolled_at
 
     if (error) throw error;
     
     // Process data for chart display
     // Group by date and count
     const enrollmentByDate = enrollments?.reduce((acc, enrollment) => {
-      const date = new Date(enrollment.enrolled_at).toLocaleDateString();
-      acc[date] = (acc[date] || 0) + 1;
+      // Ensure enrollment.data_inscricao is not null or undefined before creating Date object
+      if (enrollment.data_inscricao) {
+        const date = new Date(enrollment.data_inscricao).toLocaleDateString();
+        acc[date] = (acc[date] || 0) + 1;
+      }
       return acc;
     }, {} as Record<string, number>) || {};
     

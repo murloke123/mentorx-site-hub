@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, ChevronLeft } from "lucide-react";
 import { ConteudoItemLocal, ModuloItemLocal } from '../types';
 import VideoPlayer from '@/components/mentor/content/VideoPlayer';
 
@@ -9,12 +9,14 @@ interface ContentRendererProps {
   currentConteudo: ConteudoItemLocal | null;
   modulos: ModuloItemLocal[];
   onNextContent: () => void;
+  onPreviousContent: () => void;
 }
 
 const ContentRenderer: React.FC<ContentRendererProps> = ({ 
   currentConteudo, 
   modulos,
-  onNextContent
+  onNextContent,
+  onPreviousContent
 }) => {
   if (!currentConteudo) {
     return <p className="text-center text-gray-500 mt-10">Selecione um conteúdo para visualizar.</p>;
@@ -79,9 +81,21 @@ const ContentRenderer: React.FC<ContentRendererProps> = ({
             {currentModulo ? `Módulo: ${currentModulo.nome_modulo}` : ''}
           </p>
         </div>
-        <Button onClick={onNextContent} className="flex items-center gap-2">
-          Próximo <ChevronRight className="h-4 w-4" />
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            onClick={onPreviousContent} 
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            <ChevronLeft className="h-4 w-4" /> Voltar
+          </Button>
+          <Button 
+            onClick={onNextContent} 
+            className="flex items-center gap-2"
+          >
+            Próximo <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
       <div className="flex-grow overflow-auto">
         {renderContent()}

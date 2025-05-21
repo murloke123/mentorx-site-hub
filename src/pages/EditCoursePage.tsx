@@ -1,6 +1,6 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import CourseForm from "@/components/mentor/course-form";
 import MentorSidebar from "@/components/mentor/MentorSidebar";
 import { useToast } from "@/hooks/use-toast";
@@ -11,6 +11,7 @@ const EditCoursePage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [courseData, setCourseData] = useState<CourseFormData | null>(null);
@@ -46,6 +47,11 @@ const EditCoursePage = () => {
     
     try {
       await updateCourse(id, formData);
+      
+      // Invalidate relevant queries
+      queryClient.invalidateQueries({ queryKey: ['publicCourses'] });
+      queryClient.invalidateQueries({ queryKey: ['mentorCourses'] });
+      queryClient.invalidateQueries({ queryKey: ['courseDetails', id] });
       
       toast({
         title: "Curso atualizado com sucesso!",

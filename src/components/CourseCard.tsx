@@ -1,37 +1,38 @@
-
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Course } from "@/types";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { mockMentors } from "@/data/mockData";
+import { BookOpen } from "lucide-react";
 
 interface CourseCardProps {
   course: Course;
 }
 
 const CourseCard = ({ course }: CourseCardProps) => {
-  const mentor = mockMentors.find(m => m.id === course.mentorId);
-
   return (
     <Card className="h-full flex flex-col overflow-hidden transition-shadow hover:shadow-md">
       <AspectRatio ratio={16 / 9}>
-        <img 
-          src={course.imageUrl || "/placeholder.svg"} 
-          alt={course.title} 
-          className="w-full h-full object-cover"
-        />
+        {course.imageUrl ? (
+          <img 
+            src={course.imageUrl} 
+            alt={course.title} 
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full bg-muted flex items-center justify-center">
+            <BookOpen className="h-12 w-12 text-muted-foreground" />
+          </div>
+        )}
       </AspectRatio>
       <CardHeader className="pb-2">
         <CardTitle className="text-lg">{course.title}</CardTitle>
-        {mentor && (
+        {course.mentorName && (
           <div className="flex items-center space-x-2 mt-1">
-            <img 
-              src={mentor.profileImage || "/placeholder.svg"} 
-              alt={mentor.name} 
-              className="w-6 h-6 rounded-full object-cover"
-            />
-            <span className="text-sm text-gray-600">{mentor.name}</span>
+            <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
+              <BookOpen className="h-3 w-3 text-primary" />
+            </div>
+            <span className="text-sm text-gray-600">{course.mentorName}</span>
           </div>
         )}
       </CardHeader>
