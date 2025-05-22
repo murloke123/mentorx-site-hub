@@ -46,8 +46,6 @@ const CourseForm = ({
           <CardContent className="pt-6">
             <BasicInfoFields form={form} />
             <VisibilityField form={form} />
-            <div className="mb-4">
-            </div>
             <ImageField form={form} />
             <CourseTypeField 
               form={form} 
