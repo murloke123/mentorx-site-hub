@@ -1,6 +1,7 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { CourseFormData } from "@/components/mentor/course-form/FormSchema";
+import { CourseFormData, categoryMappings } from "@/components/mentor/course-form/FormSchema";
 
 export type { CourseFormData } from "@/components/mentor/course-form/FormSchema";
 
@@ -15,6 +16,7 @@ export async function createCourse(courseData: CourseFormData) {
 
     console.log("Dados do curso a serem enviados:", {
       category: courseData.category,
+      categoryUuid: courseData.category ? categoryMappings[courseData.category as keyof typeof categoryMappings] : null,
       type: courseData.type,
       price: courseData.price,
       isPublished: courseData.isPublished
@@ -23,11 +25,11 @@ export async function createCourse(courseData: CourseFormData) {
     // Now using English field names
     const courseRecord = {
       title: courseData.name,
-      description: courseData.description,
+      description: courseData.description || "",
       is_paid: courseData.type === "paid",
       price: courseData.type === "paid" ? courseData.price : null,
       image_url: courseData.image,
-      category_id: courseData.category, // Removido o || null para diagnóstico
+      category_id: courseData.category ? categoryMappings[courseData.category as keyof typeof categoryMappings] : null,
       mentor_id: user.id,
       is_public: courseData.visibility === "public",
       is_published: courseData.isPublished,
@@ -62,9 +64,13 @@ export async function updateCourse(courseId: string, courseData: CourseFormData)
       throw new Error("Usuário não autenticado");
     }
 
+    // Converter a chave da categoria para UUID
+    const categoryUuid = courseData.category ? categoryMappings[courseData.category as keyof typeof categoryMappings] : null;
+
     console.log("Dados do curso a serem atualizados:", {
       id: courseId,
       category: courseData.category,
+      categoryUuid: categoryUuid,
       type: courseData.type,
       price: courseData.price,
       isPublished: courseData.isPublished
@@ -73,11 +79,11 @@ export async function updateCourse(courseId: string, courseData: CourseFormData)
     // Now using English field names
     const courseRecord = {
       title: courseData.name,
-      description: courseData.description,
+      description: courseData.description || "",
       is_paid: courseData.type === "paid",
       price: courseData.type === "paid" ? courseData.price : null,
       image_url: courseData.image,
-      category_id: courseData.category, // Removido o || null para diagnóstico
+      category_id: categoryUuid,
       is_public: courseData.visibility === "public",
       is_published: courseData.isPublished,
       updated_at: new Date().toISOString(),
@@ -114,20 +120,32 @@ export async function getCourseById(courseId: string) {
       
     if (error) throw error;
     
+    // Encontrar a chave da categoria com base no UUID
+    let categoryKey = "";
+    if (data.category_id) {
+      // Inverter o mapeamento para encontrar a chave a partir do valor UUID
+      Object.entries(categoryMappings).forEach(([key, value]) => {
+        if (value === data.category_id) {
+          categoryKey = key;
+        }
+      });
+    }
+    
     // Convert the course data to form data format
     const courseFormData: CourseFormData = {
       name: data.title,
       description: data.description || "",
-      category: data.category_id || "", // Correctly map category_id to category
+      category: categoryKey,
       image: data.image_url || "",
       type: data.is_paid ? "paid" : "free",
       price: data.price || 0,
-      currency: "BRL", // This field needs to be filled with the actual currency
-      discount: 0, // This field needs to be filled with the actual discount
+      currency: "BRL", // Este campo precisa ser preenchido com a moeda real
+      discount: 0, // Este campo precisa ser preenchido com o desconto real
       visibility: data.is_public ? "public" : "private",
       isPublished: data.is_published || false,
     };
     
+    console.log("Dados do curso carregados:", courseFormData);
     return courseFormData;
   } catch (error) {
     console.error("Erro ao buscar curso:", error);

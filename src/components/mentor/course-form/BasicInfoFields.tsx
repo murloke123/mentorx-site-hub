@@ -59,7 +59,10 @@ const BasicInfoFields = ({ form }: BasicInfoFieldsProps) => {
           <FormItem className="mb-4">
             <FormLabel>Categoria*</FormLabel>
             <Select 
-              onValueChange={field.onChange} 
+              onValueChange={(value) => {
+                console.log("Categoria selecionada:", value);
+                field.onChange(value);
+              }}
               defaultValue={field.value}
               value={field.value}
             >
