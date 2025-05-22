@@ -43,7 +43,7 @@ const CourseForm = ({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleFormSubmit(handleFormSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
         <Card>
           <CardContent className="pt-6">
             <BasicInfoFields form={form} />
