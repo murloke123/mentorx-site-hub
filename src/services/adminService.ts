@@ -138,28 +138,28 @@ export async function getAllCourses({ signal }: { queryKey: QueryKey, signal?: A
       .from("cursos")
       .select(`
         id, 
-        titulo, 
-        descricao, 
+        title, 
+        description, 
         mentor_id,
         profiles:mentor_id (full_name),
-        eh_pago,
-        preco,
-        criado_em,
+        is_paid,
+        price,
+        created_at,
         (SELECT COUNT(*) FROM enrollments WHERE course_id = cursos.id)
       `)
-      .order("criado_em", { ascending: false });
+      .order("created_at", { ascending: false });
 
     if (error) throw error;
     
     return data.map(course => ({
       id: course.id,
-      title: course.titulo,
-      description: course.descricao,
+      title: course.title,
+      description: course.description,
       mentor_id: course.mentor_id,
       mentor_name: course.profiles?.full_name || null,
-      is_paid: course.eh_pago,
-      price: course.preco,
-      created_at: course.criado_em,
+      is_paid: course.is_paid,
+      price: course.price,
+      created_at: course.created_at,
       enrollments_count: parseInt(course[8]) || 0
     }));
   } catch (error) {

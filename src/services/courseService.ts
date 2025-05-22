@@ -14,19 +14,19 @@ export async function createCourse(courseData: CourseFormData) {
       throw new Error("Usuário não autenticado");
     }
 
-    // Mapear dados do formulário para o formato da tabela de cursos
+    // Now using English field names
     const courseRecord = {
-      titulo: courseData.name,
-      descricao: courseData.description,
-      eh_pago: courseData.type === "paid",
-      preco: courseData.type === "paid" ? courseData.price : null,
-      url_imagem: courseData.image,
+      title: courseData.name,
+      description: courseData.description,
+      is_paid: courseData.type === "paid",
+      price: courseData.type === "paid" ? courseData.price : null,
+      image_url: courseData.image,
       mentor_id: user.id,
-      eh_publico: courseData.visibility === "public",
-      foi_publicado: courseData.isPublished,
+      is_public: courseData.visibility === "public",
+      is_published: courseData.isPublished,
     };
 
-    // Inserir o curso no Supabase
+    // Insert the course using English field names
     const { data, error } = await supabase
       .from("cursos")
       .insert(courseRecord)
@@ -51,19 +51,19 @@ export async function updateCourse(courseId: string, courseData: CourseFormData)
       throw new Error("Usuário não autenticado");
     }
 
-    // Mapear dados do formulário para o formato da tabela de cursos
+    // Now using English field names
     const courseRecord = {
-      titulo: courseData.name,
-      descricao: courseData.description,
-      eh_pago: courseData.type === "paid",
-      preco: courseData.type === "paid" ? courseData.price : null,
-      url_imagem: courseData.image,
-      eh_publico: courseData.visibility === "public",
-      foi_publicado: courseData.isPublished,
-      atualizado_em: new Date().toISOString(),
+      title: courseData.name,
+      description: courseData.description,
+      is_paid: courseData.type === "paid",
+      price: courseData.type === "paid" ? courseData.price : null,
+      image_url: courseData.image,
+      is_public: courseData.visibility === "public",
+      is_published: courseData.isPublished,
+      updated_at: new Date().toISOString(),
     };
 
-    // Atualizar o curso no Supabase
+    // Update the course using English field names
     const { data, error } = await supabase
       .from("cursos")
       .update(courseRecord)
@@ -85,24 +85,24 @@ export async function getCourseById(courseId: string) {
   try {
     const { data, error } = await supabase
       .from("cursos")
-      .select("id, titulo, descricao, eh_pago, preco, url_imagem, eh_publico, foi_publicado") 
+      .select("id, title, description, is_paid, price, image_url, is_public, is_published") 
       .eq("id", courseId)
       .single();
       
     if (error) throw error;
     
-    // Converter os dados do curso para o formato do formulário
+    // Convert the course data to form data format
     const courseFormData: CourseFormData = {
-      name: data.titulo,
-      description: data.descricao || "",
-      category: "", // Este campo precisa ser preenchido com a categoria real
-      image: data.url_imagem || "",
-      type: data.eh_pago ? "paid" : "free",
-      price: data.preco || 0,
-      currency: "BRL", // Este campo precisa ser preenchido com a moeda real
-      discount: 0, // Este campo precisa ser preenchido com o desconto real
-      visibility: data.eh_publico ? "public" : "private",
-      isPublished: data.foi_publicado || false,
+      name: data.title,
+      description: data.description || "",
+      category: "", // This field needs to be filled with the actual category
+      image: data.image_url || "",
+      type: data.is_paid ? "paid" : "free",
+      price: data.price || 0,
+      currency: "BRL", // This field needs to be filled with the actual currency
+      discount: 0, // This field needs to be filled with the actual discount
+      visibility: data.is_public ? "public" : "private",
+      isPublished: data.is_published || false,
     };
     
     return courseFormData;
@@ -117,7 +117,7 @@ export async function getCourseDetails(courseId: string) {
     const { data, error } = await supabase
       .from("cursos")
       .select(`
-        id, titulo, descricao, mentor_id, eh_publico, eh_pago, preco, url_imagem, foi_publicado, criado_em, atualizado_em,
+        id, title, description, mentor_id, is_public, is_paid, price, image_url, is_published, created_at, updated_at,
         mentor:profiles(full_name, avatar_url)
       `)
       .eq("id", courseId)
@@ -149,7 +149,7 @@ export interface Course {
   mentor_name?: string;
 }
 
-// Buscar cursos do mentor
+// Get mentor courses
 export async function getMentorCourses(): Promise<Course[]> {
   try {
     const { data: { user } } = await supabase.auth.getUser();
@@ -159,7 +159,7 @@ export async function getMentorCourses(): Promise<Course[]> {
       return [];
     }
 
-    // Tentar primeiro a função RPC
+    // First try the RPC function
     try {
       console.log('[DEBUG] Supabase RPC call for getMentorCourses:', { 
         rpc: 'obter_detalhes_cursos_do_mentor',
@@ -170,82 +170,68 @@ export async function getMentorCourses(): Promise<Course[]> {
         .rpc('obter_detalhes_cursos_do_mentor', { p_mentor_id: user.id });
         
       if (error) {
-        console.error('Erro ao buscar cursos do mentor via RPC:', error);
+        console.error('Error fetching mentor courses via RPC:', error);
         throw error;
       }
       
       return data || [];
     } catch (rpcError) {
-      console.error('Exceção em getMentorCourses (RPC catch block):', rpcError);
+      console.error('Exception in getMentorCourses (RPC catch block):', rpcError);
       
-      // Fallback para consulta direta se a RPC falhar
+      // Fallback to direct query if RPC fails
       const { data, error } = await supabase
         .from("cursos")
         .select(`
           id, 
-          titulo, 
-          descricao, 
+          title, 
+          description, 
           mentor_id,
-          eh_publico, 
-          eh_pago, 
-          preco, 
-          url_imagem, 
-          foi_publicado, 
-          criado_em, 
-          atualizado_em,
+          is_public, 
+          is_paid, 
+          price, 
+          image_url, 
+          is_published, 
+          created_at, 
+          updated_at,
           enrollments(count)
         `)
         .eq("mentor_id", user.id)
-        .order("criado_em", { ascending: false });
+        .order("created_at", { ascending: false });
 
       if (error) {
-        console.error('Erro ao buscar cursos do mentor:', error);
+        console.error('Error fetching mentor courses:', error);
         throw error;
       }
       
-      // Map response to our Course interface
-      return (data || []).map(item => ({
-        id: item.id,
-        title: item.titulo,
-        description: item.descricao,
-        mentor_id: item.mentor_id,
-        is_public: item.eh_publico,
-        is_paid: item.eh_pago,
-        price: item.preco,
-        image_url: item.url_imagem,
-        is_published: item.foi_publicado || false,
-        enrollments: item.enrollments ? [{ count: item.enrollments.length }] : [],
-        created_at: item.criado_em,
-        updated_at: item.atualizado_em
-      }));
+      return data || [];
     }
   } catch (error) {
-    console.error('Exceção em getMentorCourses:', error);
+    console.error('Exception in getMentorCourses:', error);
     return [];
   }
 }
 
-// Buscar cursos públicos
+// Get public courses
 export async function getPublicCourses(): Promise<Course[]> {
   try {
     const { data: coursesData, error } = await supabase
       .from('cursos')
       .select(`
         id,
-        titulo, 
-        descricao,
+        title, 
+        description,
         mentor_id,
-        eh_pago,
-        eh_publico,
-        preco,
-        url_imagem,
-        foi_publicado,
-        criado_em,
+        is_paid,
+        is_public,
+        price,
+        image_url,
+        is_published,
+        created_at,
         profiles:mentor_id (full_name)
       `)
-      .eq('eh_publico', true)
-      .eq('foi_publicado', true)
-      .order('criado_em', { ascending: false });
+      .eq('is_public', true)
+      .eq('is_published', true)
+      .order('created_at', { ascending: false });
 
     if (error) throw error;
     
@@ -253,18 +239,18 @@ export async function getPublicCourses(): Promise<Course[]> {
     
     return (coursesData || []).map(data => ({
       id: data.id,
-      title: data.titulo,
-      description: data.descricao || "",
+      title: data.title,
+      description: data.description || "",
       mentor_id: data.mentor_id,
       mentor_name: data.profiles?.full_name,
-      is_public: data.eh_publico,
-      is_paid: data.eh_pago,
-      price: data.preco || 0,
-      image_url: data.url_imagem || undefined,
-      is_published: data.foi_publicado || false
+      is_public: data.is_public,
+      is_paid: data.is_paid,
+      price: data.price || 0,
+      image_url: data.image_url || undefined,
+      is_published: data.is_published || false
     }));
   } catch (error) {
-    console.error('Erro ao buscar cursos públicos:', error);
+    console.error('Error fetching public courses:', error);
     throw error;
   }
 }

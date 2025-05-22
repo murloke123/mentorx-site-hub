@@ -180,43 +180,43 @@ export type Database = {
       }
       cursos: {
         Row: {
-          atualizado_em: string
-          criado_em: string
-          descricao: string | null
-          eh_pago: boolean
-          eh_publico: boolean
-          foi_publicado: boolean | null
+          created_at: string
+          description: string | null
           id: string
+          image_url: string | null
+          is_paid: boolean
+          is_public: boolean
+          is_published: boolean | null
           mentor_id: string
-          preco: number | null
-          titulo: string
-          url_imagem: string | null
+          price: number | null
+          title: string
+          updated_at: string
         }
         Insert: {
-          atualizado_em?: string
-          criado_em?: string
-          descricao?: string | null
-          eh_pago?: boolean
-          eh_publico?: boolean
-          foi_publicado?: boolean | null
+          created_at?: string
+          description?: string | null
           id?: string
+          image_url?: string | null
+          is_paid?: boolean
+          is_public?: boolean
+          is_published?: boolean | null
           mentor_id: string
-          preco?: number | null
-          titulo: string
-          url_imagem?: string | null
+          price?: number | null
+          title: string
+          updated_at?: string
         }
         Update: {
-          atualizado_em?: string
-          criado_em?: string
-          descricao?: string | null
-          eh_pago?: boolean
-          eh_publico?: boolean
-          foi_publicado?: boolean | null
+          created_at?: string
+          description?: string | null
           id?: string
+          image_url?: string | null
+          is_paid?: boolean
+          is_public?: boolean
+          is_published?: boolean | null
           mentor_id?: string
-          preco?: number | null
-          titulo?: string
-          url_imagem?: string | null
+          price?: number | null
+          title?: string
+          updated_at?: string
         }
         Relationships: [
           {

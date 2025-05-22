@@ -49,24 +49,24 @@ export async function getMentorCourses(): Promise<MentorCourse[]> {
     
     if (!user) throw new Error("Not authenticated");
     
-    // Use proper column selection with aliases
+    // Use proper column names that match the database
     const { data, error } = await supabase
       .from("cursos")
       .select(`
         id, 
-        titulo as title, 
-        descricao as description, 
-        eh_publico as is_public, 
-        eh_pago as is_paid, 
-        preco as price, 
-        url_imagem as image_url, 
-        criado_em as created_at, 
-        atualizado_em as updated_at, 
+        title, 
+        description, 
+        is_public, 
+        is_paid, 
+        price, 
+        image_url, 
+        created_at, 
+        updated_at, 
         mentor_id,
         enrollments(count)
       `)
       .eq("mentor_id", user.id)
-      .order("criado_em", { ascending: false });
+      .order("created_at", { ascending: false });
 
     if (error) {
       console.error("Query error:", error);
@@ -116,7 +116,7 @@ export async function getMentorModules(limit = 5): Promise<Module[]> {
         created_at, 
         updated_at, 
         ordem,
-        cursos!inner(id, titulo as title, mentor_id)
+        cursos!inner(id, title, mentor_id)
       `)
       .eq("cursos.mentor_id", user.id)
       .order("created_at", { ascending: false })
