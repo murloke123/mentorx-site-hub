@@ -24,6 +24,11 @@ import CoursePlayerPage from "@/pages/mentor/cursos/CoursePlayerPage";
 import RoutesVisualizationPage from "./pages/mentor/configuracoes/RoutesVisualizationPage";
 import DatabaseMappingPage from "./pages/mentor/configuracoes/DatabaseMappingPage";
 
+// Importar as novas páginas de perfil
+import MentorProfilePage from "@/pages/profile/MentorProfilePage";
+import MentoradoProfilePage from "@/pages/profile/MentoradoProfilePage";
+import AdminProfilePage from "@/pages/profile/AdminProfilePage";
+
 // Importar as novas páginas de administração
 import AdminDashboardPage from "@/pages/AdminDashboardPage";
 import AdminMentorsPage from "@/pages/AdminMentorsPage";
@@ -50,6 +55,7 @@ const AppContent = () => {
           
           {/* Rotas de Mentor */}
           <Route path="/mentor/dashboard" element={<MentorDashboardPage />} />
+          <Route path="/mentor/perfil" element={<MentorProfilePage />} />
           <Route path="/mentor/cursos" element={<MeusCursosPage />} />
           <Route path="/mentor/cursos/novo" element={<CreateCoursePage />} />
           <Route path="/mentor/cursos/:id/editar" element={<EditCoursePage />} />
@@ -63,6 +69,7 @@ const AppContent = () => {
           
           {/* Rotas de Mentorado */}
           <Route path="/mentorado/dashboard" element={<MentoradoDashboardPage />} />
+          <Route path="/mentorado/perfil" element={<MentoradoProfilePage />} />
           <Route path="/mentorado/cursos" element={<NotFound />} />
           <Route path="/mentorado/cursos/:id" element={<NotFound />} />
           <Route path="/mentorado/calendario" element={<NotFound />} />
@@ -70,6 +77,7 @@ const AppContent = () => {
           
           {/* Rotas de Administrador */}
           <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+          <Route path="/admin/perfil" element={<AdminProfilePage />} />
           <Route path="/admin/mentores" element={<AdminMentorsPage />} />
           <Route path="/admin/mentors" element={<AdminMentorsPage />} />
           <Route path="/admin/mentorados" element={<AdminMentoradosPage />} />

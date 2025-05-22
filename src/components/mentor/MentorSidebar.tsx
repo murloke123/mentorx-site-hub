@@ -1,12 +1,13 @@
 
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Users, Calendar, Settings, ChevronRight, ChevronLeft, LayoutDashboard, LogOut, BookOpen, GitMerge, Database } from "lucide-react";
+import { Users, Calendar, Settings, ChevronRight, ChevronLeft, LayoutDashboard, LogOut, BookOpen, GitMerge, Database, UserIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { User } from "lucide-react";
 
 const MentorSidebar = () => {
   const location = useLocation();
@@ -19,6 +20,11 @@ const MentorSidebar = () => {
       title: "Dashboard",
       icon: LayoutDashboard,
       href: "/mentor/dashboard",
+    },
+    {
+      title: "Meu Perfil",
+      icon: User,
+      href: "/mentor/perfil",
     },
     {
       title: "Meus Cursos",

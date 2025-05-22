@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { User } from "lucide-react";
 
 const MentoradoSidebar = () => {
   const location = useLocation();
@@ -19,6 +20,11 @@ const MentoradoSidebar = () => {
       title: "Dashboard",
       icon: LayoutDashboard,
       href: "/mentorado/dashboard",
+    },
+    {
+      title: "Meu Perfil",
+      icon: User,
+      href: "/mentorado/perfil",
     },
     {
       title: "Meus Cursos",

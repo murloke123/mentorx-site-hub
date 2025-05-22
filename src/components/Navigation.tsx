@@ -1,9 +1,17 @@
+
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Calendar, MessageSquare } from "lucide-react";
+import { Calendar, MessageSquare, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Navigation = () => {
   const [session, setSession] = useState(null);
@@ -90,6 +98,18 @@ const Navigation = () => {
     }
   };
   
+  const getProfileRoute = () => {
+    if (userRole === 'admin') {
+      return '/admin/perfil';
+    } else if (userRole === 'mentor') {
+      return '/mentor/perfil';
+    } else if (userRole === 'mentorado') {
+      return '/mentorado/perfil';
+    } else {
+      return '/';
+    }
+  };
+
   const handleDashboardAccess = () => {
     if (userRole === 'admin') {
       navigate('/admin/dashboard');
@@ -131,14 +151,27 @@ const Navigation = () => {
             </Link>
             
             {session ? (
-              <>
-                <Button onClick={handleDashboardAccess} variant="outline" size="sm">
-                  Meu Dashboard
-                </Button>
-                <Button onClick={handleLogout} size="sm" variant="ghost">
-                  Sair
-                </Button>
-              </>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="icon" className="rounded-full">
+                    <User className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <Link to={getProfileRoute()}>
+                    <DropdownMenuItem className="cursor-pointer">
+                      Meu Perfil
+                    </DropdownMenuItem>
+                  </Link>
+                  <DropdownMenuItem className="cursor-pointer" onClick={handleDashboardAccess}>
+                    Meu Dashboard
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="text-red-500 cursor-pointer" onClick={handleLogout}>
+                    Sair
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
               <Link to="/login">
                 <Button size="sm">Entrar</Button>

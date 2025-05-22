@@ -7,7 +7,8 @@ import {
   BookOpen, 
   BarChart2,
   Settings, 
-  LogOut
+  LogOut,
+  User
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
@@ -53,6 +54,16 @@ const AdminSidebar = () => {
           >
             <LayoutDashboard className="mr-2 h-4 w-4" />
             Dashboard
+          </Button>
+        </Link>
+        
+        <Link to="/admin/perfil">
+          <Button 
+            variant={isActive("/admin/perfil") ? "default" : "ghost"} 
+            className="w-full justify-start"
+          >
+            <User className="mr-2 h-4 w-4" />
+            Meu Perfil
           </Button>
         </Link>
         
