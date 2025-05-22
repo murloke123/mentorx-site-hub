@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -11,6 +11,29 @@ interface PricingFieldsProps {
 }
 
 const PricingFields = ({ form }: PricingFieldsProps) => {
+  // Calculamos o preço com desconto sempre que o preço ou o desconto mudar
+  const price = form.watch("price");
+  const discount = form.watch("discount");
+  const currency = form.watch("currency");
+  
+  const calculateDiscountedPrice = (price: number, discount: number): number => {
+    return price * (1 - discount / 100);
+  };
+  
+  const discountedPrice = discount > 0 ? calculateDiscountedPrice(price, discount) : price;
+  
+  // Formatando o símbolo da moeda
+  const getCurrencySymbol = (currencyCode: string): string => {
+    switch (currencyCode) {
+      case "BRL": return "R$";
+      case "USD": return "$";
+      case "EUR": return "€";
+      default: return "R$";
+    }
+  };
+  
+  const currencySymbol = getCurrencySymbol(currency);
+
   return (
     <div className="space-y-4 border-t pt-4 mt-4">
       <div className="flex flex-col sm:flex-row gap-4">
@@ -83,19 +106,20 @@ const PricingFields = ({ form }: PricingFieldsProps) => {
             </FormDescription>
             <FormMessage />
             
-            {field.value > 0 && form.watch("price") > 0 && (
-              <div className="mt-2 bg-green-50 p-2 rounded-md">
-                <p className="text-sm">
-                  <span className="line-through text-red-500">
-                    {form.watch("currency") === "BRL" ? "R$" : form.watch("currency") === "USD" ? "$" : "€"}
-                    {form.watch("price").toFixed(2)}
+            {field.value > 0 && price > 0 && (
+              <div className="mt-2 bg-green-50 p-3 rounded-md">
+                <p className="text-sm font-medium mb-1">Preço com Desconto:</p>
+                <div className="flex items-center">
+                  <span className="line-through text-red-500 mr-2">
+                    {currencySymbol}{price.toFixed(2)}
                   </span>
-                  {" → "}
                   <span className="text-green-600 font-semibold">
-                    {form.watch("currency") === "BRL" ? "R$" : form.watch("currency") === "USD" ? "$" : "€"}
-                    {(form.watch("price") * (1 - form.watch("discount") / 100)).toFixed(2)}
+                    {currencySymbol}{discountedPrice.toFixed(2)}
                   </span>
-                </p>
+                  <span className="ml-2 text-xs bg-green-100 text-green-800 px-1 py-0.5 rounded">
+                    -{field.value}%
+                  </span>
+                </div>
               </div>
             )}
           </FormItem>

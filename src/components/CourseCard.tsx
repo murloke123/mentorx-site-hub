@@ -4,7 +4,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Button } from "@/components/ui/button";
 import { Course } from "@/types";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { BookOpen } from "lucide-react";
+import { BookOpen, Percent } from "lucide-react";
 
 interface CourseCardProps {
   course: Course;
@@ -51,12 +51,14 @@ const CourseCard = ({ course }: CourseCardProps) => {
                 <span className="line-through text-red-500 text-sm">
                   R$ {course.price?.toFixed(2)}
                 </span>
-                <span className="text-green-600 font-semibold">
-                  R$ {course.discounted_price?.toFixed(2)}
-                  <span className="ml-1 text-xs bg-green-100 text-green-800 px-1 rounded">
-                    -{course.discount}%
+                <div className="flex items-center">
+                  <span className="text-green-600 font-semibold">
+                    R$ {course.discounted_price?.toFixed(2)}
                   </span>
-                </span>
+                  <span className="ml-1 text-xs bg-green-100 text-green-800 px-1 py-0.5 rounded flex items-center">
+                    <Percent className="h-3 w-3 mr-0.5" />{course.discount}%
+                  </span>
+                </div>
               </div>
             ) : (
               <span className="font-semibold">R$ {course.price?.toFixed(2)}</span>
