@@ -12,7 +12,6 @@ interface Mentor {
   avatar_url: string | null;
   bio: string | null;
   courses_count: number;
-  followers_count: number;
 }
 
 interface RecentMentorsTabProps {

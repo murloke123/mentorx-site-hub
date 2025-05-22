@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,60 +13,66 @@ interface FieldMapping {
   service?: string; // Nome do arquivo de serviço que usa este campo
 }
 
-// Dados de mapeamento das colunas - ATUALIZADOS para refletir as alterações na base de dados
+// Dados de mapeamento das colunas - CORRIGIDO E ATUALIZADO
 const fieldMappings: FieldMapping[] = [
-  // Mapeamentos para cursos
+  // Mapeamentos para CURSOS (todos já em inglês no DB Supabase)
   { table: "cursos", supabaseColumn: "id", codeReference: "id", status: "compatível", service: "courseService.ts" },
-  { table: "cursos", supabaseColumn: "titulo", codeReference: "title", status: "compatível", service: "courseService.ts" },
-  { table: "cursos", supabaseColumn: "descricao", codeReference: "description", status: "compatível", service: "courseService.ts" },
-  { table: "cursos", supabaseColumn: "eh_publico", codeReference: "is_public", status: "compatível", service: "courseService.ts" },
-  { table: "cursos", supabaseColumn: "eh_pago", codeReference: "is_paid", status: "compatível", service: "courseService.ts" },
-  { table: "cursos", supabaseColumn: "preco", codeReference: "price", status: "compatível", service: "courseService.ts" },
-  { table: "cursos", supabaseColumn: "url_imagem", codeReference: "image_url", status: "compatível", service: "courseService.ts" },
-  { table: "cursos", supabaseColumn: "foi_publicado", codeReference: "is_published", status: "compatível", service: "courseService.ts" },
-  { table: "cursos", supabaseColumn: "criado_em", codeReference: "created_at", status: "compatível", service: "courseService.ts" },
-  { table: "cursos", supabaseColumn: "atualizado_em", codeReference: "updated_at", status: "compatível", service: "courseService.ts" },
-  
-  // Mapeamentos para modulos
+  { table: "cursos", supabaseColumn: "title", codeReference: "title", status: "compatível", service: "courseService.ts" },
+  { table: "cursos", supabaseColumn: "description", codeReference: "description", status: "compatível", service: "courseService.ts" },
+  { table: "cursos", supabaseColumn: "is_public", codeReference: "is_public", status: "compatível", service: "courseService.ts" },
+  { table: "cursos", supabaseColumn: "is_paid", codeReference: "is_paid", status: "compatível", service: "courseService.ts" },
+  { table: "cursos", supabaseColumn: "price", codeReference: "price", status: "compatível", service: "courseService.ts" },
+  { table: "cursos", supabaseColumn: "image_url", codeReference: "image_url", status: "compatível", service: "courseService.ts" },
+  // Adicione is_published se existir na tabela cursos e for relevante
+  // { table: "cursos", supabaseColumn: "is_published", codeReference: "is_published", status: "compatível", service: "courseService.ts" }, 
+  { table: "cursos", supabaseColumn: "created_at", codeReference: "created_at", status: "compatível", service: "courseService.ts" },
+  { table: "cursos", supabaseColumn: "updated_at", codeReference: "updated_at", status: "compatível", service: "courseService.ts" },
+  { table: "cursos", supabaseColumn: "mentor_id", codeReference: "mentor_id", status: "compatível", service: "courseService.ts" },
+
+
+  // Mapeamentos para MODULOS (ainda com colunas em português no DB Supabase)
   { table: "modulos", supabaseColumn: "id", codeReference: "id", status: "compatível", service: "moduloService.ts" },
-  { table: "modulos", supabaseColumn: "nome_modulo", codeReference: "name", status: "compatível", service: "mentorService.ts" },
-  { table: "modulos", supabaseColumn: "descricao_modulo", codeReference: "description", status: "compatível", service: "mentorService.ts" },
-  { table: "modulos", supabaseColumn: "curso_id", codeReference: "course_id", status: "compatível", service: "mentorService.ts" },
-  { table: "modulos", supabaseColumn: "ordem", codeReference: "ordem", status: "compatível", service: "moduloService.ts" },
-  
-  // Mapeamentos para conteudos
+  { table: "modulos", supabaseColumn: "nome_modulo", codeReference: "name", status: "incompatível", service: "moduloService.ts" },
+  { table: "modulos", supabaseColumn: "descricao_modulo", codeReference: "description", status: "incompatível", service: "moduloService.ts" },
+  { table: "modulos", supabaseColumn: "curso_id", codeReference: "course_id", status: "compatível", service: "moduloService.ts" }, // curso_id já está ok
+  { table: "modulos", supabaseColumn: "ordem", codeReference: "order", status: "incompatível", service: "moduloService.ts" },
+  { table: "modulos", supabaseColumn: "created_at", codeReference: "created_at", status: "compatível", service: "moduloService.ts" },
+  { table: "modulos", supabaseColumn: "updated_at", codeReference: "updated_at", status: "compatível", service: "moduloService.ts" },
+
+  // Mapeamentos para CONTEUDOS (ainda com colunas em português no DB Supabase)
   { table: "conteudos", supabaseColumn: "id", codeReference: "id", status: "compatível", service: "conteudoService.ts" },
-  { table: "conteudos", supabaseColumn: "nome_conteudo", codeReference: "title", status: "compatível", service: "coursePlayerService.ts" },
-  { table: "conteudos", supabaseColumn: "descricao_conteudo", codeReference: "description", status: "compatível", service: "coursePlayerService.ts" },
-  { table: "conteudos", supabaseColumn: "tipo_conteudo", codeReference: "type", status: "compatível", service: "coursePlayerService.ts" },
-  { table: "conteudos", supabaseColumn: "modulo_id", codeReference: "module_id", status: "compatível", service: "coursePlayerService.ts" },
-  { table: "conteudos", supabaseColumn: "dados_conteudo", codeReference: "content", status: "compatível", service: "coursePlayerService.ts" },
-  
-  // Mapeamentos para avaliacoes
-  { table: "avaliacoes", supabaseColumn: "nota", codeReference: "rating", status: "compatível", service: "mentorService.ts" },
-  { table: "avaliacoes", supabaseColumn: "comentario", codeReference: "comment", status: "compatível", service: "mentorService.ts" },
-  { table: "avaliacoes", supabaseColumn: "usuario_id", codeReference: "user_id", status: "compatível", service: "mentorService.ts" },
-  { table: "avaliacoes", supabaseColumn: "curso_id", codeReference: "course_id", status: "compatível", service: "mentorService.ts" },
-  
-  // Mapeamentos para enrollments (antiga inscricoes)
-  { table: "enrollments", supabaseColumn: "enrolled_at", codeReference: "enrolledAt", status: "compatível", service: "menteeService.ts" },
-  { table: "enrollments", supabaseColumn: "progress", codeReference: "progress", status: "compatível", service: "menteeService.ts" },
-  { table: "enrollments", supabaseColumn: "user_id", codeReference: "user_id", status: "compatível", service: "menteeService.ts" },
-  { table: "enrollments", supabaseColumn: "course_id", codeReference: "course_id", status: "compatível", service: "menteeService.ts" },
-  
-  // Mapeamentos para conteudo_concluido
-  { table: "conteudo_concluido", supabaseColumn: "user_id", codeReference: "user_id", status: "compatível", service: "conteudo_concluido.ts" },
-  { table: "conteudo_concluido", supabaseColumn: "curso_id", codeReference: "curso_id", status: "compatível", service: "conteudo_concluido.ts" },
-  { table: "conteudo_concluido", supabaseColumn: "modulo_id", codeReference: "modulo_id", status: "compatível", service: "conteudo_concluido.ts" },
-  { table: "conteudo_concluido", supabaseColumn: "conteudo_id", codeReference: "conteudo_id", status: "compatível", service: "conteudo_concluido.ts" },
-  
-  // Exemplos de incompatibilidades que poderiam causar problemas
-  { table: "cursos", supabaseColumn: "titulo", codeReference: "tituloastitle", status: "incompatível", service: "mentorService.ts" },
-  { table: "cursos", supabaseColumn: "descricao", codeReference: "descricaoasdescription", status: "incompatível", service: "mentorService.ts" },
-  { table: "cursos", supabaseColumn: "eh_publico", codeReference: "eh_publicoasis_public", status: "incompatível", service: "adminService.ts" },
-  { table: "cursos", supabaseColumn: "eh_pago", codeReference: "eh_pagoasis_paid", status: "incompatível", service: "adminService.ts" },
-  { table: "cursos", supabaseColumn: "preco", codeReference: "precoasprice", status: "incompatível", service: "adminService.ts" },
-  { table: "modulos", supabaseColumn: "nome_modulo", codeReference: "nome_moduloasname", status: "incompatível", service: "mentorService.ts" }
+  { table: "conteudos", supabaseColumn: "nome_conteudo", codeReference: "title", status: "incompatível", service: "conteudoService.ts" },
+  { table: "conteudos", supabaseColumn: "descricao_conteudo", codeReference: "description", status: "incompatível", service: "conteudoService.ts" },
+  { table: "conteudos", supabaseColumn: "tipo_conteudo", codeReference: "type", status: "incompatível", service: "conteudoService.ts" },
+  { table: "conteudos", supabaseColumn: "dados_conteudo", codeReference: "content_data", status: "incompatível", service: "conteudoService.ts" },
+  { table: "conteudos", supabaseColumn: "modulo_id", codeReference: "module_id", status: "compatível", service: "conteudoService.ts" }, // modulo_id já está ok
+  { table: "conteudos", supabaseColumn: "ordem", codeReference: "order", status: "incompatível", service: "conteudoService.ts" },
+  { table: "conteudos", supabaseColumn: "created_at", codeReference: "created_at", status: "compatível", service: "conteudoService.ts" },
+  { table: "conteudos", supabaseColumn: "updated_at", codeReference: "updated_at", status: "compatível", service: "conteudoService.ts" },
+
+  // Mapeamentos para CONTEUDO_CONCLUIDO (colunas FK já ok, outras podem precisar de revisão)
+  { table: "conteudo_concluido", supabaseColumn: "id", codeReference: "id", status: "compatível", service: "completedContentService.ts" },
+  { table: "conteudo_concluido", supabaseColumn: "user_id", codeReference: "user_id", status: "compatível", service: "completedContentService.ts" },
+  { table: "conteudo_concluido", supabaseColumn: "curso_id", codeReference: "course_id", status: "compatível", service: "completedContentService.ts" },
+  { table: "conteudo_concluido", supabaseColumn: "modulo_id", codeReference: "module_id", status: "compatível", service: "completedContentService.ts" },
+  { table: "conteudo_concluido", supabaseColumn: "conteudo_id", codeReference: "content_id", status: "compatível", service: "completedContentService.ts" },
+  { table: "conteudo_concluido", supabaseColumn: "created_at", codeReference: "created_at", status: "compatível", service: "completedContentService.ts" },
+  { table: "conteudo_concluido", supabaseColumn: "updated_at", codeReference: "updated_at", status: "compatível", service: "completedContentService.ts" },
+
+  // Mapeamentos para ENROLLMENTS (já em inglês)
+  { table: "enrollments", supabaseColumn: "id", codeReference: "id", status: "compatível", service: "enrollmentService.ts" },
+  { table: "enrollments", supabaseColumn: "user_id", codeReference: "user_id", status: "compatível", service: "enrollmentService.ts" },
+  { table: "enrollments", supabaseColumn: "course_id", codeReference: "course_id", status: "compatível", service: "enrollmentService.ts" },
+  { table: "enrollments", supabaseColumn: "progress", codeReference: "progress", status: "compatível", service: "enrollmentService.ts" },
+  { table: "enrollments", supabaseColumn: "enrolled_at", codeReference: "enrolled_at", status: "compatível", service: "enrollmentService.ts" },
+
+  // Mapeamentos para PROFILES (já em inglês)
+  { table: "profiles", supabaseColumn: "id", codeReference: "id", status: "compatível", service: "profileService.ts" },
+  { table: "profiles", supabaseColumn: "full_name", codeReference: "full_name", status: "compatível", service: "profileService.ts" },
+  { table: "profiles", supabaseColumn: "avatar_url", codeReference: "avatar_url", status: "compatível", service: "profileService.ts" },
+  { table: "profiles", supabaseColumn: "bio", codeReference: "bio", status: "compatível", service: "profileService.ts" },
+  { table: "profiles", supabaseColumn: "role", codeReference: "role", status: "compatível", service: "profileService.ts" },
+  { table: "profiles", supabaseColumn: "updated_at", codeReference: "updated_at", status: "compatível", service: "profileService.ts" },
 ];
 
 // Agrupando por serviço para uma melhor visualização

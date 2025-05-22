@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { QueryKey } from "@tanstack/react-query";
 
@@ -35,8 +34,7 @@ export async function getAllMentors({ signal }: { queryKey: QueryKey, signal?: A
         full_name, 
         avatar_url, 
         bio,
-        (SELECT COUNT(*) FROM cursos WHERE mentor_id = profiles.id),
-        (SELECT COUNT(*) FROM mentor_followers WHERE mentor_id = profiles.id)
+        (SELECT COUNT(*) FROM cursos WHERE mentor_id = profiles.id)
       `)
       .eq("role", "mentor")
       .order("full_name", { ascending: true });
@@ -45,8 +43,7 @@ export async function getAllMentors({ signal }: { queryKey: QueryKey, signal?: A
     
     return data.map(mentor => ({
       ...mentor,
-      courses_count: parseInt(mentor[4]) || 0,
-      followers_count: parseInt(mentor[5]) || 0
+      courses_count: parseInt(mentor[4]) || 0
     }));
   } catch (error) {
     console.error("Error fetching mentors:", error);
@@ -254,5 +251,42 @@ export async function getAdminActions(limit = 10) {
   } catch (error) {
     console.error("Error fetching admin actions:", error);
     return [];
+  }
+}
+
+export async function deleteUser(userId: string) {
+  try {
+    // Check if user is admin
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) throw new Error("Not authenticated");
+    
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+      
+    if (profileError) throw profileError;
+    
+    if (profile.role !== "admin") {
+      throw new Error("Not authorized: Admin role required");
+    }
+    
+    // Delete user's profile first
+    const { error: profileDeleteError } = await supabase
+      .from("profiles")
+      .delete()
+      .eq("id", userId);
+      
+    if (profileDeleteError) throw profileDeleteError;
+
+    // Log the admin action
+    await logAdminAction("delete", "user", userId);
+    
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    throw error;
   }
 }

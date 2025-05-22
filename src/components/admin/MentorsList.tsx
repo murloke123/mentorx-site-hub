@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import {
   Card,
@@ -31,7 +30,6 @@ interface Mentor {
   avatar_url: string;
   bio: string;
   courses_count: number;
-  followers_count: number;
 }
 
 interface MentorsListProps {
@@ -137,10 +135,6 @@ const MentorsList = ({ mentors, isLoading, onDelete }: MentorsListProps) => {
                 <div className="flex items-center text-sm text-gray-500 gap-1">
                   <BookOpen className="h-3 w-3" /> 
                   <span>{mentor.courses_count} cursos</span>
-                </div>
-                <div className="flex items-center text-sm text-gray-500 gap-1">
-                  <Users className="h-3 w-3" /> 
-                  <span>{mentor.followers_count} seguidores</span>
                 </div>
               </div>
             </CardContent>

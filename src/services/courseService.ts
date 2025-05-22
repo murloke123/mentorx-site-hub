@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { CourseFormData } from "@/components/mentor/course-form/FormSchema";
@@ -196,7 +195,7 @@ export async function getMentorCourses(): Promise<Course[]> {
           enrollments(count)
         `)
         .eq("mentor_id", user.id)
-        .order("created_at", { ascending: false });
+        .order("updated_at", { ascending: false });
 
       if (error) {
         console.error('Error fetching mentor courses:', error);
@@ -270,6 +269,33 @@ export async function deleteCourse(courseId: string) {
     return true;
   } catch (error) {
     console.error("Erro ao deletar curso:", error);
+    throw error;
+  }
+}
+
+export async function updateCoursePublicationStatus(courseId: string, isPublished: boolean) {
+  try {
+    // Get current user ID
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) throw new Error("Not authenticated");
+
+    const { data, error } = await supabase
+      .from("cursos")
+      .update({ 
+        is_published: isPublished,
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", courseId)
+      .eq("mentor_id", user.id) // Ensure only the mentor can update their course
+      .select()
+      .single();
+
+    if (error) throw error;
+    
+    return data;
+  } catch (error) {
+    console.error("Error updating course publication status:", error);
     throw error;
   }
 }

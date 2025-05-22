@@ -1,47 +1,46 @@
-
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "lucide-react";
-import { User } from "@/types";
+import { type Mentor } from "@/services/mentorService";
 
 interface MentorCardProps {
-  mentor: User;
+  mentor: Mentor;
 }
 
-const MentorCard = ({ mentor }: MentorCardProps) => {
+const MentorCard: React.FC<MentorCardProps> = ({ mentor }) => {
   return (
-    <Card className="h-full flex flex-col overflow-hidden transition-shadow hover:shadow-md">
-      <CardHeader className="flex justify-center">
-        <div className="h-24 w-24 rounded-full overflow-hidden border-2 border-gray-200">
-          <img 
-            src={mentor.profileImage || "/placeholder.svg"} 
-            alt={mentor.name} 
-            className="w-full h-full object-cover"
-          />
+    <Card className="flex flex-col h-full">
+      <CardHeader>
+        <div className="flex items-center gap-4">
+          {mentor.avatar_url ? (
+            <img
+              src={mentor.avatar_url}
+              alt={mentor.full_name}
+              className="w-16 h-16 rounded-full object-cover"
+            />
+          ) : (
+            <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center">
+              <Calendar className="w-8 h-8 text-gray-400" />
+            </div>
+          )}
+          <div>
+            <h3 className="text-lg font-semibold">{mentor.full_name}</h3>
+            <p className="text-sm text-gray-500">{mentor.courses_count} cursos</p>
+          </div>
         </div>
       </CardHeader>
-      <CardContent className="text-center flex-grow pb-2">
-        <h3 className="text-lg font-medium mb-1">{mentor.name}</h3>
-        {mentor.areas && mentor.areas.length > 0 && (
-          <div className="flex flex-wrap justify-center gap-1 mb-3">
-            {mentor.areas.map((area, index) => (
-              <span key={index} className="px-2 py-1 bg-gray-100 text-xs rounded-full">
-                {area}
-              </span>
-            ))}
-          </div>
-        )}
-        <p className="text-sm text-gray-600 line-clamp-3">{mentor.bio}</p>
+      
+      <CardContent className="flex-grow">
+        <p className="text-gray-600 line-clamp-3">
+          {mentor.bio || "Este mentor ainda não adicionou uma biografia."}
+        </p>
       </CardContent>
-      <CardFooter className="pt-2 flex gap-2 justify-center">
-        <Link to={`/mentors/${mentor.id}`}>
-          <Button variant="outline" size="sm">Ver Perfil</Button>
-        </Link>
-        <Link to={`/schedule/${mentor.id}`}>
-          <Button size="sm" className="flex items-center gap-1">
-            <Calendar className="h-4 w-4" />
-            Agendar
+      
+      <CardFooter>
+        <Link to={`/mentors/${mentor.id}`} className="w-full">
+          <Button variant="outline" className="w-full">
+            Ver perfil
           </Button>
         </Link>
       </CardFooter>

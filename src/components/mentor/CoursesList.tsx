@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -12,6 +11,9 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Course } from "@/types";
+import { updateCoursePublicationStatus } from "@/services/courseService";
+import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface CoursesListProps {
   courses: Course[];
@@ -23,7 +25,10 @@ const CoursesList = ({ courses, isLoading, totalEnrollments }: CoursesListProps)
   const [searchQuery, setSearchQuery] = useState('');
   const [visibilityFilter, setVisibilityFilter] = useState<string | null>(null);
   const [imageLoadErrors, setImageLoadErrors] = useState<Set<string>>(new Set());
+  const [isUpdating, setIsUpdating] = useState<Set<string>>(new Set());
+  const { toast } = useToast();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   // Filtrar cursos com base na busca e filtro de visibilidade
   const filteredCourses = courses.filter(course => {
@@ -68,12 +73,31 @@ const CoursesList = ({ courses, isLoading, totalEnrollments }: CoursesListProps)
   };
 
   const handlePublishChange = async (courseId: string, newStatus: boolean) => {
-    // TODO: Implementar a chamada ao backend para atualizar o status de publicação do curso
-    // Exemplo: await updateCoursePublicationStatus(courseId, newStatus);
-    console.log(`Curso ${courseId} mudou status de publicação para: ${newStatus}`);
-    // Você precisará invalidar o query relevante ou atualizar o estado local aqui
-    // para refletir a mudança na UI imediatamente.
-    // Ex: queryClient.invalidateQueries(['mentorCourses', userId]);
+    try {
+      setIsUpdating(prev => new Set([...prev, courseId]));
+      await updateCoursePublicationStatus(courseId, newStatus);
+      
+      toast({
+        title: newStatus ? "Curso publicado" : "Curso despublicado",
+        description: `O curso foi ${newStatus ? "publicado" : "despublicado"} com sucesso.`,
+      });
+
+      // Invalidate the query to refresh the courses list
+      queryClient.invalidateQueries({ queryKey: ['mentorCourses'] });
+    } catch (error) {
+      console.error('Error updating course publication status:', error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao atualizar status",
+        description: "Não foi possível atualizar o status de publicação do curso.",
+      });
+    } finally {
+      setIsUpdating(prev => {
+        const next = new Set(prev);
+        next.delete(courseId);
+        return next;
+      });
+    }
   };
 
   if (isLoading) {
@@ -179,13 +203,15 @@ const CoursesList = ({ courses, isLoading, totalEnrollments }: CoursesListProps)
                     <Button 
                       variant="outline" 
                       onClick={() => handleViewCourse(course.id)}
-                      className="h-auto py-2 px-4"
+                      className="h-auto py-2 px-3"
+                      size="sm"
                     >
-                      <Eye className="mr-3 h-[30px] w-[30px] flex-shrink-0" /> Ver Curso
+                      <Eye className="mr-2 h-4 w-4" /> Ver Curso
                     </Button>
                     <Button 
                       variant="default" 
-                      asChild 
+                      asChild
+                      size="sm"
                     >
                       <Link to={`/mentor/cursos/${course.id}/editar`}>
                         <Edit2 className="mr-2 h-4 w-4" /> Editar
@@ -201,40 +227,37 @@ const CoursesList = ({ courses, isLoading, totalEnrollments }: CoursesListProps)
                     <span className="text-sm font-medium">{course.enrollments?.[0]?.count || 0}</span>
                   </div>
                   <Progress 
-                    value={(course.enrollments?.[0]?.count || 0)} // TODO: This progress seems to be using enrollment count, maybe it should be course completion?
+                    value={(course.enrollments?.[0]?.count || 0)}
                     className="w-full h-2" 
                   />
                 </div>
               </CardContent>
-              <CardFooter className="flex-col items-start gap-4 pt-4 border-t">
-                <div>
-                  <Label htmlFor={`publish-status-${course.id}`} className="text-sm font-medium mb-2 block">Status da Publicação:</Label>
-                  <RadioGroup
-                    defaultValue={course.is_published ? "publicado" : "nao-publicado"}
-                    onValueChange={(value) => handlePublishChange(course.id, value === "publicado")}
-                    className="flex items-center space-x-4"
-                    id={`publish-status-${course.id}`}
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="publicado" id={`publish-${course.id}-public`} />
-                      <Label htmlFor={`publish-${course.id}-public`}>Publicado</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="nao-publicado" id={`publish-${course.id}-private`} />
-                      <Label htmlFor={`publish-${course.id}-private`}>Não Publicado</Label>
-                    </div>
-                  </RadioGroup>
+              <CardFooter className="flex-col items-start gap-3 pt-4 border-t">
+                <div className="flex items-center space-x-2 w-full">
+                  <Switch
+                    id={`publish-switch-${course.id}`}
+                    checked={course.is_published}
+                    onCheckedChange={(isChecked) => handlePublishChange(course.id, isChecked)}
+                    disabled={isUpdating.has(course.id)}
+                  />
+                  <Label htmlFor={`publish-switch-${course.id}`} className="flex-grow cursor-pointer">
+                    {isUpdating.has(course.id) ? (
+                      <span className="text-muted-foreground">Atualizando...</span>
+                    ) : (
+                      course.is_published ? "Publicado" : "Não Publicado"
+                    )}
+                  </Label>
                 </div>
-                 <div className="flex items-center space-x-2">
-                   <Switch
-                     id={`publish-switch-${course.id}`}
-                     checked={course.is_published}
-                     onCheckedChange={(isChecked) => handlePublishChange(course.id, isChecked)}
-                   />
-                   <Label htmlFor={`publish-switch-${course.id}`}>
-                     {course.is_published ? "Publicado" : "Não Publicado"}
-                   </Label>
-                 </div>
+                <Button 
+                  variant="outline" 
+                  className="w-full" 
+                  asChild 
+                  size="sm"
+                >
+                  <Link to={`/mentor/cursos/${course.id}/modulos`}>
+                    <Layers className="mr-2 h-4 w-4" /> Gerenciar Módulos e Conteúdos
+                  </Link>
+                </Button>
               </CardFooter>
             </Card>
           );

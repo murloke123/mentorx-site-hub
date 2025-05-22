@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
@@ -214,6 +213,44 @@ export async function getEnrollmentStats(periodDays = 30): Promise<EnrollmentDat
       description: "Enrollment statistics could not be loaded.",
       variant: "destructive",
     });
+    return [];
+  }
+}
+
+export interface Mentor {
+  id: string;
+  full_name: string;
+  avatar_url: string | null;
+  bio: string | null;
+  courses_count: number;
+}
+
+export async function getFeaturedMentors(): Promise<Mentor[]> {
+  try {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select(`
+        id,
+        full_name,
+        avatar_url,
+        bio,
+        courses:cursos(count)
+      `)
+      .eq("role", "mentor")
+      .order("updated_at", { ascending: false })
+      .limit(3);
+
+    if (error) throw error;
+
+    return (data || []).map(mentor => ({
+      id: mentor.id,
+      full_name: mentor.full_name,
+      avatar_url: mentor.avatar_url,
+      bio: mentor.bio,
+      courses_count: mentor.courses?.[0]?.count || 0
+    }));
+  } catch (error) {
+    console.error("Error fetching featured mentors:", error);
     return [];
   }
 }
