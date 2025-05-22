@@ -11,6 +11,9 @@ interface CourseCardProps {
 }
 
 const CourseCard = ({ course }: CourseCardProps) => {
+  // Calculate if there's a discount
+  const hasDiscount = course.discount && course.discount > 0 && course.price && course.price > 0;
+
   return (
     <Card className="h-full flex flex-col overflow-hidden transition-shadow hover:shadow-md">
       <AspectRatio ratio={16 / 9}>
@@ -42,8 +45,22 @@ const CourseCard = ({ course }: CourseCardProps) => {
       </CardContent>
       <CardFooter className="pt-2 flex justify-between items-center">
         <div>
-          {course.price && course.price > 0 ? (
-            <span className="font-semibold">R$ {course.price.toFixed(2)}</span>
+          {course.is_paid ? (
+            hasDiscount ? (
+              <div className="flex flex-col">
+                <span className="line-through text-red-500 text-sm">
+                  R$ {course.price?.toFixed(2)}
+                </span>
+                <span className="text-green-600 font-semibold">
+                  R$ {course.discounted_price?.toFixed(2)}
+                  <span className="ml-1 text-xs bg-green-100 text-green-800 px-1 rounded">
+                    -{course.discount}%
+                  </span>
+                </span>
+              </div>
+            ) : (
+              <span className="font-semibold">R$ {course.price?.toFixed(2)}</span>
+            )
           ) : (
             <span className="text-green-600 font-semibold">Grátis</span>
           )}

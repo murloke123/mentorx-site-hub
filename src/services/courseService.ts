@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { CourseFormData } from "@/components/mentor/course-form/FormSchema";
@@ -17,6 +18,7 @@ export async function createCourse(courseData: CourseFormData) {
       category: courseData.category,
       type: courseData.type,
       price: courseData.price,
+      discount: courseData.discount,
       isPublished: courseData.isPublished
     });
 
@@ -26,6 +28,7 @@ export async function createCourse(courseData: CourseFormData) {
       description: courseData.description || "",
       is_paid: courseData.type === "paid",
       price: courseData.type === "paid" ? courseData.price : null,
+      discount: courseData.discount || 0,
       image_url: courseData.image,
       category: courseData.category, // Usando o campo category diretamente
       mentor_id: user.id,
@@ -67,6 +70,7 @@ export async function updateCourse(courseId: string, courseData: CourseFormData)
       category: courseData.category,
       type: courseData.type,
       price: courseData.price,
+      discount: courseData.discount,
       isPublished: courseData.isPublished
     });
 
@@ -76,6 +80,7 @@ export async function updateCourse(courseId: string, courseData: CourseFormData)
       description: courseData.description || "",
       is_paid: courseData.type === "paid",
       price: courseData.type === "paid" ? courseData.price : null,
+      discount: courseData.discount || 0,
       image_url: courseData.image,
       category: courseData.category, // Usando o campo category diretamente
       is_public: courseData.visibility === "public",
@@ -108,7 +113,7 @@ export async function getCourseById(courseId: string) {
   try {
     const { data, error } = await supabase
       .from("cursos")
-      .select("id, title, description, is_paid, price, image_url, is_public, is_published, category") 
+      .select("id, title, description, is_paid, price, discount, image_url, is_public, is_published, category") 
       .eq("id", courseId)
       .single();
       
@@ -122,8 +127,8 @@ export async function getCourseById(courseId: string) {
       image: data.image_url || "",
       type: data.is_paid ? "paid" : "free",
       price: data.price || 0,
-      currency: "BRL", // Este campo precisa ser preenchido com a moeda real
-      discount: 0, // Este campo precisa ser preenchido com o desconto real
+      currency: "BRL", 
+      discount: data.discount || 0,
       visibility: data.is_public ? "public" : "private",
       isPublished: data.is_published || false,
     };
@@ -163,6 +168,8 @@ export interface Course {
   is_public: boolean;
   is_paid: boolean;
   price?: number | null;
+  discount?: number | null;
+  discounted_price?: number | null;
   image_url?: string | null;
   is_published?: boolean;
   enrollments?: { count: number }[];
@@ -248,6 +255,8 @@ export async function getPublicCourses(): Promise<Course[]> {
         is_paid,
         is_public,
         price,
+        discount,
+        discounted_price,
         image_url,
         is_published,
         created_at,
@@ -270,6 +279,8 @@ export async function getPublicCourses(): Promise<Course[]> {
       is_public: data.is_public,
       is_paid: data.is_paid,
       price: data.price || 0,
+      discount: data.discount || 0,
+      discounted_price: data.discounted_price || data.price || 0,
       image_url: data.image_url || undefined,
       is_published: data.is_published || false
     }));

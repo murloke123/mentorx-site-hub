@@ -1,4 +1,3 @@
-
 export interface User {
   id: string;
   name: string;
@@ -14,15 +13,17 @@ export interface Course {
   title: string;
   description?: string | null;
   mentor_id: string;
-  mentor_name?: string;
   is_public: boolean;
   is_paid: boolean;
   price?: number | null;
+  discount?: number | null;
+  discounted_price?: number | null;
   image_url?: string | null;
   is_published?: boolean;
-  enrollments?: { count: number }[];
   created_at?: string;
   updated_at?: string;
+  mentor_name?: string;
+  enrollments?: { count: number }[];
 }
 
 export interface Material {
