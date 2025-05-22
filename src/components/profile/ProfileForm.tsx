@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/form";
 import { Camera, User as UserIcon } from "lucide-react";
 import { uploadImage } from "@/utils/uploadImage";
+import { Spinner } from "@/components/ui/spinner";
 
 interface ProfileData {
   id: string;
@@ -52,6 +53,22 @@ const ProfileForm = ({ user, profileData, onProfileUpdate }: ProfileFormProps) =
     profileData?.avatar_url
   );
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [currentAvatarPath, setCurrentAvatarPath] = useState<string | null>(null);
+
+  // Extract path from URL
+  const extractPathFromUrl = (url: string | null): string | null => {
+    if (!url) return null;
+    const urlParts = url.split('/');
+    return urlParts[urlParts.length - 1].split('?')[0]; // Get filename and remove query params
+  };
+
+  // Initialize currentAvatarPath from profileData
+  React.useEffect(() => {
+    if (profileData?.avatar_url) {
+      setCurrentAvatarPath(extractPathFromUrl(profileData.avatar_url));
+    }
+  }, [profileData]);
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
@@ -62,15 +79,42 @@ const ProfileForm = ({ user, profileData, onProfileUpdate }: ProfileFormProps) =
     },
   });
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
     if (file) {
       setAvatarFile(file);
-      const fileReader = new FileReader();
-      fileReader.onload = (e) => {
-        setAvatarUrl(e.target?.result as string);
-      };
-      fileReader.readAsDataURL(file);
+      
+      // Create a preview immediately for better UX
+      const objectUrl = URL.createObjectURL(file);
+      setAvatarUrl(objectUrl);
+      
+      // Start upload in background
+      setIsUploading(true);
+      
+      try {
+        // Upload new avatar, replacing the existing one if there is a path
+        const result = await uploadImage(file, 'avatars', currentAvatarPath);
+        
+        // Update avatar URL with the new one from storage
+        setAvatarUrl(result.url);
+        setCurrentAvatarPath(result.path);
+        
+        // Clean up the temporary object URL
+        URL.revokeObjectURL(objectUrl);
+      } catch (error) {
+        console.error("Error uploading avatar:", error);
+        
+        // Reset preview if upload fails
+        setAvatarUrl(profileData?.avatar_url || null);
+        
+        toast({
+          variant: "destructive",
+          title: "Erro ao fazer upload da imagem",
+          description: "Verifique se o bucket 'avatars' existe no Supabase.",
+        });
+      } finally {
+        setIsUploading(false);
+      }
     }
   };
 
@@ -80,32 +124,14 @@ const ProfileForm = ({ user, profileData, onProfileUpdate }: ProfileFormProps) =
     setIsLoading(true);
 
     try {
-      let newAvatarUrl = avatarUrl;
-
-      // Upload new avatar if selected
-      if (avatarFile) {
-        // Extract existing path from URL if exists
-        let existingPath = null;
-        if (profileData?.avatar_url) {
-          const urlParts = profileData.avatar_url.split('/');
-          existingPath = urlParts[urlParts.length - 1]; // Get the filename
-        }
-        
-        // Upload with the existing path to replace the file
-        const uploadResult = await uploadImage(avatarFile, 'avatars', existingPath);
-        if (uploadResult.url) {
-          newAvatarUrl = uploadResult.url;
-        }
-      }
-
-      // Update profile
+      // Update profile with new data and avatar URL
       const { error } = await supabase
         .from("profiles")
         .update({
           full_name: data.full_name,
           bio: data.bio,
           phone: data.phone,
-          avatar_url: newAvatarUrl,
+          avatar_url: avatarUrl,
         })
         .eq("id", user.id);
 
@@ -141,11 +167,19 @@ const ProfileForm = ({ user, profileData, onProfileUpdate }: ProfileFormProps) =
           <div className="relative mb-4">
             <div className="w-32 h-32 rounded-full overflow-hidden border-2 border-primary/20 flex items-center justify-center bg-muted">
               {avatarUrl ? (
-                <img
-                  src={avatarUrl}
-                  alt="Avatar"
-                  className="w-full h-full object-cover"
-                />
+                <div className="relative w-full h-full">
+                  <img
+                    src={avatarUrl}
+                    alt="Avatar"
+                    className="w-full h-full object-cover"
+                    key={`avatar-${Date.now()}`} // Force re-render of image
+                  />
+                  {isUploading && (
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                      <Spinner className="h-8 w-8 text-white" />
+                    </div>
+                  )}
+                </div>
               ) : (
                 <UserIcon className="h-16 w-16 text-muted-foreground" />
               )}
@@ -162,6 +196,7 @@ const ProfileForm = ({ user, profileData, onProfileUpdate }: ProfileFormProps) =
               accept="image/*"
               onChange={handleFileChange}
               className="hidden"
+              disabled={isUploading}
             />
           </div>
           
@@ -231,7 +266,7 @@ const ProfileForm = ({ user, profileData, onProfileUpdate }: ProfileFormProps) =
             />
 
             <div className="flex justify-end">
-              <Button type="submit" disabled={isLoading}>
+              <Button type="submit" disabled={isLoading || isUploading}>
                 {isLoading ? "Salvando..." : "Salvar Alterações"}
               </Button>
             </div>

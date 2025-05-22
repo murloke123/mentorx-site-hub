@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createCourse } from '@/services/courseService';
@@ -11,6 +10,21 @@ const CreateCoursePage = () => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Fix the default values to match CourseFormData requirements
+  const defaultValues: CourseFormData = {
+    title: "",
+    name: "", // Adding this required field
+    description: "",
+    category: "",
+    image: "",
+    type: "free",
+    price: 0,
+    discount: 0,
+    currency: "BRL",
+    visibility: "public",
+    isPublished: false
+  };
 
   const handleSubmit = async (formData: CourseFormData) => {
     try {
@@ -56,18 +70,7 @@ const CreateCoursePage = () => {
             onSubmit={handleSubmit}
             onCancel={handleCancel}
             isSubmitting={isSubmitting}
-            initialValues={{
-              name: '',
-              description: '',
-              category: '',
-              image: '',
-              type: 'free',
-              price: 0,
-              currency: 'BRL',
-              discount: 0,
-              visibility: 'public',
-              isPublished: false
-            }}
+            initialValues={defaultValues}
           />
         </div>
       </div>
