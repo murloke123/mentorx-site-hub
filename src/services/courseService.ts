@@ -1,6 +1,23 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { Course } from "@/types";
+
+export interface Course {
+  id: string;
+  title: string;
+  description?: string | null;
+  mentor_id: string;
+  is_public: boolean;
+  is_paid: boolean;
+  price?: number | null;
+  discount?: number | null;
+  discounted_price?: number | null;
+  image_url?: string | null;
+  is_published?: boolean;
+  created_at?: string;
+  updated_at?: string;
+  mentor_name?: string;
+  enrollments?: { count: number }[];
+}
 
 export interface CourseFormData {
   name: string;
@@ -162,8 +179,17 @@ export async function getPublicCourses() {
   }
 }
 
-export async function getMentorCourses(mentorId: string) {
+export async function getMentorCourses(mentorId?: string) {
   try {
+    // Obter usuário atual se mentorId não for fornecido
+    if (!mentorId) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error("Usuário não autenticado");
+      }
+      mentorId = user.id;
+    }
+
     let { data, error } = await supabase
       .from('cursos')
       .select(`

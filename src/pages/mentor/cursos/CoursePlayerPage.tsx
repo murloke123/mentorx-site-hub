@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getCourseDetailsForPlayer, markConteudoConcluido, markConteudoIncompleto } from '@/services/coursePlayerService';
@@ -176,6 +177,9 @@ const CoursePlayerPage = () => {
       });
     }
   };
+
+  const hasNextContent = findNextContent() !== null;
+  const hasPreviousContent = findPreviousContent() !== null;
   
   if (loading) return <div className="flex justify-center items-center h-screen"><p>Carregando curso...</p></div>;
   if (error) return <div className="flex justify-center items-center h-screen text-red-500"><p>{error}</p></div>;
@@ -202,6 +206,10 @@ const CoursePlayerPage = () => {
           onConteudoSelect={handleConteudoSelection}
           onToggleConteudoConcluido={handleToggleConteudoConcluido}
           progress={progress}
+          onPreviousContent={handlePreviousContent}
+          onNextContent={handleNextContent}
+          hasPreviousContent={hasPreviousContent}
+          hasNextContent={hasNextContent}
         />
       </div>
     </div>

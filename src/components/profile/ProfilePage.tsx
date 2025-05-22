@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { User } from "@/types";
 import { Spinner } from "@/components/ui/spinner";
 import ProfileForm from "@/components/profile/ProfileForm";
 
@@ -10,7 +9,7 @@ interface ProfilePageProps {
 }
 
 const ProfilePage = ({ userRole }: ProfilePageProps) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<any | null>(null);
   const [profileData, setProfileData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -50,7 +49,7 @@ const ProfilePage = ({ userRole }: ProfilePageProps) => {
         if (error) throw error;
         
         if (session?.user) {
-          setUser(session.user as User);
+          setUser(session.user);
           await fetchProfileData(session.user.id);
         } else {
           setLoading(false);
@@ -69,7 +68,7 @@ const ProfilePage = ({ userRole }: ProfilePageProps) => {
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[60vh]">
-        <Spinner size="lg" />
+        <Spinner />
       </div>
     );
   }

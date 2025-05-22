@@ -55,7 +55,7 @@ const MeusCursosPage = () => {
     queryKey: ['mentorCourses', userId],
     queryFn: () => {
       if (!userId) return Promise.resolve([]);
-      return getMentorCourses();
+      return getMentorCourses(userId);
     },
     enabled: !!userId && !isAuthLoading,
     staleTime: 1000 * 60 * 1,

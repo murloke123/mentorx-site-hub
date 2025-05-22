@@ -1,3 +1,4 @@
+
 export interface ConteudoItemLocal {
   id: string;
   nome_conteudo: string;
@@ -32,5 +33,8 @@ export interface CursoItemLocal {
   description?: string;
   image_url?: string;
   mentor_id: string;
+  is_public?: boolean;
+  is_paid?: boolean;
+  price?: number;
   modulos: ModuloItemLocal[];
 }

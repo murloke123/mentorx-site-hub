@@ -1,33 +1,45 @@
+
 import { supabase } from "@/integrations/supabase/client";
+import { v4 as uuidv4 } from 'uuid';
 
-export async function uploadCourseImage(file: File): Promise<string> {
+export async function uploadImage(file: File, bucket: string = 'avatars') {
   try {
-    // Generate a unique file name
     const fileExt = file.name.split('.').pop();
-    const fileName = `${Math.random()}.${fileExt}`;
-    const filePath = `imgCapaCursos/${fileName}`;
-
-    // Upload the file to Supabase storage
-    const { error: uploadError } = await supabase.storage
-      .from('mentorxbucket')
+    const fileName = `${uuidv4()}.${fileExt}`;
+    const filePath = `${fileName}`;
+    
+    const { data, error } = await supabase
+      .storage
+      .from(bucket)
       .upload(filePath, file);
-
-    if (uploadError) {
-      throw uploadError;
-    }
-
-    // Get the public URL of the uploaded file
-    const { data: publicUrlData } = supabase.storage
-      .from('mentorxbucket')
+      
+    if (error) throw error;
+    
+    // Get public URL
+    const { data: urlData } = await supabase
+      .storage
+      .from(bucket)
       .getPublicUrl(filePath);
-
-    if (!publicUrlData.publicUrl) {
-      throw new Error('Failed to get public URL for uploaded image');
-    }
-
-    return publicUrlData.publicUrl;
+      
+    return { url: urlData.publicUrl, path: filePath };
   } catch (error) {
     console.error('Error uploading image:', error);
     throw error;
   }
-} 
+}
+
+export async function removeImage(path: string, bucket: string = 'avatars') {
+  try {
+    const { error } = await supabase
+      .storage
+      .from(bucket)
+      .remove([path]);
+      
+    if (error) throw error;
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Error removing image:', error);
+    throw error;
+  }
+}
