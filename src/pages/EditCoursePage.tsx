@@ -94,7 +94,7 @@ const EditCoursePage = () => {
         ) : courseData ? (
           <CourseForm 
             mode="edit"
-            initialData={courseData}
+            initialValues={courseData}
             onSubmit={handleSubmit}
             onCancel={handleCancel}
             isSubmitting={isSubmitting}
