@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { QueryKey } from "@tanstack/react-query";
 
@@ -34,7 +35,7 @@ export async function getAllMentors({ signal }: { queryKey: QueryKey, signal?: A
         full_name, 
         avatar_url, 
         bio,
-        (SELECT COUNT(*) FROM cursos WHERE mentor_id = profiles.id)
+        (SELECT COUNT(*) FROM cursos WHERE mentor_id = profiles.id) as courses_count
       `)
       .eq("role", "mentor")
       .order("full_name", { ascending: true });
@@ -42,8 +43,11 @@ export async function getAllMentors({ signal }: { queryKey: QueryKey, signal?: A
     if (error) throw error;
     
     return data.map(mentor => ({
-      ...mentor,
-      courses_count: parseInt(mentor[4]) || 0
+      id: mentor.id,
+      full_name: mentor.full_name,
+      avatar_url: mentor.avatar_url,
+      bio: mentor.bio,
+      courses_count: mentor.courses_count || 0
     }));
   } catch (error) {
     console.error("Error fetching mentors:", error);
@@ -61,7 +65,7 @@ export async function getAllMentorados({ signal }: { queryKey: QueryKey, signal?
         full_name, 
         avatar_url, 
         bio,
-        (SELECT COUNT(*) FROM enrollments WHERE user_id = profiles.id)
+        (SELECT COUNT(*) FROM enrollments WHERE user_id = profiles.id) as enrollments_count
       `)
       .eq("role", "mentorado")
       .order("full_name", { ascending: true });
@@ -69,8 +73,11 @@ export async function getAllMentorados({ signal }: { queryKey: QueryKey, signal?
     if (error) throw error;
     
     return data.map(mentorado => ({
-      ...mentorado,
-      enrollments_count: parseInt(mentorado[4]) || 0
+      id: mentorado.id,
+      full_name: mentorado.full_name,
+      avatar_url: mentorado.avatar_url,
+      bio: mentorado.bio,
+      enrollments_count: mentorado.enrollments_count || 0
     }));
   } catch (error) {
     console.error("Error fetching mentorados:", error);
@@ -142,7 +149,7 @@ export async function getAllCourses({ signal }: { queryKey: QueryKey, signal?: A
         is_paid,
         price,
         created_at,
-        (SELECT COUNT(*) FROM enrollments WHERE course_id = cursos.id)
+        (SELECT COUNT(*) FROM enrollments WHERE course_id = cursos.id) as enrollments_count
       `)
       .order("created_at", { ascending: false });
 
@@ -157,7 +164,7 @@ export async function getAllCourses({ signal }: { queryKey: QueryKey, signal?: A
       is_paid: course.is_paid,
       price: course.price,
       created_at: course.created_at,
-      enrollments_count: parseInt(course[8]) || 0
+      enrollments_count: course.enrollments_count || 0
     }));
   } catch (error) {
     console.error("Error fetching all courses:", error);

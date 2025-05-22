@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
@@ -109,9 +110,9 @@ export async function getMentorModules(limit = 5): Promise<Module[]> {
       .from("modulos")
       .select(`
         id, 
-        nome_modulo as name, 
-        descricao_modulo as description, 
-        curso_id as course_id, 
+        nome_modulo, 
+        descricao_modulo, 
+        curso_id, 
         created_at, 
         updated_at, 
         ordem,
@@ -122,7 +123,23 @@ export async function getMentorModules(limit = 5): Promise<Module[]> {
       .limit(limit);
 
     if (error) throw error;
-    return modules as Module[] || [];
+    
+    // Transform the data to match the Module interface
+    const transformedModules: Module[] = modules ? modules.map(mod => ({
+      id: mod.id,
+      name: mod.nome_modulo,
+      description: mod.descricao_modulo,
+      course_id: mod.curso_id,
+      created_at: mod.created_at,
+      updated_at: mod.updated_at,
+      ordem: mod.ordem,
+      cursos: mod.cursos ? {
+        id: mod.cursos.id,
+        title: mod.cursos.title
+      } : undefined
+    })) : [];
+    
+    return transformedModules;
   } catch (error) {
     console.error("Error fetching mentor modules:", error);
     toast({

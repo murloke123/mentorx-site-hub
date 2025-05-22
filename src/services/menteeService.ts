@@ -24,7 +24,7 @@ export async function getEnrolledCourses() {
         id,
         course_id,
         progress,
-        cursos:course_id (id, titulo, descricao, mentor_id, profiles:mentor_id (full_name))
+        courses:course_id (id, title, description, mentor_id, profiles:mentor_id (full_name))
       `)
       .eq("user_id", user.id);
 
@@ -32,7 +32,7 @@ export async function getEnrolledCourses() {
     
     // Formatar os dados para o componente
     const enrolledCourses = data.map(enrollment => {
-      const course = enrollment.cursos;
+      const course = enrollment.courses;
       // Safely cast progress to our expected type or use default values
       const progressData = enrollment.progress as Progress | null || { 
         percent: 0, 
@@ -42,8 +42,8 @@ export async function getEnrolledCourses() {
       
       return {
         id: course.id,
-        title: course.titulo,
-        description: course.descricao,
+        title: course.title,
+        description: course.description,
         mentor_id: course.mentor_id,
         mentor_name: course.profiles?.full_name,
         progress: progressData.percent || 0,
