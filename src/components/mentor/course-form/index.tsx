@@ -5,7 +5,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from "@/components/ui/form";
 
 import { formSchema, defaultValues, CourseFormData } from "./FormSchema";
 import BasicInfoFields from "./BasicInfoFields";
@@ -16,7 +15,7 @@ import PricingFields from "./PricingFields";
 
 interface CourseFormProps {
   mode: "create" | "edit";
-  initialData?: CourseFormData;
+  initialValues?: CourseFormData;
   onSubmit: (data: CourseFormData) => void;
   onCancel: () => void;
   isSubmitting?: boolean;
@@ -24,16 +23,16 @@ interface CourseFormProps {
 
 const CourseForm = ({
   mode = "create",
-  initialData = defaultValues,
+  initialValues = defaultValues,
   onSubmit,
   onCancel,
   isSubmitting = false,
 }: CourseFormProps) => {
-  const [courseType, setCourseType] = useState<"free" | "paid">(initialData.type);
+  const [courseType, setCourseType] = useState<"free" | "paid">(initialValues.type);
   
   const form = useForm<CourseFormData>({
     resolver: zodResolver(formSchema),
-    defaultValues: initialData,
+    defaultValues: initialValues,
   });
 
   const handleFormSubmit = (data: CourseFormData) => {

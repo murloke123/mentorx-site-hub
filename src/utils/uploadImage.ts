@@ -44,7 +44,6 @@ export async function removeImage(path: string, bucket: string = 'avatars') {
   }
 }
 
-// Adicionar a função uploadCourseImage para ser usada no ImageField.tsx
 export async function uploadCourseImage(file: File) {
   try {
     const result = await uploadImage(file, 'courses');

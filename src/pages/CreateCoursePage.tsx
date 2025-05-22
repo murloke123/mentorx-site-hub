@@ -33,6 +33,10 @@ const CreateCoursePage = () => {
     }
   };
 
+  const handleCancel = () => {
+    navigate("/mentor/cursos");
+  };
+
   return (
     <div className="flex min-h-screen">
       <MentorSidebar />
@@ -48,9 +52,10 @@ const CreateCoursePage = () => {
           )}
           
           <CourseForm 
+            mode="create"
             onSubmit={handleSubmit}
+            onCancel={handleCancel}
             isSubmitting={isSubmitting}
-            submitLabel="Criar Curso"
             initialValues={{
               name: '',
               description: '',
