@@ -240,33 +240,6 @@ export async function getPublicCourses(): Promise<Course[]> {
   }
 }
 
-// Função para atualizar apenas o status de publicação de um curso
-export async function setCoursePublishedStatus(courseId: string, foiPublicado: boolean) {
-  try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      throw new Error("Usuário não autenticado");
-    }
-
-    const { data, error } = await supabase
-      .from("cursos")
-      .update({ foi_publicado: foiPublicado, atualizado_em: new Date().toISOString() })
-      .eq("id", courseId)
-      .eq("mentor_id", user.id) // Garantir que apenas o mentor possa alterar
-      .select("id, foi_publicado") // Retorna o ID e o novo status para confirmação
-      .single();
-
-    if (error) {
-      console.error("Erro ao atualizar status de publicação:", error);
-      throw error;
-    }
-    return data;
-  } catch (error) {
-    console.error("Exceção em setCoursePublishedStatus:", error);
-    throw error;
-  }
-}
-
 export async function deleteCourse(courseId: string) {
   try {
     const { data: { user } } = await supabase.auth.getUser();

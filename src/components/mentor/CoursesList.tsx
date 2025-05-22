@@ -7,11 +7,9 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { BookOpen, Filter, PlusCircle, Search, Layers, Edit2, Eye, AlertTriangle } from 'lucide-react';
-import { Switch } from "@/components/ui/switch";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { updateCourse } from '@/services/courseService';
+import { Switch } from "@/components/ui/switch";
 
 interface Course {
   id: string;
@@ -22,7 +20,6 @@ interface Course {
   preco?: number;
   url_imagem?: string;
   inscricoes?: { count: number }[];
-  foi_publicado?: boolean;
 }
 
 interface CoursesListProps {
@@ -79,24 +76,13 @@ const CoursesList = ({ courses, isLoading, totalEnrollments }: CoursesListProps)
     navigate(`/mentor/cursos/view/${courseId}`);
   };
 
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-
-  const handlePublishChange = async (courseId: string, isChecked: boolean) => {
-    try {
-      await updateCourse(courseId, { foi_publicado: isChecked });
-      toast({
-        title: "Curso publicado com sucesso!",
-        description: isChecked ? "Curso publicado e visível para alunos." : "Curso não publicado.",
-      });
-      queryClient.invalidateQueries(['courses']);
-    } catch (error) {
-      toast({
-        title: "Erro ao publicar curso",
-        description: "Ocorreu um erro ao tentar publicar o curso. Por favor, tente novamente mais tarde.",
-        variant: "destructive",
-      });
-    }
+  const handlePublishChange = async (courseId: string, newStatus: boolean) => {
+    // TODO: Implementar a chamada ao backend para atualizar o status de publicação do curso
+    // Exemplo: await updateCoursePublicationStatus(courseId, newStatus);
+    console.log(`Curso ${courseId} mudou status de publicação para: ${newStatus}`);
+    // Você precisará invalidar o query relevante ou atualizar o estado local aqui
+    // para refletir a mudança na UI imediatamente.
+    // Ex: queryClient.invalidateQueries(['mentorCourses', userId]);
   };
 
   if (isLoading) {
@@ -218,43 +204,47 @@ const CoursesList = ({ courses, isLoading, totalEnrollments }: CoursesListProps)
                 </div>
               </CardHeader>
               <CardContent className="flex-grow">
-                <div className="flex items-center justify-between space-x-2 border p-3 rounded-md mb-4">
-                  <div className="flex flex-col space-y-1">
-                    <Label htmlFor={`publish-switch-${course.id}`} className="font-medium">
-                      Publicar Curso
-                    </Label>
-                    <span className="text-xs text-muted-foreground">
-                      {course.foi_publicado ? "Curso publicado e visível para alunos." : "Curso não publicado."}
-                    </span>
-                  </div>
-                  <Switch
-                    id={`publish-switch-${course.id}`}
-                    checked={!!course.foi_publicado}
-                    onCheckedChange={(isChecked) => handlePublishChange(course.id, isChecked)}
-                  />
-                </div>
                 <div className="mb-4">
                   <div className="flex justify-between mb-1">
                     <span className="text-sm">Inscrições</span>
                     <span className="text-sm font-medium">{course.inscricoes?.[0]?.count || 0}</span>
                   </div>
                   <Progress 
-                    value={course.inscricoes?.[0]?.count || 0} 
-                    max={totalEnrollments > 0 ? totalEnrollments : 10}
-                    className="h-2"
+                    value={(course.inscricoes?.[0]?.count || 0)} // TODO: This progress seems to be using enrollment count, maybe it should be course completion?
+                    className="w-full h-2" 
                   />
                 </div>
+                {/* TODO: Adicionar mais detalhes do curso aqui se necessário, como progresso de conclusão, etc. */}
               </CardContent>
-              <CardFooter>
-                <Button 
-                  className="w-full"
-                  variant="default" 
-                  asChild
-                >
-                  <Link to={`/mentor/cursos/${course.id}/modulos`}>
-                    <Layers className="mr-2 h-4 w-4" /> Gerenciar Módulos e Conteúdo
-                  </Link>
-                </Button>
+              <CardFooter className="flex-col items-start gap-4 pt-4 border-t">
+                <div>
+                  <Label htmlFor={`publish-status-${course.id}`} className="text-sm font-medium mb-2 block">Status da Publicação:</Label>
+                  <RadioGroup
+                    defaultValue={course.eh_publico ? "publicado" : "nao-publicado"}
+                    onValueChange={(value) => handlePublishChange(course.id, value === "publicado")}
+                    className="flex items-center space-x-4"
+                    id={`publish-status-${course.id}`}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="publicado" id={`publish-${course.id}-public`} />
+                      <Label htmlFor={`publish-${course.id}-public`}>Publicado</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="nao-publicado" id={`publish-${course.id}-private`} />
+                      <Label htmlFor={`publish-${course.id}-private`}>Não Publicado</Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+                 <div className="flex items-center space-x-2">
+                   <Switch
+                     id={`publish-switch-${course.id}`}
+                     checked={course.eh_publico}
+                     onCheckedChange={(isChecked) => handlePublishChange(course.id, isChecked)}
+                   />
+                   <Label htmlFor={`publish-switch-${course.id}`}>
+                     {course.eh_publico ? "Publicado" : "Não Publicado"}
+                   </Label>
+                 </div>
               </CardFooter>
             </Card>
           );

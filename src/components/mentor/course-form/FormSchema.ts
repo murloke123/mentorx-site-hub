@@ -11,6 +11,7 @@ export const formSchema = z.object({
   currency: z.string(),
   discount: z.number().min(0).max(100),
   visibility: z.enum(["public", "private"]),
+  isPublished: z.boolean().default(false),
 });
 
 // Define the type for the form data
@@ -27,6 +28,7 @@ export const defaultValues: CourseFormData = {
   currency: "BRL",
   discount: 0,
   visibility: "public", // "public" ou "private"
+  isPublished: false,
 };
 
 // Categories available for selection
