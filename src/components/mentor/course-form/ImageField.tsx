@@ -15,11 +15,16 @@ interface ImageFieldProps {
 
 const ImageField = ({ form }: ImageFieldProps) => {
   const [isUploading, setIsUploading] = useState(false);
+  const [previewImage, setPreviewImage] = useState<string | null>(form.getValues("image") || null);
   const { toast } = useToast();
 
   const handleImageUpload = async (file: File) => {
     try {
       setIsUploading(true);
+      
+      // Create a preview immediately for better UX
+      const objectUrl = URL.createObjectURL(file);
+      setPreviewImage(objectUrl);
       
       // Get the existing image path from the URL if it exists
       const currentImageUrl = form.getValues("image");
@@ -34,8 +39,17 @@ const ImageField = ({ form }: ImageFieldProps) => {
       // Upload new image, replacing the existing one if there is a path
       const result = await uploadCourseImage(file, existingPath);
       form.setValue("image", result.url);
+      
+      // Update preview with the actual URL from storage
+      setPreviewImage(result.url);
+      
+      // Clean up the temporary object URL
+      URL.revokeObjectURL(objectUrl);
     } catch (error) {
       console.error("Error uploading image:", error);
+      // Reset preview if upload fails
+      setPreviewImage(form.getValues("image") || null);
+      
       toast({
         title: "Erro ao fazer upload da imagem",
         description: "Verifique se o bucket 'courses' existe no Supabase.",
@@ -72,10 +86,10 @@ const ImageField = ({ form }: ImageFieldProps) => {
                 }}
               />
               
-              {field.value ? (
+              {previewImage ? (
                 <div className="rounded-md border mt-2 overflow-hidden relative">
                   <img 
-                    src={field.value} 
+                    src={previewImage} 
                     alt="Prévia do curso" 
                     className="h-48 w-full object-cover"
                   />
