@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -42,7 +43,7 @@ const CourseForm = ({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
+      <form onSubmit={form.handleFormSubmit(handleFormSubmit)} className="space-y-6">
         <Card>
           <CardContent className="pt-6">
             <BasicInfoFields form={form} />
@@ -51,7 +52,7 @@ const CourseForm = ({
               control={form.control}
               name="isPublished"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 mt-4">
+                <FormItem className="mb-4">
                   <div className="space-y-0.5">
                     <FormLabel className="text-base">Publicar Curso</FormLabel>
                     <FormDescription>

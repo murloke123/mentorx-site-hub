@@ -47,40 +47,23 @@ export type Database = {
           },
         ]
       }
-      avaliacoes: {
+      categories: {
         Row: {
-          comentario: string | null
-          criado_em: string
-          curso_id: string
+          created_at: string
           id: string
-          nota: number
-          usuario_id: string
+          name: string
         }
         Insert: {
-          comentario?: string | null
-          criado_em?: string
-          curso_id: string
+          created_at?: string
           id?: string
-          nota: number
-          usuario_id: string
+          name: string
         }
         Update: {
-          comentario?: string | null
-          criado_em?: string
-          curso_id?: string
+          created_at?: string
           id?: string
-          nota?: number
-          usuario_id?: string
+          name?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "course_ratings_course_id_fkey"
-            columns: ["curso_id"]
-            isOneToOne: false
-            referencedRelation: "cursos"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       conteudo_concluido: {
         Row: {
@@ -180,6 +163,7 @@ export type Database = {
       }
       cursos: {
         Row: {
+          category_id: string | null
           created_at: string
           description: string | null
           id: string
@@ -193,6 +177,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          category_id?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -206,6 +191,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          category_id?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -224,6 +210,13 @@ export type Database = {
             columns: ["mentor_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_cursos_category_id"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
             referencedColumns: ["id"]
           },
         ]
@@ -367,22 +360,7 @@ export type Database = {
       }
     }
     Views: {
-      sumario_avaliacoes_cursos: {
-        Row: {
-          curso_id: string | null
-          media_geral_avaliacoes: number | null
-          total_num_avaliacoes: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "course_ratings_course_id_fkey"
-            columns: ["curso_id"]
-            isOneToOne: false
-            referencedRelation: "cursos"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+      [_ in never]: never
     }
     Functions: {
       obter_detalhes_cursos_do_mentor: {
@@ -400,8 +378,6 @@ export type Database = {
           created_at: string
           updated_at: string
           enrollment_count: number
-          average_rating: number
-          total_ratings: number
         }[]
       }
     }
