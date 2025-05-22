@@ -51,9 +51,21 @@ export async function getMentorCourses(): Promise<MentorCourse[]> {
     
     const { data: courses, error } = await supabase
       .from("cursos")
-      .select("id, title, description, is_public, is_paid, price, image_url, created_at, updated_at, mentor_id, enrollments(count)")
+      .select(`
+        id, 
+        titulo as title, 
+        descricao as description, 
+        eh_publico as is_public, 
+        eh_pago as is_paid, 
+        preco as price, 
+        url_imagem as image_url, 
+        criado_em as created_at, 
+        atualizado_em as updated_at, 
+        mentor_id, 
+        enrollments(count)
+      `)
       .eq("mentor_id", user.id)
-      .order("created_at", { ascending: false });
+      .order("criado_em", { ascending: false });
 
     if (error) throw error;
     return courses || [];
@@ -91,7 +103,7 @@ export async function getMentorModules(limit = 5): Promise<Module[]> {
     
     const { data: modules, error } = await supabase
       .from("modulos")
-      .select("id, name, description, course_id, created_at, updated_at, ordem, cursos!inner(id, title, mentor_id)")
+      .select("id, nome_modulo as name, descricao_modulo as description, curso_id as course_id, created_at, updated_at, ordem, cursos!inner(id, titulo as title, mentor_id)")
       .eq("cursos.mentor_id", user.id)
       .order("created_at", { ascending: false })
       .limit(limit);
@@ -153,22 +165,22 @@ export async function getEnrollmentStats(periodDays = 30): Promise<EnrollmentDat
     // Format date for Supabase query
     const startDateStr = startDate.toISOString();
     
-    // Querying 'inscricoes' table with Portuguese column names
-    const { data: enrollments, error } = await supabase // Variable name 'enrollments' kept for simplicity, but it queries 'inscricoes'
-      .from("inscricoes") // Changed from enrollments
-      .select("data_inscricao, cursos!inner(id, mentor_id)") // Changed from enrolled_at, selecting only necessary fields from cursos
-      .eq("cursos.mentor_id", user.id) // Ensure this join condition is correct based on your schema
-      .gte("data_inscricao", startDateStr) // Changed from enrolled_at
-      .order("data_inscricao", { ascending: true }); // Changed from enrolled_at
+    // Updated query to use enrollments table with new column names
+    const { data: enrollments, error } = await supabase
+      .from("enrollments")
+      .select("enrolled_at, cursos:course_id(id, mentor_id)")
+      .eq("cursos.mentor_id", user.id)
+      .gte("enrolled_at", startDateStr)
+      .order("enrolled_at", { ascending: true });
 
     if (error) throw error;
     
     // Process data for chart display
     // Group by date and count
     const enrollmentByDate = enrollments?.reduce((acc, enrollment) => {
-      // Ensure enrollment.data_inscricao is not null or undefined before creating Date object
-      if (enrollment.data_inscricao) {
-        const date = new Date(enrollment.data_inscricao).toLocaleDateString();
+      // Ensure enrollment.enrolled_at is not null or undefined before creating Date object
+      if (enrollment.enrolled_at) {
+        const date = new Date(enrollment.enrolled_at).toLocaleDateString();
         acc[date] = (acc[date] || 0) + 1;
       }
       return acc;

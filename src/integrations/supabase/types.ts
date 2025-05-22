@@ -228,39 +228,39 @@ export type Database = {
           },
         ]
       }
-      inscricoes: {
+      enrollments: {
         Row: {
-          curso_id: string
-          data_inscricao: string
+          course_id: string
+          enrolled_at: string
           id: string
-          progresso: Json | null
-          usuario_id: string
+          progress: Json | null
+          user_id: string
         }
         Insert: {
-          curso_id: string
-          data_inscricao?: string
+          course_id: string
+          enrolled_at?: string
           id?: string
-          progresso?: Json | null
-          usuario_id: string
+          progress?: Json | null
+          user_id: string
         }
         Update: {
-          curso_id?: string
-          data_inscricao?: string
+          course_id?: string
+          enrolled_at?: string
           id?: string
-          progresso?: Json | null
-          usuario_id?: string
+          progress?: Json | null
+          user_id?: string
         }
         Relationships: [
           {
             foreignKeyName: "enrollments_course_id_fkey"
-            columns: ["curso_id"]
+            columns: ["course_id"]
             isOneToOne: false
             referencedRelation: "cursos"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "enrollments_user_id_fkey"
-            columns: ["usuario_id"]
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]

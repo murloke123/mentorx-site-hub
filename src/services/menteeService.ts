@@ -19,14 +19,14 @@ export async function getEnrolledCourses() {
     }
     
     const { data, error } = await supabase
-      .from("inscricoes")
+      .from("enrollments")
       .select(`
         id,
-        curso_id,
-        progresso,
-        cursos:curso_id (id, title, description, mentor_id, profiles:mentor_id (full_name))
+        course_id,
+        progress,
+        cursos:course_id (id, titulo, descricao, mentor_id, profiles:mentor_id (full_name))
       `)
-      .eq("usuario_id", user.id);
+      .eq("user_id", user.id);
 
     if (error) throw error;
     
@@ -34,7 +34,7 @@ export async function getEnrolledCourses() {
     const enrolledCourses = data.map(enrollment => {
       const course = enrollment.cursos;
       // Safely cast progress to our expected type or use default values
-      const progressData = enrollment.progresso as Progress | null || { 
+      const progressData = enrollment.progress as Progress | null || { 
         percent: 0, 
         completed_lessons: 0, 
         total_lessons: 0 
@@ -42,8 +42,8 @@ export async function getEnrolledCourses() {
       
       return {
         id: course.id,
-        title: course.title,
-        description: course.description,
+        title: course.titulo,
+        description: course.descricao,
         mentor_id: course.mentor_id,
         mentor_name: course.profiles?.full_name,
         progress: progressData.percent || 0,
@@ -70,10 +70,10 @@ export async function enrollInCourse(courseId: string) {
     
     // Verificar se o usuário já está inscrito neste curso
     const { data: existingEnrollment, error: checkError } = await supabase
-      .from("inscricoes")
+      .from("enrollments")
       .select("id")
-      .eq("usuario_id", user.id)
-      .eq("curso_id", courseId)
+      .eq("user_id", user.id)
+      .eq("course_id", courseId)
       .maybeSingle();
       
     if (checkError) throw checkError;
@@ -94,11 +94,11 @@ export async function enrollInCourse(courseId: string) {
     
     // Criar nova inscrição
     const { data, error } = await supabase
-      .from("inscricoes")
+      .from("enrollments")
       .insert({
-        usuario_id: user.id,
-        curso_id: courseId,
-        progresso: initialProgress
+        user_id: user.id,
+        course_id: courseId,
+        progress: initialProgress
       })
       .select()
       .single();
@@ -123,10 +123,10 @@ export async function updateProgress(courseId: string, lessonId: string, complet
     
     // Obter a inscrição atual e o progresso
     const { data: enrollment, error: enrollmentError } = await supabase
-      .from("inscricoes")
-      .select("progresso")
-      .eq("usuario_id", user.id)
-      .eq("curso_id", courseId)
+      .from("enrollments")
+      .select("progress")
+      .eq("user_id", user.id)
+      .eq("course_id", courseId)
       .single();
       
     if (enrollmentError) throw enrollmentError;
@@ -145,7 +145,7 @@ export async function updateProgress(courseId: string, lessonId: string, complet
     if (countError) throw countError;
     
     // Calcular o progresso atualizado
-    const progress = enrollment.progresso as Progress || { 
+    const progress = enrollment.progress as Progress || { 
       completed_lessons: 0,
       completed_lessons_ids: [],
       percent: 0,
@@ -179,10 +179,10 @@ export async function updateProgress(courseId: string, lessonId: string, complet
     
     // Atualizar o progresso na inscrição
     const { data, error } = await supabase
-      .from("inscricoes")
-      .update({ progresso: updatedProgress })
-      .eq("usuario_id", user.id)
-      .eq("curso_id", courseId)
+      .from("enrollments")
+      .update({ progress: updatedProgress })
+      .eq("user_id", user.id)
+      .eq("course_id", courseId)
       .select()
       .single();
       
