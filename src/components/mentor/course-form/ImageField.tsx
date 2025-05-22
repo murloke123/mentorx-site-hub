@@ -7,6 +7,7 @@ import { UseFormReturn } from "react-hook-form";
 import { CourseFormData } from "./FormSchema";
 import { uploadCourseImage } from "@/utils/uploadImage";
 import { Spinner } from "@/components/ui/spinner";
+import { useToast } from "@/hooks/use-toast";
 
 interface ImageFieldProps {
   form: UseFormReturn<CourseFormData>;
@@ -14,6 +15,7 @@ interface ImageFieldProps {
 
 const ImageField = ({ form }: ImageFieldProps) => {
   const [isUploading, setIsUploading] = useState(false);
+  const { toast } = useToast();
 
   const handleImageUpload = async (file: File) => {
     try {
@@ -22,6 +24,11 @@ const ImageField = ({ form }: ImageFieldProps) => {
       form.setValue("image", imageUrl);
     } catch (error) {
       console.error("Error uploading image:", error);
+      toast({
+        title: "Erro ao fazer upload da imagem",
+        description: "Verifique se o bucket 'courses' existe no Supabase.",
+        variant: "destructive"
+      });
       form.setError("image", {
         type: "manual",
         message: "Erro ao fazer upload da imagem. Tente novamente."

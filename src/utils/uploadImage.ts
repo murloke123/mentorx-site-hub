@@ -46,6 +46,7 @@ export async function removeImage(path: string, bucket: string = 'avatars') {
 
 export async function uploadCourseImage(file: File) {
   try {
+    // Create courses bucket if it doesn't exist yet
     const result = await uploadImage(file, 'courses');
     return result.url;
   } catch (error) {
