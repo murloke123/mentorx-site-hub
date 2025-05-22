@@ -1,56 +1,70 @@
 
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import CourseForm from "@/components/mentor/course-form";
-import MentorSidebar from "@/components/mentor/MentorSidebar";
-import { useToast } from "@/hooks/use-toast";
-import { createCourse, CourseFormData } from "@/services/courseService";
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { createCourse } from '@/services/courseService';
+import { supabase } from '@/integrations/supabase/client';
+import CourseForm from '@/components/mentor/course-form';
+import { CourseFormData } from '@/components/mentor/course-form/FormSchema';
+import MentorSidebar from '@/components/mentor/MentorSidebar';
 
 const CreateCoursePage = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (formData: CourseFormData) => {
-    setIsSubmitting(true);
-    
     try {
-      await createCourse(formData);
+      setIsSubmitting(true);
+      setError(null);
       
-      toast({
-        title: "Curso criado com sucesso!",
-        description: "Seu curso foi criado e está pronto para ser configurado.",
-      });
+      const { data: { user } } = await supabase.auth.getUser();
       
-      navigate("/mentor/cursos");
-    } catch (error) {
-      console.error("Erro ao criar curso:", error);
-      toast({
-        title: "Erro ao criar curso",
-        description: "Ocorreu um erro ao tentar criar o curso. Tente novamente.",
-        variant: "destructive",
-      });
+      if (!user) {
+        throw new Error("Você precisa estar autenticado para criar um curso.");
+      }
+      
+      const newCourse = await createCourse(formData, user.id);
+      navigate(`/mentor/cursos/${newCourse.id}/modulos`);
+    } catch (err: any) {
+      console.error('Erro ao criar curso:', err);
+      setError(err.message || "Ocorreu um erro ao criar o curso. Tente novamente.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleCancel = () => {
-    navigate("/mentor/cursos");
-  };
-
   return (
-    <div className="flex">
+    <div className="flex min-h-screen">
       <MentorSidebar />
       <div className="flex-1 p-6">
-        <h1 className="text-2xl font-bold mb-6">Criar Novo Curso</h1>
-        
-        <CourseForm 
-          mode="create"
-          onSubmit={handleSubmit}
-          onCancel={handleCancel}
-          isSubmitting={isSubmitting}
-        />
+        <div className="max-w-4xl mx-auto">
+          <h1 className="text-3xl font-bold mb-6">Criar Novo Curso</h1>
+          
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-800 rounded-md p-4 mb-6">
+              <h3 className="font-medium">Erro</h3>
+              <p>{error}</p>
+            </div>
+          )}
+          
+          <CourseForm 
+            onSubmit={handleSubmit}
+            isSubmitting={isSubmitting}
+            submitLabel="Criar Curso"
+            initialValues={{
+              name: '',
+              description: '',
+              category: '',
+              image: '',
+              type: 'free',
+              price: 0,
+              currency: 'BRL',
+              discount: 0,
+              visibility: 'public',
+              isPublished: false
+            }}
+          />
+        </div>
       </div>
     </div>
   );
