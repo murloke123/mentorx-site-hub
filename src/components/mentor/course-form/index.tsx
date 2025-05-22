@@ -5,7 +5,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { Switch } from "@/components/ui/switch";
 import { FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from "@/components/ui/form";
 
 import { formSchema, defaultValues, CourseFormData } from "./FormSchema";
@@ -48,26 +47,8 @@ const CourseForm = ({
           <CardContent className="pt-6">
             <BasicInfoFields form={form} />
             <VisibilityField form={form} />
-            <FormField
-              control={form.control}
-              name="isPublished"
-              render={({ field }) => (
-                <FormItem className="mb-4">
-                  <div className="space-y-0.5">
-                    <FormLabel className="text-base">Publicar Curso</FormLabel>
-                    <FormDescription>
-                      Marque para tornar o curso visível para alunos na plataforma. Lembre-se: o curso precisa ter módulos e conteúdo para ser publicado.
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+            <div className="mb-4">
+            </div>
             <ImageField form={form} />
             <CourseTypeField 
               form={form} 
