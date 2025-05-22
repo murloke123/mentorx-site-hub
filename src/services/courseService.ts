@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { CourseFormData } from "@/components/mentor/course-form/FormSchema";
@@ -20,6 +21,7 @@ export async function createCourse(courseData: CourseFormData) {
       is_paid: courseData.type === "paid",
       price: courseData.type === "paid" ? courseData.price : null,
       image_url: courseData.image,
+      category_id: courseData.category || null, // Save category_id properly
       mentor_id: user.id,
       is_public: courseData.visibility === "public",
       is_published: courseData.isPublished,
@@ -57,6 +59,7 @@ export async function updateCourse(courseId: string, courseData: CourseFormData)
       is_paid: courseData.type === "paid",
       price: courseData.type === "paid" ? courseData.price : null,
       image_url: courseData.image,
+      category_id: courseData.category || null, // Save category_id properly
       is_public: courseData.visibility === "public",
       is_published: courseData.isPublished,
       updated_at: new Date().toISOString(),
@@ -84,7 +87,7 @@ export async function getCourseById(courseId: string) {
   try {
     const { data, error } = await supabase
       .from("cursos")
-      .select("id, title, description, is_paid, price, image_url, is_public, is_published") 
+      .select("id, title, description, is_paid, price, image_url, is_public, is_published, category_id") 
       .eq("id", courseId)
       .single();
       
@@ -94,7 +97,7 @@ export async function getCourseById(courseId: string) {
     const courseFormData: CourseFormData = {
       name: data.title,
       description: data.description || "",
-      category: "", // This field needs to be filled with the actual category
+      category: data.category_id || "", // Correctly map category_id to category
       image: data.image_url || "",
       type: data.is_paid ? "paid" : "free",
       price: data.price || 0,
