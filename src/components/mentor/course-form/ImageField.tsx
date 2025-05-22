@@ -38,9 +38,11 @@ const ImageField = ({ form }: ImageFieldProps) => {
       
       // Upload new image, replacing the existing one if there is a path
       const result = await uploadCourseImage(file, existingPath);
+      
+      // Update form value with the new URL
       form.setValue("image", result.url);
       
-      // Update preview with the actual URL from storage
+      // Update preview with the actual URL from storage and trigger form value update
       setPreviewImage(result.url);
       
       // Clean up the temporary object URL
