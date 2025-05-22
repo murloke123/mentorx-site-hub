@@ -20,8 +20,20 @@ const ImageField = ({ form }: ImageFieldProps) => {
   const handleImageUpload = async (file: File) => {
     try {
       setIsUploading(true);
-      const imageUrl = await uploadCourseImage(file);
-      form.setValue("image", imageUrl);
+      
+      // Get the existing image path from the URL if it exists
+      const currentImageUrl = form.getValues("image");
+      let existingPath = null;
+      
+      if (currentImageUrl) {
+        // Extract the path from URL - assuming URL structure like https://...{bucket}/{path}
+        const urlParts = currentImageUrl.split('/');
+        existingPath = urlParts[urlParts.length - 1]; // Get the filename
+      }
+      
+      // Upload new image, replacing the existing one if there is a path
+      const result = await uploadCourseImage(file, existingPath);
+      form.setValue("image", result.url);
     } catch (error) {
       console.error("Error uploading image:", error);
       toast({

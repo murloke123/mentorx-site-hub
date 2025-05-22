@@ -2,16 +2,21 @@
 import { supabase } from "@/integrations/supabase/client";
 import { v4 as uuidv4 } from 'uuid';
 
-export async function uploadImage(file: File, bucket: string = 'avatars') {
+export async function uploadImage(file: File, bucket: string = 'avatars', existingPath?: string) {
   try {
+    // If there's an existing path, remove that image first
+    if (existingPath) {
+      await removeImage(existingPath, bucket);
+    }
+    
     const fileExt = file.name.split('.').pop();
-    const fileName = `${uuidv4()}.${fileExt}`;
-    const filePath = `${fileName}`;
+    // Use the existing filename if provided, otherwise generate a new one
+    const filePath = existingPath || `${uuidv4()}.${fileExt}`;
     
     const { data, error } = await supabase
       .storage
       .from(bucket)
-      .upload(filePath, file);
+      .upload(filePath, file, { upsert: true }); // Use upsert to replace if exists
       
     if (error) throw error;
     
@@ -44,11 +49,10 @@ export async function removeImage(path: string, bucket: string = 'avatars') {
   }
 }
 
-export async function uploadCourseImage(file: File) {
+export async function uploadCourseImage(file: File, existingPath?: string) {
   try {
-    // Create courses bucket if it doesn't exist yet
-    const result = await uploadImage(file, 'courses');
-    return result.url;
+    const result = await uploadImage(file, 'courses', existingPath);
+    return result;
   } catch (error) {
     console.error('Error uploading course image:', error);
     throw error;

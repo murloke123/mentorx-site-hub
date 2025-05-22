@@ -84,7 +84,15 @@ const ProfileForm = ({ user, profileData, onProfileUpdate }: ProfileFormProps) =
 
       // Upload new avatar if selected
       if (avatarFile) {
-        const uploadResult = await uploadImage(avatarFile, "avatars");
+        // Extract existing path from URL if exists
+        let existingPath = null;
+        if (profileData?.avatar_url) {
+          const urlParts = profileData.avatar_url.split('/');
+          existingPath = urlParts[urlParts.length - 1]; // Get the filename
+        }
+        
+        // Upload with the existing path to replace the file
+        const uploadResult = await uploadImage(avatarFile, 'avatars', existingPath);
         if (uploadResult.url) {
           newAvatarUrl = uploadResult.url;
         }
