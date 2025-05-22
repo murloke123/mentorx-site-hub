@@ -10,8 +10,8 @@ export async function uploadImage(file: File, bucket: string = 'avatars', existi
     }
     
     const fileExt = file.name.split('.').pop();
-    // Use the existing filename if provided, otherwise generate a new one
-    const filePath = existingPath || `${uuidv4()}.${fileExt}`;
+    // Generate a new filename to prevent caching issues
+    const filePath = `${uuidv4()}.${fileExt}`;
     
     const { data, error } = await supabase
       .storage
@@ -20,13 +20,15 @@ export async function uploadImage(file: File, bucket: string = 'avatars', existi
       
     if (error) throw error;
     
-    // Get public URL
+    // Get public URL with cache-busting parameter
     const { data: urlData } = await supabase
       .storage
       .from(bucket)
       .getPublicUrl(filePath);
       
-    return { url: urlData.publicUrl, path: filePath };
+    const publicUrl = `${urlData.publicUrl}?t=${new Date().getTime()}`;
+    
+    return { url: publicUrl, path: filePath };
   } catch (error) {
     console.error('Error uploading image:', error);
     throw error;
@@ -35,6 +37,8 @@ export async function uploadImage(file: File, bucket: string = 'avatars', existi
 
 export async function removeImage(path: string, bucket: string = 'avatars') {
   try {
+    if (!path) return { success: true };
+    
     const { error } = await supabase
       .storage
       .from(bucket)

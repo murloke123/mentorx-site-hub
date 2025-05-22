@@ -1,11 +1,11 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { ImageIcon } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
 import { CourseFormData } from "./FormSchema";
-import { uploadCourseImage } from "@/utils/uploadImage";
+import { uploadCourseImage, removeImage } from "@/utils/uploadImage";
 import { Spinner } from "@/components/ui/spinner";
 import { useToast } from "@/hooks/use-toast";
 
@@ -15,8 +15,25 @@ interface ImageFieldProps {
 
 const ImageField = ({ form }: ImageFieldProps) => {
   const [isUploading, setIsUploading] = useState(false);
-  const [previewImage, setPreviewImage] = useState<string | null>(form.getValues("image") || null);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [currentImagePath, setCurrentImagePath] = useState<string | null>(null);
   const { toast } = useToast();
+
+  // Extract path from URL
+  const extractPathFromUrl = (url: string | null): string | null => {
+    if (!url) return null;
+    const urlParts = url.split('/');
+    return urlParts[urlParts.length - 1].split('?')[0]; // Get filename and remove query params
+  };
+
+  // Initialize previewImage and currentImagePath from form value
+  useEffect(() => {
+    const imageUrl = form.getValues("image");
+    if (imageUrl) {
+      setPreviewImage(imageUrl);
+      setCurrentImagePath(extractPathFromUrl(imageUrl));
+    }
+  }, [form]);
 
   const handleImageUpload = async (file: File) => {
     try {
@@ -26,31 +43,24 @@ const ImageField = ({ form }: ImageFieldProps) => {
       const objectUrl = URL.createObjectURL(file);
       setPreviewImage(objectUrl);
       
-      // Get the existing image path from the URL if it exists
-      const currentImageUrl = form.getValues("image");
-      let existingPath = null;
-      
-      if (currentImageUrl) {
-        // Extract the path from URL - assuming URL structure like https://...{bucket}/{path}
-        const urlParts = currentImageUrl.split('/');
-        existingPath = urlParts[urlParts.length - 1]; // Get the filename
-      }
-      
       // Upload new image, replacing the existing one if there is a path
-      const result = await uploadCourseImage(file, existingPath);
+      const result = await uploadCourseImage(file, currentImagePath);
       
       // Update form value with the new URL
-      form.setValue("image", result.url);
+      form.setValue("image", result.url, { shouldValidate: true });
       
-      // Update preview with the actual URL from storage and trigger form value update
+      // Update preview with the actual URL from storage and current path
       setPreviewImage(result.url);
+      setCurrentImagePath(result.path);
       
       // Clean up the temporary object URL
       URL.revokeObjectURL(objectUrl);
     } catch (error) {
       console.error("Error uploading image:", error);
+      
       // Reset preview if upload fails
-      setPreviewImage(form.getValues("image") || null);
+      const currentImage = form.getValues("image");
+      setPreviewImage(currentImage || null);
       
       toast({
         title: "Erro ao fazer upload da imagem",
@@ -91,9 +101,10 @@ const ImageField = ({ form }: ImageFieldProps) => {
               {previewImage ? (
                 <div className="rounded-md border mt-2 overflow-hidden relative">
                   <img 
-                    src={previewImage} 
+                    src={previewImage}
                     alt="Prévia do curso" 
                     className="h-48 w-full object-cover"
+                    key={`preview-${Date.now()}`} // Force re-render of image
                   />
                   {isUploading && (
                     <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
