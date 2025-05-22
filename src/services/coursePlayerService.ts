@@ -57,11 +57,21 @@ export async function getCourseDetailsForPlayer(cursoId: string) {
       }
     }
     
+    // Map the course data to the expected format
+    const cursoFormatted: CursoItemLocal = {
+      id: curso.id,
+      title: curso.titulo, // Map título to title
+      description: curso.descricao, // Map descricao to description
+      mentor_id: curso.mentor_id,
+      is_public: curso.eh_publico, // Map eh_publico to is_public
+      is_paid: curso.eh_pago, // Map eh_pago to is_paid
+      price: curso.preco, // Map preco to price
+      image_url: curso.url_imagem, // Map url_imagem to image_url
+      modulos: modulos as ModuloItemLocal[]
+    };
+    
     return {
-      curso: {
-        ...curso,
-        modulos
-      } as CursoItemLocal,
+      curso: cursoFormatted,
       modulos: modulos as unknown as ModuloItemLocal[],
       completedConteudoIds
     };

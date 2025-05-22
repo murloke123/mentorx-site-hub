@@ -1,62 +1,6 @@
+
 import { Course } from "@/services/courseService";
 import { Module } from "@/services/mentorService";
-
-export const modules: Module[] = [
-  {
-    id: "1",
-    name: "Module 1: Introduction to React",
-    description: "Learn the basics of React with this beginner-friendly module.",
-    course_id: "1",
-    created_at: "2025-01-20T10:00:00Z",
-    updated_at: "2025-01-25T14:30:00Z",
-    ordem: 1,
-  },
-  {
-    id: "2",
-    name: "Module 2: Advanced JavaScript Patterns",
-    description: "Master advanced JavaScript patterns and best practices.",
-    course_id: "1",
-    created_at: "2025-02-15T09:15:00Z",
-    updated_at: "2025-02-20T16:45:00Z",
-    ordem: 2,
-  },
-  {
-    id: "3",
-    name: "Module 1: Responsive Web Design",
-    description: "Create beautiful, responsive websites that work on any device.",
-    course_id: "2",
-    created_at: "2025-03-10T11:30:00Z",
-    updated_at: "2025-03-15T15:20:00Z",
-    ordem: 1,
-  },
-  {
-    id: "4",
-    name: "Module 1: Node.js Backend Development",
-    description: "Build scalable APIs and server-side applications with Node.js.",
-    course_id: "3",
-    created_at: "2025-04-18T08:45:00Z",
-    updated_at: "2025-04-23T13:10:00Z",
-    ordem: 1,
-  },
-  {
-    id: "5",
-    name: "Module 1: TypeScript Fundamentals",
-    description: "Learn TypeScript from zero to hero with practical examples.",
-    course_id: "4",
-    created_at: "2025-05-25T10:20:00Z",
-    updated_at: "2025-05-30T17:05:00Z",
-    ordem: 1,
-  },
-  {
-    id: "6",
-    name: "Module 1: CSS Animation Masterclass",
-    description: "Create stunning animations and transitions with CSS.",
-    course_id: "5",
-    created_at: "2025-06-20T09:30:00Z",
-    updated_at: "2025-06-25T14:15:00Z",
-    ordem: 1,
-  },
-];
 
 export const courses: Course[] = [
   {
@@ -135,6 +79,63 @@ export const courses: Course[] = [
     created_at: "2025-06-15T09:30:00Z",
     updated_at: "2025-06-20T14:15:00Z",
     enrollments: [{ count: 178 }],
+  },
+];
+
+export const modules: Module[] = [
+  {
+    id: "1",
+    name: "Module 1: Introduction to React",
+    description: "Learn the basics of React with this beginner-friendly module.",
+    course_id: "1",
+    created_at: "2025-01-20T10:00:00Z",
+    updated_at: "2025-01-25T14:30:00Z",
+    ordem: 1,
+  },
+  {
+    id: "2",
+    name: "Module 2: Advanced JavaScript Patterns",
+    description: "Master advanced JavaScript patterns and best practices.",
+    course_id: "1",
+    created_at: "2025-02-15T09:15:00Z",
+    updated_at: "2025-02-20T16:45:00Z",
+    ordem: 2,
+  },
+  {
+    id: "3",
+    name: "Module 1: Responsive Web Design",
+    description: "Create beautiful, responsive websites that work on any device.",
+    course_id: "2",
+    created_at: "2025-03-10T11:30:00Z",
+    updated_at: "2025-03-15T15:20:00Z",
+    ordem: 1,
+  },
+  {
+    id: "4",
+    name: "Module 1: Node.js Backend Development",
+    description: "Build scalable APIs and server-side applications with Node.js.",
+    course_id: "3",
+    created_at: "2025-04-18T08:45:00Z",
+    updated_at: "2025-04-23T13:10:00Z",
+    ordem: 1,
+  },
+  {
+    id: "5",
+    name: "Module 1: TypeScript Fundamentals",
+    description: "Learn TypeScript from zero to hero with practical examples.",
+    course_id: "4",
+    created_at: "2025-05-25T10:20:00Z",
+    updated_at: "2025-05-30T17:05:00Z",
+    ordem: 1,
+  },
+  {
+    id: "6",
+    name: "Module 1: CSS Animation Masterclass",
+    description: "Create stunning animations and transitions with CSS.",
+    course_id: "5",
+    created_at: "2025-06-20T09:30:00Z",
+    updated_at: "2025-06-25T14:15:00Z",
+    ordem: 1,
   },
 ];
 

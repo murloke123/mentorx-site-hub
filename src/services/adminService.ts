@@ -35,8 +35,8 @@ export async function getAllMentors({ signal }: { queryKey: QueryKey, signal?: A
         full_name, 
         avatar_url, 
         bio,
-        (SELECT COUNT(*) FROM cursos WHERE mentor_id = profiles.id) as courses_count,
-        (SELECT COUNT(*) FROM mentor_followers WHERE mentor_id = profiles.id) as followers_count
+        (SELECT COUNT(*) FROM cursos WHERE mentor_id = profiles.id),
+        (SELECT COUNT(*) FROM mentor_followers WHERE mentor_id = profiles.id)
       `)
       .eq("role", "mentor")
       .order("full_name", { ascending: true });
@@ -45,8 +45,8 @@ export async function getAllMentors({ signal }: { queryKey: QueryKey, signal?: A
     
     return data.map(mentor => ({
       ...mentor,
-      courses_count: parseInt(mentor.courses_count) || 0,
-      followers_count: parseInt(mentor.followers_count) || 0
+      courses_count: parseInt(mentor[4]) || 0,
+      followers_count: parseInt(mentor[5]) || 0
     }));
   } catch (error) {
     console.error("Error fetching mentors:", error);
@@ -64,7 +64,7 @@ export async function getAllMentorados({ signal }: { queryKey: QueryKey, signal?
         full_name, 
         avatar_url, 
         bio,
-        (SELECT COUNT(*) FROM enrollments WHERE user_id = profiles.id) as enrollments_count
+        (SELECT COUNT(*) FROM enrollments WHERE user_id = profiles.id)
       `)
       .eq("role", "mentorado")
       .order("full_name", { ascending: true });
@@ -73,7 +73,7 @@ export async function getAllMentorados({ signal }: { queryKey: QueryKey, signal?
     
     return data.map(mentorado => ({
       ...mentorado,
-      enrollments_count: parseInt(mentorado.enrollments_count) || 0
+      enrollments_count: parseInt(mentorado[4]) || 0
     }));
   } catch (error) {
     console.error("Error fetching mentorados:", error);
@@ -138,23 +138,29 @@ export async function getAllCourses({ signal }: { queryKey: QueryKey, signal?: A
       .from("cursos")
       .select(`
         id, 
-        titulo as title, 
-        descricao as description, 
+        titulo, 
+        descricao, 
         mentor_id,
         profiles:mentor_id (full_name),
-        eh_pago as is_paid,
-        preco as price,
-        criado_em as created_at,
-        (SELECT COUNT(*) FROM enrollments WHERE course_id = cursos.id) as enrollments_count
+        eh_pago,
+        preco,
+        criado_em,
+        (SELECT COUNT(*) FROM enrollments WHERE course_id = cursos.id)
       `)
       .order("criado_em", { ascending: false });
 
     if (error) throw error;
     
     return data.map(course => ({
-      ...course,
+      id: course.id,
+      title: course.titulo,
+      description: course.descricao,
+      mentor_id: course.mentor_id,
       mentor_name: course.profiles?.full_name || null,
-      enrollments_count: parseInt(course.enrollments_count) || 0
+      is_paid: course.eh_pago,
+      price: course.preco,
+      created_at: course.criado_em,
+      enrollments_count: parseInt(course[8]) || 0
     }));
   } catch (error) {
     console.error("Error fetching all courses:", error);

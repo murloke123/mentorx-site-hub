@@ -49,7 +49,7 @@ export async function getMentorCourses(): Promise<MentorCourse[]> {
     
     if (!user) throw new Error("Not authenticated");
     
-    // Use a revised approach with proper aliasing
+    // Use proper column selection with aliases
     const { data, error } = await supabase
       .from("cursos")
       .select(`
@@ -73,7 +73,7 @@ export async function getMentorCourses(): Promise<MentorCourse[]> {
       throw error;
     }
     
-    return data || [];
+    return data as MentorCourse[] || [];
   } catch (error) {
     console.error("Error fetching mentor courses:", error);
     toast({
@@ -123,7 +123,7 @@ export async function getMentorModules(limit = 5): Promise<Module[]> {
       .limit(limit);
 
     if (error) throw error;
-    return modules || [];
+    return modules as Module[] || [];
   } catch (error) {
     console.error("Error fetching mentor modules:", error);
     toast({
