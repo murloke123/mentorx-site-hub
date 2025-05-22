@@ -47,6 +47,41 @@ export type Database = {
           },
         ]
       }
+      avaliacoes: {
+        Row: {
+          comentario: string | null
+          criado_em: string
+          curso_id: string
+          id: string
+          nota: number
+          usuario_id: string
+        }
+        Insert: {
+          comentario?: string | null
+          criado_em?: string
+          curso_id: string
+          id?: string
+          nota: number
+          usuario_id: string
+        }
+        Update: {
+          comentario?: string | null
+          criado_em?: string
+          curso_id?: string
+          id?: string
+          nota?: number
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_ratings_course_id_fkey"
+            columns: ["curso_id"]
+            isOneToOne: false
+            referencedRelation: "cursos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conteudo_concluido: {
         Row: {
           conteudo_id: string
@@ -145,40 +180,43 @@ export type Database = {
       }
       cursos: {
         Row: {
-          created_at: string
-          description: string | null
+          atualizado_em: string
+          criado_em: string
+          descricao: string | null
+          eh_pago: boolean
+          eh_publico: boolean
+          foi_publicado: boolean | null
           id: string
-          image_url: string | null
-          is_paid: boolean
-          is_public: boolean
           mentor_id: string
-          price: number | null
-          title: string
-          updated_at: string
+          preco: number | null
+          titulo: string
+          url_imagem: string | null
         }
         Insert: {
-          created_at?: string
-          description?: string | null
+          atualizado_em?: string
+          criado_em?: string
+          descricao?: string | null
+          eh_pago?: boolean
+          eh_publico?: boolean
+          foi_publicado?: boolean | null
           id?: string
-          image_url?: string | null
-          is_paid?: boolean
-          is_public?: boolean
           mentor_id: string
-          price?: number | null
-          title: string
-          updated_at?: string
+          preco?: number | null
+          titulo: string
+          url_imagem?: string | null
         }
         Update: {
-          created_at?: string
-          description?: string | null
+          atualizado_em?: string
+          criado_em?: string
+          descricao?: string | null
+          eh_pago?: boolean
+          eh_publico?: boolean
+          foi_publicado?: boolean | null
           id?: string
-          image_url?: string | null
-          is_paid?: boolean
-          is_public?: boolean
           mentor_id?: string
-          price?: number | null
-          title?: string
-          updated_at?: string
+          preco?: number | null
+          titulo?: string
+          url_imagem?: string | null
         }
         Relationships: [
           {
@@ -190,39 +228,39 @@ export type Database = {
           },
         ]
       }
-      enrollments: {
+      inscricoes: {
         Row: {
-          course_id: string
-          enrolled_at: string
+          curso_id: string
+          data_inscricao: string
           id: string
-          progress: Json | null
-          user_id: string
+          progresso: Json | null
+          usuario_id: string
         }
         Insert: {
-          course_id: string
-          enrolled_at?: string
+          curso_id: string
+          data_inscricao?: string
           id?: string
-          progress?: Json | null
-          user_id: string
+          progresso?: Json | null
+          usuario_id: string
         }
         Update: {
-          course_id?: string
-          enrolled_at?: string
+          curso_id?: string
+          data_inscricao?: string
           id?: string
-          progress?: Json | null
-          user_id?: string
+          progresso?: Json | null
+          usuario_id?: string
         }
         Relationships: [
           {
             foreignKeyName: "enrollments_course_id_fkey"
-            columns: ["course_id"]
+            columns: ["curso_id"]
             isOneToOne: false
             referencedRelation: "cursos"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "enrollments_user_id_fkey"
-            columns: ["user_id"]
+            columns: ["usuario_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -329,10 +367,43 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      sumario_avaliacoes_cursos: {
+        Row: {
+          curso_id: string | null
+          media_geral_avaliacoes: number | null
+          total_num_avaliacoes: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_ratings_course_id_fkey"
+            columns: ["curso_id"]
+            isOneToOne: false
+            referencedRelation: "cursos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
-      [_ in never]: never
+      obter_detalhes_cursos_do_mentor: {
+        Args: { p_mentor_id: string }
+        Returns: {
+          id: string
+          titulo: string
+          descricao: string
+          mentor_id: string
+          eh_publico: boolean
+          eh_pago: boolean
+          preco: number
+          url_imagem: string
+          foi_publicado: boolean
+          criado_em: string
+          atualizado_em: string
+          contagem_inscricoes: number
+          media_avaliacoes: number
+          total_avaliacoes: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

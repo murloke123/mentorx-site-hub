@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -21,6 +22,7 @@ import NotFound from "@/pages/NotFound";
 import Debug from "@/components/Debug";
 import CoursePlayerPage from "@/pages/mentor/cursos/CoursePlayerPage";
 import RoutesVisualizationPage from "./pages/mentor/configuracoes/RoutesVisualizationPage";
+import DatabaseMappingPage from "./pages/mentor/configuracoes/DatabaseMappingPage";
 
 // Importar as novas páginas de administração
 import AdminDashboardPage from "@/pages/AdminDashboardPage";
@@ -57,6 +59,7 @@ const AppContent = () => {
           <Route path="/mentor/followers" element={<MentorFollowersPage />} />
           <Route path="/mentor/mentorados" element={<MentorFollowersPage />} />
           <Route path="/mentor/configuracoes/rotas" element={<RoutesVisualizationPage />} />
+          <Route path="/mentor/configuracoes/database-mapping" element={<DatabaseMappingPage />} />
           
           {/* Rotas de Mentorado */}
           <Route path="/mentorado/dashboard" element={<MentoradoDashboardPage />} />

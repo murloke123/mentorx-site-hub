@@ -1,6 +1,7 @@
+
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Users, Calendar, Settings, ChevronRight, ChevronLeft, LayoutDashboard, LogOut, BookOpen, GitMerge } from "lucide-react";
+import { Users, Calendar, Settings, ChevronRight, ChevronLeft, LayoutDashboard, LogOut, BookOpen, GitMerge, Database } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -43,6 +44,11 @@ const MentorSidebar = () => {
       title: "Rotas",
       icon: GitMerge,
       href: "/mentor/configuracoes/rotas",
+    },
+    {
+      title: "Mapeamento DB",
+      icon: Database,
+      href: "/mentor/configuracoes/database-mapping",
     },
   ];
 
