@@ -1,7 +1,6 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { CourseFormData, categoryMappings } from "@/components/mentor/course-form/FormSchema";
+import { CourseFormData } from "@/components/mentor/course-form/FormSchema";
 
 export type { CourseFormData } from "@/components/mentor/course-form/FormSchema";
 
@@ -16,7 +15,6 @@ export async function createCourse(courseData: CourseFormData) {
 
     console.log("Dados do curso a serem enviados:", {
       category: courseData.category,
-      categoryUuid: courseData.category ? categoryMappings[courseData.category as keyof typeof categoryMappings] : null,
       type: courseData.type,
       price: courseData.price,
       isPublished: courseData.isPublished
@@ -29,7 +27,7 @@ export async function createCourse(courseData: CourseFormData) {
       is_paid: courseData.type === "paid",
       price: courseData.type === "paid" ? courseData.price : null,
       image_url: courseData.image,
-      category_id: courseData.category ? categoryMappings[courseData.category as keyof typeof categoryMappings] : null,
+      category: courseData.category, // Agora usando o campo category diretamente
       mentor_id: user.id,
       is_public: courseData.visibility === "public",
       is_published: courseData.isPublished,
@@ -64,13 +62,9 @@ export async function updateCourse(courseId: string, courseData: CourseFormData)
       throw new Error("Usuário não autenticado");
     }
 
-    // Converter a chave da categoria para UUID
-    const categoryUuid = courseData.category ? categoryMappings[courseData.category as keyof typeof categoryMappings] : null;
-
     console.log("Dados do curso a serem atualizados:", {
       id: courseId,
       category: courseData.category,
-      categoryUuid: categoryUuid,
       type: courseData.type,
       price: courseData.price,
       isPublished: courseData.isPublished
@@ -83,7 +77,7 @@ export async function updateCourse(courseId: string, courseData: CourseFormData)
       is_paid: courseData.type === "paid",
       price: courseData.type === "paid" ? courseData.price : null,
       image_url: courseData.image,
-      category_id: categoryUuid,
+      category: courseData.category, // Agora usando o campo category diretamente
       is_public: courseData.visibility === "public",
       is_published: courseData.isPublished,
       updated_at: new Date().toISOString(),
@@ -114,28 +108,17 @@ export async function getCourseById(courseId: string) {
   try {
     const { data, error } = await supabase
       .from("cursos")
-      .select("id, title, description, is_paid, price, image_url, is_public, is_published, category_id") 
+      .select("id, title, description, is_paid, price, image_url, is_public, is_published, category") 
       .eq("id", courseId)
       .single();
       
     if (error) throw error;
     
-    // Encontrar a chave da categoria com base no UUID
-    let categoryKey = "";
-    if (data.category_id) {
-      // Inverter o mapeamento para encontrar a chave a partir do valor UUID
-      Object.entries(categoryMappings).forEach(([key, value]) => {
-        if (value === data.category_id) {
-          categoryKey = key;
-        }
-      });
-    }
-    
     // Convert the course data to form data format
     const courseFormData: CourseFormData = {
       name: data.title,
       description: data.description || "",
-      category: categoryKey,
+      category: data.category || "", // Agora pegando o campo category diretamente
       image: data.image_url || "",
       type: data.is_paid ? "paid" : "free",
       price: data.price || 0,

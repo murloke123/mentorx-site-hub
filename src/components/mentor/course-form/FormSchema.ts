@@ -32,16 +32,6 @@ export const defaultValues: CourseFormData = {
   isPublished: false,
 };
 
-// Category mappings - containing UUID values that match the database
-export const categoryMappings = {
-  "personal-development": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11", // UUID para Desenvolvimento Pessoal
-  "programming": "b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22", // UUID para Programação
-  "finance": "c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a33", // UUID para Finanças
-  "leadership": "d0eebc99-9c0b-4ef8-bb6d-6bb9bd380a44", // UUID para Liderança
-  "digital-marketing": "e0eebc99-9c0b-4ef8-bb6d-6bb9bd380a55", // UUID para Marketing Digital
-  "sales": "f0eebc99-9c0b-4ef8-bb6d-6bb9bd380a66", // UUID para Vendas
-};
-
 // Categories available for selection
 export const categories = [
   { value: "personal-development", label: "Desenvolvimento Pessoal" },

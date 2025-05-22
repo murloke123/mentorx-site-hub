@@ -47,24 +47,6 @@ export type Database = {
           },
         ]
       }
-      categories: {
-        Row: {
-          created_at: string
-          id: string
-          name: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          name: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          name?: string
-        }
-        Relationships: []
-      }
       conteudo_concluido: {
         Row: {
           conteudo_id: string
@@ -163,7 +145,7 @@ export type Database = {
       }
       cursos: {
         Row: {
-          category_id: string | null
+          category: string | null
           created_at: string
           description: string | null
           id: string
@@ -177,7 +159,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          category_id?: string | null
+          category?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -191,7 +173,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          category_id?: string | null
+          category?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -210,13 +192,6 @@ export type Database = {
             columns: ["mentor_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_cursos_category_id"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "categories"
             referencedColumns: ["id"]
           },
         ]
