@@ -1,3 +1,4 @@
+
 export interface User {
   id: string;
   name: string;
@@ -18,6 +19,7 @@ export interface Course {
   is_paid: boolean;
   price?: number | null;
   image_url?: string | null;
+  is_published?: boolean;
   enrollments?: { count: number }[];
   created_at?: string;
   updated_at?: string;

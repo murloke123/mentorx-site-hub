@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Edit3, Eye, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
-import { getMentorModules } from "@/services/mentorService";
+import { getMentorModules, Module } from "@/services/mentorService";
 
 const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString('en-US', {
@@ -13,17 +13,6 @@ const formatDate = (dateString: string) => {
     year: 'numeric'
   });
 };
-
-// Definindo a interface para garantir tipagem correta
-interface Module {
-  id: string;
-  nome_modulo: string;
-  created_at: string;
-  cursos?: {
-    id: string;
-    title: string;
-  };
-}
 
 const RecentModules = () => {
   const { data: modules, isLoading } = useQuery({
@@ -53,13 +42,13 @@ const RecentModules = () => {
           </div>
         ) : modules && modules.length > 0 ? (
           <div>
-            {(modules as Module[]).map((module) => (
+            {modules.map((module) => (
               <div 
                 key={module.id} 
                 className="flex items-center justify-between border-b p-4 last:border-0 hover:bg-muted/50"
               >
                 <div className="space-y-1">
-                  <p className="font-medium leading-none">{module.nome_modulo}</p>
+                  <p className="font-medium leading-none">{module.name}</p>
                   <p className="text-xs text-muted-foreground">
                     {module.cursos ? module.cursos.title : 'Curso não encontrado'} • {formatDate(module.created_at)}
                   </p>

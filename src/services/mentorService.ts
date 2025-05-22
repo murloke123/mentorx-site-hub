@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
@@ -29,16 +30,16 @@ export async function getMentorProfile() {
 
 export interface MentorCourse {
   id: string;
-  titulo: string;
-  descricao?: string | null;
-  eh_publico: boolean;
-  eh_pago: boolean;
-  preco?: number | null;
-  url_imagem?: string | null;
-  criado_em: string;
-  atualizado_em: string;
+  title: string;
+  description?: string | null;
+  is_public: boolean;
+  is_paid: boolean;
+  price?: number | null;
+  image_url?: string | null;
+  created_at: string;
+  updated_at: string;
   mentor_id: string;
-  inscricoes?: { count: number }[];
+  enrollments?: { count: number }[];
 }
 
 export async function getMentorCourses(): Promise<MentorCourse[]> {
@@ -50,9 +51,9 @@ export async function getMentorCourses(): Promise<MentorCourse[]> {
     
     const { data: courses, error } = await supabase
       .from("cursos")
-      .select("id, titulo, descricao, eh_publico, eh_pago, preco, url_imagem, criado_em, atualizado_em, mentor_id, inscricoes(count)")
+      .select("id, title, description, is_public, is_paid, price, image_url, created_at, updated_at, mentor_id, enrollments(count)")
       .eq("mentor_id", user.id)
-      .order("criado_em", { ascending: false });
+      .order("created_at", { ascending: false });
 
     if (error) throw error;
     return courses || [];
@@ -69,15 +70,15 @@ export async function getMentorCourses(): Promise<MentorCourse[]> {
 
 export interface Module {
   id: string;
-  nome_modulo: string;
-  descricao_modulo?: string;
-  curso_id: string;
-  criado_em: string;
-  atualizado_em: string;
+  name: string;
+  description?: string;
+  course_id: string;
+  created_at: string;
+  updated_at: string;
   ordem: number;
   cursos?: {
     id: string;
-    titulo: string;
+    title: string;
   };
 }
 
@@ -90,9 +91,9 @@ export async function getMentorModules(limit = 5): Promise<Module[]> {
     
     const { data: modules, error } = await supabase
       .from("modulos")
-      .select("id, nome_modulo, descricao_modulo, curso_id, criado_em, atualizado_em, ordem, cursos!inner(id, titulo, mentor_id)")
+      .select("id, name, description, course_id, created_at, updated_at, ordem, cursos!inner(id, title, mentor_id)")
       .eq("cursos.mentor_id", user.id)
-      .order("criado_em", { ascending: false })
+      .order("created_at", { ascending: false })
       .limit(limit);
 
     if (error) throw error;

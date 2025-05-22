@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,9 +14,9 @@ const CourseCard = ({ course }: CourseCardProps) => {
   return (
     <Card className="h-full flex flex-col overflow-hidden transition-shadow hover:shadow-md">
       <AspectRatio ratio={16 / 9}>
-        {course.imageUrl ? (
+        {course.image_url ? (
           <img 
-            src={course.imageUrl} 
+            src={course.image_url} 
             alt={course.title} 
             className="w-full h-full object-cover"
           />
@@ -27,12 +28,12 @@ const CourseCard = ({ course }: CourseCardProps) => {
       </AspectRatio>
       <CardHeader className="pb-2">
         <CardTitle className="text-lg">{course.title}</CardTitle>
-        {course.mentorName && (
+        {course.mentor_name && (
           <div className="flex items-center space-x-2 mt-1">
             <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
               <BookOpen className="h-3 w-3 text-primary" />
             </div>
-            <span className="text-sm text-gray-600">{course.mentorName}</span>
+            <span className="text-sm text-gray-600">{course.mentor_name}</span>
           </div>
         )}
       </CardHeader>

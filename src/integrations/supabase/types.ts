@@ -389,19 +389,19 @@ export type Database = {
         Args: { p_mentor_id: string }
         Returns: {
           id: string
-          titulo: string
-          descricao: string
+          title: string
+          description: string
           mentor_id: string
-          eh_publico: boolean
-          eh_pago: boolean
-          preco: number
-          url_imagem: string
-          foi_publicado: boolean
-          criado_em: string
-          atualizado_em: string
-          contagem_inscricoes: number
-          media_avaliacoes: number
-          total_avaliacoes: number
+          is_public: boolean
+          is_paid: boolean
+          price: number
+          image_url: string
+          is_published: boolean
+          created_at: string
+          updated_at: string
+          enrollment_count: number
+          average_rating: number
+          total_ratings: number
         }[]
       }
     }
