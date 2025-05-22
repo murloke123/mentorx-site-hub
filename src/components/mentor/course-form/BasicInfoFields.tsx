@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,6 +12,12 @@ interface BasicInfoFieldsProps {
 }
 
 const BasicInfoFields = ({ form }: BasicInfoFieldsProps) => {
+  const categoryValue = form.watch("category");
+  
+  useEffect(() => {
+    console.log("Categoria atual:", categoryValue);
+  }, [categoryValue]);
+
   return (
     <>
       <FormField
@@ -55,6 +61,7 @@ const BasicInfoFields = ({ form }: BasicInfoFieldsProps) => {
             <Select 
               onValueChange={field.onChange} 
               defaultValue={field.value}
+              value={field.value}
             >
               <FormControl>
                 <SelectTrigger>

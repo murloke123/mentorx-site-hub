@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { CourseFormData } from "@/components/mentor/course-form/FormSchema";
@@ -14,6 +13,13 @@ export async function createCourse(courseData: CourseFormData) {
       throw new Error("Usuário não autenticado");
     }
 
+    console.log("Dados do curso a serem enviados:", {
+      category: courseData.category,
+      type: courseData.type,
+      price: courseData.price,
+      isPublished: courseData.isPublished
+    });
+
     // Now using English field names
     const courseRecord = {
       title: courseData.name,
@@ -21,7 +27,7 @@ export async function createCourse(courseData: CourseFormData) {
       is_paid: courseData.type === "paid",
       price: courseData.type === "paid" ? courseData.price : null,
       image_url: courseData.image,
-      category_id: courseData.category || null, // Save category_id properly
+      category_id: courseData.category, // Removido o || null para diagnóstico
       mentor_id: user.id,
       is_public: courseData.visibility === "public",
       is_published: courseData.isPublished,
@@ -34,8 +40,12 @@ export async function createCourse(courseData: CourseFormData) {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error("Erro Supabase ao criar curso:", error);
+      throw error;
+    }
     
+    console.log("Curso criado com sucesso:", data);
     return data;
   } catch (error) {
     console.error("Erro ao criar curso:", error);
@@ -52,6 +62,14 @@ export async function updateCourse(courseId: string, courseData: CourseFormData)
       throw new Error("Usuário não autenticado");
     }
 
+    console.log("Dados do curso a serem atualizados:", {
+      id: courseId,
+      category: courseData.category,
+      type: courseData.type,
+      price: courseData.price,
+      isPublished: courseData.isPublished
+    });
+
     // Now using English field names
     const courseRecord = {
       title: courseData.name,
@@ -59,7 +77,7 @@ export async function updateCourse(courseId: string, courseData: CourseFormData)
       is_paid: courseData.type === "paid",
       price: courseData.type === "paid" ? courseData.price : null,
       image_url: courseData.image,
-      category_id: courseData.category || null, // Save category_id properly
+      category_id: courseData.category, // Removido o || null para diagnóstico
       is_public: courseData.visibility === "public",
       is_published: courseData.isPublished,
       updated_at: new Date().toISOString(),
@@ -71,11 +89,14 @@ export async function updateCourse(courseId: string, courseData: CourseFormData)
       .update(courseRecord)
       .eq("id", courseId)
       .eq("mentor_id", user.id) // Garantir que apenas o mentor do curso possa atualizar
-      .select()
-      .single();
+      .select();
 
-    if (error) throw error;
+    if (error) {
+      console.error("Erro Supabase ao atualizar curso:", error);
+      throw error;
+    }
     
+    console.log("Curso atualizado com sucesso:", data);
     return data;
   } catch (error) {
     console.error("Erro ao atualizar curso:", error);

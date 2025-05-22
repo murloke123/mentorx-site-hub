@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
@@ -23,6 +24,7 @@ const EditCoursePage = () => {
       try {
         setIsLoading(true);
         const data = await getCourseById(id);
+        console.log("Dados do curso carregados:", data);
         setCourseData(data);
       } catch (error) {
         console.error("Erro ao carregar curso:", error);
@@ -44,6 +46,7 @@ const EditCoursePage = () => {
     if (!id) return;
     
     setIsSubmitting(true);
+    console.log("Enviando formulário para atualização:", formData);
     
     try {
       await updateCourse(id, formData);
