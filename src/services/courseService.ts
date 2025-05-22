@@ -27,7 +27,7 @@ export async function createCourse(courseData: CourseFormData) {
       is_paid: courseData.type === "paid",
       price: courseData.type === "paid" ? courseData.price : null,
       image_url: courseData.image,
-      category: courseData.category, // Agora usando o campo category diretamente
+      category: courseData.category, // Usando o campo category diretamente
       mentor_id: user.id,
       is_public: courseData.visibility === "public",
       is_published: courseData.isPublished,
@@ -77,7 +77,7 @@ export async function updateCourse(courseId: string, courseData: CourseFormData)
       is_paid: courseData.type === "paid",
       price: courseData.type === "paid" ? courseData.price : null,
       image_url: courseData.image,
-      category: courseData.category, // Agora usando o campo category diretamente
+      category: courseData.category, // Usando o campo category diretamente
       is_public: courseData.visibility === "public",
       is_published: courseData.isPublished,
       updated_at: new Date().toISOString(),
@@ -118,7 +118,7 @@ export async function getCourseById(courseId: string) {
     const courseFormData: CourseFormData = {
       name: data.title,
       description: data.description || "",
-      category: data.category || "", // Agora pegando o campo category diretamente
+      category: data.category || "", // Pegando o campo category diretamente
       image: data.image_url || "",
       type: data.is_paid ? "paid" : "free",
       price: data.price || 0,
