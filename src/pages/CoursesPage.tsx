@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import CourseCard from "@/components/CourseCard";
@@ -90,16 +91,7 @@ const CoursesPage = () => {
           {filteredCourses.map((course) => (
             <CourseCard 
               key={course.id} 
-              course={{
-                id: course.id,
-                title: course.title,
-                description: course.description || "",
-                mentorId: course.mentor_id,
-                mentorName: course.mentor_name,
-                price: course.price || 0,
-                imageUrl: course.image_url,
-                public: course.is_public
-              }} 
+              course={course}
             />
           ))}
         </div>

@@ -42,7 +42,7 @@ const CourseCard = ({ course }: CourseCardProps) => {
       </CardContent>
       <CardFooter className="pt-2 flex justify-between items-center">
         <div>
-          {course.price > 0 ? (
+          {course.price && course.price > 0 ? (
             <span className="font-semibold">R$ {course.price.toFixed(2)}</span>
           ) : (
             <span className="text-green-600 font-semibold">Grátis</span>

@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -10,17 +11,7 @@ import { BookOpen, Filter, PlusCircle, Search, Layers, Edit2, Eye, AlertTriangle
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-
-interface Course {
-  id: string;
-  titulo: string;
-  descricao?: string;
-  eh_publico: boolean;
-  eh_pago: boolean;
-  preco?: number;
-  url_imagem?: string;
-  inscricoes?: { count: number }[];
-}
+import { Course } from "@/types";
 
 interface CoursesListProps {
   courses: Course[];
@@ -36,13 +27,13 @@ const CoursesList = ({ courses, isLoading, totalEnrollments }: CoursesListProps)
 
   // Filtrar cursos com base na busca e filtro de visibilidade
   const filteredCourses = courses.filter(course => {
-    const matchesSearch = course.titulo.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase());
     
     const matchesFilter = visibilityFilter === null || 
-                        (visibilityFilter === 'public' && course.eh_publico) ||
-                        (visibilityFilter === 'private' && !course.eh_publico) ||
-                        (visibilityFilter === 'paid' && course.eh_pago) ||
-                        (visibilityFilter === 'free' && !course.eh_pago);
+                        (visibilityFilter === 'public' && course.is_public) ||
+                        (visibilityFilter === 'private' && !course.is_public) ||
+                        (visibilityFilter === 'paid' && course.is_paid) ||
+                        (visibilityFilter === 'free' && !course.is_paid);
                         
     return matchesSearch && matchesFilter;
   });
@@ -147,7 +138,7 @@ const CoursesList = ({ courses, isLoading, totalEnrollments }: CoursesListProps)
       <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
         {filteredCourses.map((course) => {
           const hasImageLoadingError = imageLoadErrors.has(course.id);
-          const canDisplayImage = course.url_imagem && course.url_imagem.trim() !== '' && !hasImageLoadingError;
+          const canDisplayImage = course.image_url && course.image_url.trim() !== '' && !hasImageLoadingError;
 
           return (
             <Card key={course.id} className="flex flex-col">
@@ -156,8 +147,8 @@ const CoursesList = ({ courses, isLoading, totalEnrollments }: CoursesListProps)
                   <div className="flex items-start gap-4 min-w-0">
                     {canDisplayImage ? (
                       <img 
-                        src={course.url_imagem} 
-                        alt={course.titulo} 
+                        src={course.image_url} 
+                        alt={course.title} 
                         className="w-16 h-16 rounded-full object-cover flex-shrink-0"
                         onError={() => handleImageError(course.id)}
                       />
@@ -170,16 +161,16 @@ const CoursesList = ({ courses, isLoading, totalEnrollments }: CoursesListProps)
                       </div>
                     )}
                     <div className="min-w-0 flex-1">
-                      <CardTitle className="text-lg truncate">{course.titulo}</CardTitle>
+                      <CardTitle className="text-lg truncate">{course.title}</CardTitle>
                       {hasImageLoadingError && (
                         <p className="text-xs text-destructive mt-1">Erro ao carregar imagem.</p>
                       )}
                       <div className="flex items-center gap-2 mt-1 flex-wrap">
-                        <Badge variant={course.eh_publico ? "outline" : "secondary"}>
-                          {course.eh_publico ? 'Público' : 'Privado'}
+                        <Badge variant={course.is_public ? "outline" : "secondary"}>
+                          {course.is_public ? 'Público' : 'Privado'}
                         </Badge>
-                        <Badge variant={course.eh_pago ? "default" : "outline"}>
-                          {course.eh_pago ? `R$${course.preco?.toFixed(2)}` : 'Gratuito'}
+                        <Badge variant={course.is_paid ? "default" : "outline"}>
+                          {course.is_paid ? `R$${course.price?.toFixed(2)}` : 'Gratuito'}
                         </Badge>
                       </div>
                     </div>
@@ -207,20 +198,19 @@ const CoursesList = ({ courses, isLoading, totalEnrollments }: CoursesListProps)
                 <div className="mb-4">
                   <div className="flex justify-between mb-1">
                     <span className="text-sm">Inscrições</span>
-                    <span className="text-sm font-medium">{course.inscricoes?.[0]?.count || 0}</span>
+                    <span className="text-sm font-medium">{course.enrollments?.[0]?.count || 0}</span>
                   </div>
                   <Progress 
-                    value={(course.inscricoes?.[0]?.count || 0)} // TODO: This progress seems to be using enrollment count, maybe it should be course completion?
+                    value={(course.enrollments?.[0]?.count || 0)} // TODO: This progress seems to be using enrollment count, maybe it should be course completion?
                     className="w-full h-2" 
                   />
                 </div>
-                {/* TODO: Adicionar mais detalhes do curso aqui se necessário, como progresso de conclusão, etc. */}
               </CardContent>
               <CardFooter className="flex-col items-start gap-4 pt-4 border-t">
                 <div>
                   <Label htmlFor={`publish-status-${course.id}`} className="text-sm font-medium mb-2 block">Status da Publicação:</Label>
                   <RadioGroup
-                    defaultValue={course.eh_publico ? "publicado" : "nao-publicado"}
+                    defaultValue={course.is_published ? "publicado" : "nao-publicado"}
                     onValueChange={(value) => handlePublishChange(course.id, value === "publicado")}
                     className="flex items-center space-x-4"
                     id={`publish-status-${course.id}`}
@@ -238,11 +228,11 @@ const CoursesList = ({ courses, isLoading, totalEnrollments }: CoursesListProps)
                  <div className="flex items-center space-x-2">
                    <Switch
                      id={`publish-switch-${course.id}`}
-                     checked={course.eh_publico}
+                     checked={course.is_published}
                      onCheckedChange={(isChecked) => handlePublishChange(course.id, isChecked)}
                    />
                    <Label htmlFor={`publish-switch-${course.id}`}>
-                     {course.eh_publico ? "Publicado" : "Não Publicado"}
+                     {course.is_published ? "Publicado" : "Não Publicado"}
                    </Label>
                  </div>
               </CardFooter>

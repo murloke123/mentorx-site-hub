@@ -26,10 +26,10 @@ export async function markContentCompleted(courseId: string, moduleId: string, c
     
     // Verificar se já está marcado como concluído
     const { data: existente, error: checkError } = await supabase
-      .from("completed_content")
+      .from("conteudo_concluido")
       .select("id")
       .eq("user_id", user.id)
-      .eq("content_id", contentId)
+      .eq("conteudo_id", contentId)
       .maybeSingle();
     
     if (checkError) throw checkError;
@@ -48,7 +48,7 @@ export async function markContentCompleted(courseId: string, moduleId: string, c
     };
     
     const { data, error } = await supabase
-      .from("completed_content")
+      .from("conteudo_concluido")
       .insert(completedContent)
       .select()
       .single();
@@ -76,10 +76,10 @@ export async function unmarkContentCompleted(contentId: string) {
 
     // Buscar o registro para obter o curso_id antes de excluir
     const { data: registro, error: fetchError } = await supabase
-      .from("completed_content")
-      .select("course_id")
+      .from("conteudo_concluido")
+      .select("curso_id")
       .eq("user_id", user.id)
-      .eq("content_id", contentId)
+      .eq("conteudo_id", contentId)
       .maybeSingle();
       
     if (fetchError) throw fetchError;
@@ -89,14 +89,14 @@ export async function unmarkContentCompleted(contentId: string) {
       return null;
     }
 
-    const courseId = registro.course_id;
+    const courseId = registro.curso_id;
     
     // Excluir o registro
     const { error } = await supabase
-      .from("completed_content")
+      .from("conteudo_concluido")
       .delete()
       .eq("user_id", user.id)
-      .eq("content_id", contentId);
+      .eq("conteudo_id", contentId);
 
     if (error) throw error;
 
@@ -120,10 +120,10 @@ export async function checkContentCompleted(contentId: string) {
     }
     
     const { data, error } = await supabase
-      .from("completed_content")
+      .from("conteudo_concluido")
       .select("id")
       .eq("user_id", user.id)
-      .eq("content_id", contentId)
+      .eq("conteudo_id", contentId)
       .maybeSingle();
 
     if (error) throw error;
@@ -157,7 +157,7 @@ async function updateCourseProgress(courseId: string) {
     
     // Contar conteúdos concluídos pelo usuário
     const { count: completed, error: completedError } = await supabase
-      .from("completed_content")
+      .from("conteudo_concluido")
       .select("id", { count: 'exact', head: true })
       .eq("user_id", user.id)
       .eq("course_id", courseId);
@@ -175,10 +175,10 @@ async function updateCourseProgress(courseId: string) {
     
     // Atualizar a matrícula com o progresso
     const { error: updateError } = await supabase
-      .from("enrollments")
-      .update({ progress: progressData })
-      .eq("user_id", user.id)
-      .eq("course_id", courseId);
+      .from("inscricoes")
+      .update({ progresso: progressData })
+      .eq("usuario_id", user.id)
+      .eq("curso_id", courseId);
       
     if (updateError) throw updateError;
   } catch (error) {

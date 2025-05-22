@@ -27,9 +27,9 @@ export async function getAllCourses(context?: { queryKey: string[], signal?: Abo
     const coursesWithEnrollments = await Promise.all(
       data.map(async (course) => {
         const { count, error: countError } = await supabase
-          .from('enrollments')
+          .from('inscricoes')
           .select('*', { count: 'exact', head: true })
-          .eq('course_id', course.id);
+          .eq('curso_id', course.id);
 
         if (countError) {
           console.error("Erro ao contar matrículas:", countError);
@@ -122,7 +122,7 @@ export async function getPlatformStats() {
     
     // Contagem de matrículas
     const { count: enrollmentsCount, error: enrollmentsError } = await supabase
-      .from("enrollments")
+      .from("inscricoes")
       .select("*", { count: 'exact', head: true });
       
     if (enrollmentsError) throw enrollmentsError;
@@ -225,9 +225,9 @@ export async function getAllMentorados(context?: { queryKey: string[], signal?: 
       data.map(async (mentoree) => {
         // Contar matrículas
         const { count: enrollmentsCount, error: enrollmentsError } = await supabase
-          .from("enrollments")
+          .from("inscricoes")
           .select("*", { count: 'exact', head: true })
-          .eq("user_id", mentoree.id);
+          .eq("usuario_id", mentoree.id);
           
         if (enrollmentsError) {
           console.error(`Erro ao contar matrículas do mentorado ${mentoree.id}:`, enrollmentsError);

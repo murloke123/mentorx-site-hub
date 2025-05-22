@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { CourseFormData } from "@/components/mentor/course-form/FormSchema";
@@ -13,7 +14,7 @@ export async function createCourse(courseData: CourseFormData) {
       throw new Error("Usuário não autenticado");
     }
 
-    // Mapear dados do formulário para o formato da tabela de cursos (colunas em INGLÊS)
+    // Mapear dados do formulário para o formato da tabela de cursos
     const courseRecord = {
       title: courseData.name,
       description: courseData.description,
@@ -50,7 +51,7 @@ export async function updateCourse(courseId: string, courseData: CourseFormData)
       throw new Error("Usuário não autenticado");
     }
 
-    // Mapear dados do formulário para o formato da tabela de cursos (colunas em INGLÊS)
+    // Mapear dados do formulário para o formato da tabela de cursos
     const courseRecord = {
       title: courseData.name,
       description: courseData.description,
@@ -84,7 +85,7 @@ export async function getCourseById(courseId: string) {
   try {
     const { data, error } = await supabase
       .from("cursos")
-      .select("id, title, description, is_paid, price, image_url, is_public") // Usando nomes de colunas em inglês
+      .select("id, title, description, is_paid, price, image_url, is_public") 
       .eq("id", courseId)
       .single();
       
@@ -142,6 +143,8 @@ export interface Course {
   enrollments?: { count: number }[];
   average_rating?: number | null;
   total_ratings?: number | null;
+  created_at?: string;
+  updated_at?: string;
 }
 
 // Buscar cursos do mentor
@@ -154,39 +157,39 @@ export async function getMentorCourses(): Promise<Course[]> {
       return [];
     }
 
-    const { data: rpcData, error: rpcError } = await supabase
-      .rpc('obter_detalhes_cursos_do_mentor', { p_mentor_id: user.id });
+    // Use uma seleção direta com join em vez de uma RPC que pode estar quebrada
+    const { data, error } = await supabase
+      .from("cursos")
+      .select(`
+        *,
+        inscricoes(count)
+      `)
+      .eq("mentor_id", user.id)
+      .order("created_at", { ascending: false });
 
-    console.log('[DEBUG] Supabase RPC call for getMentorCourses:', {
-      rpc: 'obter_detalhes_cursos_do_mentor',
-      params: { p_mentor_id: user.id }
-    });
-
-    if (rpcError) {
-      console.error('Erro ao buscar cursos do mentor via RPC:', rpcError);
-      throw rpcError;
+    if (error) {
+      console.error('Erro ao buscar cursos do mentor:', error);
+      throw error;
     }
     
-    console.log('[DEBUG] Data received from RPC getMentorCourses:', rpcData);
-
-    // RPC retorna um array de objetos com os nomes das colunas definidos na função SQL
-    return (rpcData || []).map(dataFromRpc => ({
-      id: dataFromRpc.id,
-      title: dataFromRpc.title,
-      description: dataFromRpc.description,
-      mentor_id: dataFromRpc.mentor_id,
-      is_public: dataFromRpc.is_public,
-      is_paid: dataFromRpc.is_paid,
-      price: dataFromRpc.price,
-      image_url: dataFromRpc.image_url,
-      is_published: dataFromRpc.is_published || false,
-      enrollments: [{ count: Number(dataFromRpc.enrollment_count) || 0 }],
-      average_rating: dataFromRpc.average_rating ? Number(dataFromRpc.average_rating) : null,
-      total_ratings: Number(dataFromRpc.total_ratings) || 0
+    // Map response to our Course interface
+    return (data || []).map(item => ({
+      id: item.id,
+      title: item.title,
+      description: item.description,
+      mentor_id: item.mentor_id,
+      is_public: item.is_public,
+      is_paid: item.is_paid,
+      price: item.price,
+      image_url: item.image_url,
+      is_published: item.is_published || false,
+      enrollments: item.inscricoes ? [{ count: item.inscricoes.length }] : [],
+      created_at: item.created_at,
+      updated_at: item.updated_at
     }));
   } catch (error) {
-    console.error('Exceção em getMentorCourses (RPC catch block):', error);
-    throw error;
+    console.error('Exceção em getMentorCourses:', error);
+    return [];
   }
 }
 
@@ -194,7 +197,7 @@ export async function getMentorCourses(): Promise<Course[]> {
 export async function getPublicCourses(): Promise<Course[]> {
   try {
     const { data: coursesData, error } = await supabase
-      .from('cursos') // Se 'cursos' foi renomeada, ajuste aqui também
+      .from('cursos')
       .select(`
         id,
         title, 
@@ -204,13 +207,13 @@ export async function getPublicCourses(): Promise<Course[]> {
         is_public,
         price,
         image_url,
-        foi_publicado,
-        criado_em, // Added criado_em for ordering
-        mentor:profiles(full_name) // Assumindo que profiles.full_name é o nome do mentor
+        is_published,
+        created_at,
+        profiles:mentor_id (full_name)
       `)
-      .eq('is_public', true) // Usando coluna traduzida
-      .eq('foi_publicado', true) // Adicionando filtro para cursos publicados
-      .order('criado_em', { ascending: false }); // Changed from created_at
+      .eq('is_public', true)
+      .eq('is_published', true)
+      .order('created_at', { ascending: false });
 
     if (error) throw error;
     
@@ -219,22 +222,18 @@ export async function getPublicCourses(): Promise<Course[]> {
     return (coursesData || []).map(data => ({
       id: data.id,
       title: data.title,
-      description: data.descricao || "",
+      description: data.description || "",
       mentor_id: data.mentor_id,
+      mentor_name: data.profiles?.full_name,
       is_public: data.is_public,
       is_paid: data.is_paid,
-      price: data.preco || 0,
-      image_url: data.url_imagem || undefined,
-      foi_publicado: data.foi_publicado || false,
-      enrollments: [], 
-      average_rating: null, 
-      total_ratings: 0 
-      // mentor_nome can be added if data.mentor.full_name is mapped here
+      price: data.price || 0,
+      image_url: data.image_url || undefined,
+      is_published: data.is_published || false
     }));
   } catch (error) {
     console.error('Erro ao buscar cursos públicos:', error);
-    // Removendo toast daqui para ser tratado pelo chamador (React Query)
-    throw error; // Lançar o erro para React Query tratar
+    throw error;
   }
 }
 
@@ -243,9 +242,8 @@ export async function deleteCourse(courseId: string) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error("Usuário não autenticado");
 
-    // Ajuste 'cursos' e 'mentor_id' se foram renomeados na tabela 'cursos'
     const { error } = await supabase
-      .from("cursos") 
+      .from("cursos")
       .delete()
       .eq("id", courseId)
       .eq("mentor_id", user.id); 

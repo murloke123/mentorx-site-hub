@@ -1,3 +1,4 @@
+
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -50,7 +51,7 @@ const MeusCursosPage = () => {
 
   const userId = currentSession?.user?.id;
 
-  const { data: coursesData = [], isLoading: queryIsLoading, isFetching: queryIsFetching, isError, error } = useQuery<Course[], Error>({
+  const { data: coursesData = [], isLoading: queryIsLoading, isFetching: queryIsFetching, isError, error } = useQuery<Course[]>({
     queryKey: ['mentorCourses', userId],
     queryFn: () => {
       if (!userId) return Promise.resolve([]);
@@ -67,9 +68,7 @@ const MeusCursosPage = () => {
     }
   }, [isError, error]);
 
-  const courses: Course[] = Array.isArray(coursesData) ? coursesData : [];
-
-  const totalEnrollments = courses.reduce((sum, courseItem) => {
+  const totalEnrollments = coursesData.reduce((sum, courseItem) => {
     const enrollmentCount = courseItem.enrollments?.[0]?.count;
     return sum + (typeof enrollmentCount === 'number' ? enrollmentCount : 0);
   }, 0);
@@ -102,12 +101,12 @@ const MeusCursosPage = () => {
         {isError && (
           <div className="text-red-500 p-4 border border-red-500 rounded-md">
             <p>Ocorreu um erro ao carregar seus cursos:</p>
-            <p className="text-sm">{error?.message || "Tente recarregar a página."}</p>
+            <p className="text-sm">{error instanceof Error ? error.message : "Tente recarregar a página."}</p>
           </div>
         )}
 
         <CoursesList 
-          courses={courses} 
+          courses={coursesData} 
           isLoading={listIsLoading} 
           totalEnrollments={totalEnrollments} 
         />
