@@ -1,10 +1,11 @@
-
 import React from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { ConteudoItemLocal, ModuloItemLocal } from '../types';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface CourseSidebarProps {
   modulos: ModuloItemLocal[];
@@ -13,6 +14,10 @@ interface CourseSidebarProps {
   onConteudoSelect: (conteudo: ConteudoItemLocal) => void;
   onToggleConteudoConcluido: (conteudoId: string, moduloId: string) => Promise<void>;
   progress: number;
+  onPreviousContent: () => void;
+  onNextContent: () => void;
+  hasPreviousContent: boolean;
+  hasNextContent: boolean;
 }
 
 const CourseSidebar: React.FC<CourseSidebarProps> = ({ 
@@ -21,7 +26,11 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
   conteudosConcluidos,
   onConteudoSelect,
   onToggleConteudoConcluido,
-  progress
+  progress,
+  onPreviousContent,
+  onNextContent,
+  hasPreviousContent,
+  hasNextContent
 }) => {
   return (
     <aside className="w-80 bg-white border-l border-gray-200 flex flex-col h-full">
@@ -34,31 +43,38 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
       </div>
       
       <div className="overflow-y-auto flex-grow p-4">
-        <Accordion type="multiple" className="w-full" defaultValue={modulos.map(m => m.id)}>
-          {modulos.map((modulo) => (
-            <AccordionItem value={modulo.id} key={modulo.id}>
-              <AccordionTrigger className="font-medium hover:bg-gray-50 p-2 rounded">
-                {modulo.nome_modulo}
+        <Accordion type="single" collapsible className="w-full">
+          {modulos.map((module, moduleIndex) => (
+            <AccordionItem key={module.id} value={module.id}>
+              <AccordionTrigger className="px-4">
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">{module.nome_modulo}</span>
+                </div>
               </AccordionTrigger>
-              <AccordionContent className="pl-4 pr-1 pt-1 pb-1">
+              <AccordionContent>
                 <ul className="space-y-1">
-                  {modulo.conteudos.sort((a,b) => a.ordem - b.ordem).map((conteudo) => (
-                    <li key={conteudo.id} className="text-sm">
-                      <Button
-                        variant="ghost"
-                        className={`w-full justify-start text-left h-auto py-2 px-2 block ${currentConteudo?.id === conteudo.id ? 'bg-sky-100 text-sky-700 font-semibold' : 'hover:bg-gray-100'}`}
-                        onClick={() => onConteudoSelect(conteudo)}
+                  {module.conteudos.sort((a,b) => a.ordem - b.ordem).map((content, contentIndex) => (
+                    <li key={content.id}>
+                      <div
+                        className={cn(
+                          "flex items-center gap-2 px-4 py-2 hover:bg-accent cursor-pointer",
+                          currentConteudo?.id === content.id && "bg-accent"
+                        )}
+                        onClick={() => onConteudoSelect(content)}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            onConteudoSelect(content);
+                          }
+                        }}
                       >
-                        <div className="flex items-center justify-between w-full">
-                          <span className="flex-1 truncate" title={conteudo.nome_conteudo}>{conteudo.nome_conteudo}</span>
-                          <Checkbox
-                            checked={conteudosConcluidos.has(conteudo.id)}
-                            onCheckedChange={() => onToggleConteudoConcluido(conteudo.id, modulo.id)}
-                            className="ml-2 flex-shrink-0"
-                            onClick={(e) => e.stopPropagation()} // Prevent button click when checkbox is clicked
-                          />
-                        </div>
-                      </Button>
+                        <Checkbox
+                          checked={conteudosConcluidos.has(content.id)}
+                          onCheckedChange={(checked) => onToggleConteudoConcluido(content.id, module.id)}
+                        />
+                        <span>{content.nome_conteudo}</span>
+                      </div>
                     </li>
                   ))}
                 </ul>

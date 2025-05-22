@@ -81,19 +81,22 @@ const ContentRenderer: React.FC<ContentRendererProps> = ({
             {currentModulo ? `Módulo: ${currentModulo.nome_modulo}` : ''}
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button 
-            onClick={onPreviousContent} 
+        <div className="flex items-center gap-2.5">
+          <Button
             variant="outline"
-            className="flex items-center gap-2"
+            className="w-[100px]"
+            onClick={onPreviousContent}
           >
-            <ChevronLeft className="h-4 w-4" /> Voltar
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            Voltar
           </Button>
-          <Button 
-            onClick={onNextContent} 
-            className="flex items-center gap-2"
+          <Button
+            variant="default"
+            className="w-[100px]"
+            onClick={onNextContent}
           >
-            Próximo <ChevronRight className="h-4 w-4" />
+            Próximo
+            <ChevronRight className="h-4 w-4 ml-1" />
           </Button>
         </div>
       </div>

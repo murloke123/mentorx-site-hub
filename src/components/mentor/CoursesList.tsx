@@ -14,6 +14,7 @@ import { Course } from "@/types";
 import { updateCoursePublicationStatus } from "@/services/courseService";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
+import { cn } from '@/lib/utils';
 
 interface CoursesListProps {
   courses: Course[];
@@ -232,31 +233,23 @@ const CoursesList = ({ courses, isLoading, totalEnrollments }: CoursesListProps)
                   />
                 </div>
               </CardContent>
-              <CardFooter className="flex-col items-start gap-3 pt-4 border-t">
-                <div className="flex items-center space-x-2 w-full">
+              <CardFooter className="flex flex-col gap-4">
+                <div className="flex items-center space-x-2">
                   <Switch
-                    id={`publish-switch-${course.id}`}
+                    id={`publish-${course.id}`}
                     checked={course.is_published}
-                    onCheckedChange={(isChecked) => handlePublishChange(course.id, isChecked)}
-                    disabled={isUpdating.has(course.id)}
+                    onCheckedChange={(checked) => handlePublishChange(course.id, checked)}
                   />
-                  <Label htmlFor={`publish-switch-${course.id}`} className="flex-grow cursor-pointer">
-                    {isUpdating.has(course.id) ? (
-                      <span className="text-muted-foreground">Atualizando...</span>
-                    ) : (
-                      course.is_published ? "Publicado" : "Não Publicado"
-                    )}
+                  <Label htmlFor={`publish-${course.id}`}>
+                    {course.is_published ? "Publicado" : "Não Publicado"}
                   </Label>
                 </div>
-                <Button 
-                  variant="outline" 
-                  className="w-full" 
-                  asChild 
-                  size="sm"
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => navigate(`/mentor/cursos/${course.id}/modulos`)}
                 >
-                  <Link to={`/mentor/cursos/${course.id}/modulos`}>
-                    <Layers className="mr-2 h-4 w-4" /> Gerenciar Módulos e Conteúdos
-                  </Link>
+                  Gerenciar Módulos e Conteúdos
                 </Button>
               </CardFooter>
             </Card>

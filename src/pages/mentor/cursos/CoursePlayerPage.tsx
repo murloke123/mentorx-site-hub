@@ -5,6 +5,8 @@ import { toast } from '@/hooks/use-toast';
 import { CursoItemLocal, ConteudoItemLocal } from './types';
 import CourseSidebar from './components/CourseSidebar';
 import ContentRenderer from './components/ContentRenderer';
+import { Button } from '@/components/ui/button';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const CoursePlayerPage = () => {
   const { id: cursoId } = useParams<{ id: string }>();
