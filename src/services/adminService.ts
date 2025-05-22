@@ -1,129 +1,116 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { QueryKey } from "@tanstack/react-query";
 
-// Modify the function signature to use the query context parameter
-export async function getAllCourses(context?: { queryKey: string[], signal?: AbortSignal }) {
-  const limit = typeof context === 'object' ? 100 : (context || 100);
-  
-  try {
-    const { data, error } = await supabase
-      .from("cursos")
-      .select(`
-        id, 
-        title, 
-        description, 
-        mentor_id, 
-        is_paid, 
-        price, 
-        created_at,
-        profiles:mentor_id (full_name)
-      `)
-      .order('created_at', { ascending: false })
-      .limit(typeof limit === 'number' ? limit : 100);
-
-    if (error) throw error;
-
-    // Calculate enrollment count for each course
-    const coursesWithEnrollments = await Promise.all(
-      data.map(async (course) => {
-        const { count, error: countError } = await supabase
-          .from('inscricoes')
-          .select('*', { count: 'exact', head: true })
-          .eq('curso_id', course.id);
-
-        if (countError) {
-          console.error("Erro ao contar matrículas:", countError);
-          return { 
-            ...course, 
-            enrollments_count: 0,
-            mentor_name: course.profiles?.full_name
-          };
-        }
-
-        return {
-          ...course,
-          mentor_name: course.profiles?.full_name,
-          enrollments_count: count || 0
-        };
-      })
-    );
-
-    return coursesWithEnrollments;
-  } catch (error) {
-    console.error("Erro ao buscar todos os cursos:", error);
-    throw error;
-  }
-}
-
-// Função para deletar um curso
-export async function deleteCourse(courseId: string) {
-  try {
-    const { error } = await supabase
-      .from("cursos")
-      .delete()
-      .eq("id", courseId);
-
-    if (error) throw error;
-    
-    return true;
-  } catch (error) {
-    console.error("Erro ao deletar curso:", error);
-    throw error;
-  }
-}
-
-// Função para obter o perfil do administrador
+// Get admin profile
 export async function getAdminProfile() {
   try {
+    // Get current user ID
     const { data: { user } } = await supabase.auth.getUser();
     
-    if (!user) throw new Error("Usuário não autenticado");
+    if (!user) throw new Error("Not authenticated");
     
-    const { data, error } = await supabase
+    const { data: profile, error } = await supabase
       .from("profiles")
       .select("*")
       .eq("id", user.id)
+      .eq("role", "admin")
       .single();
-      
+
     if (error) throw error;
-    
-    return data;
+    return profile;
   } catch (error) {
-    console.error("Erro ao buscar perfil admin:", error);
+    console.error("Error fetching admin profile:", error);
     return null;
   }
 }
 
-// Função para obter estatísticas da plataforma
+// Get all mentors
+export async function getAllMentors({ signal }: { queryKey: QueryKey, signal?: AbortSignal }) {
+  try {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select(`
+        id, 
+        full_name, 
+        avatar_url, 
+        bio,
+        (SELECT COUNT(*) FROM cursos WHERE mentor_id = profiles.id) as courses_count,
+        (SELECT COUNT(*) FROM mentor_followers WHERE mentor_id = profiles.id) as followers_count
+      `)
+      .eq("role", "mentor")
+      .order("full_name", { ascending: true });
+
+    if (error) throw error;
+    
+    return data.map(mentor => ({
+      ...mentor,
+      courses_count: parseInt(mentor.courses_count) || 0,
+      followers_count: parseInt(mentor.followers_count) || 0
+    }));
+  } catch (error) {
+    console.error("Error fetching mentors:", error);
+    return [];
+  }
+}
+
+// Get all mentorados
+export async function getAllMentorados({ signal }: { queryKey: QueryKey, signal?: AbortSignal }) {
+  try {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select(`
+        id, 
+        full_name, 
+        avatar_url, 
+        bio,
+        (SELECT COUNT(*) FROM enrollments WHERE user_id = profiles.id) as enrollments_count
+      `)
+      .eq("role", "mentorado")
+      .order("full_name", { ascending: true });
+
+    if (error) throw error;
+    
+    return data.map(mentorado => ({
+      ...mentorado,
+      enrollments_count: parseInt(mentorado.enrollments_count) || 0
+    }));
+  } catch (error) {
+    console.error("Error fetching mentorados:", error);
+    return [];
+  }
+}
+
+// Platform stats summary
 export async function getPlatformStats() {
   try {
-    // Contagem de mentores
+    // Get count of mentors
     const { count: mentorsCount, error: mentorsError } = await supabase
       .from("profiles")
-      .select("*", { count: 'exact', head: true })
+      .select("*", { count: "exact", head: true })
       .eq("role", "mentor");
       
     if (mentorsError) throw mentorsError;
     
-    // Contagem de mentorados
+    // Get count of mentorees
     const { count: mentoreesCount, error: mentoreesError } = await supabase
       .from("profiles")
-      .select("*", { count: 'exact', head: true })
+      .select("*", { count: "exact", head: true })
       .eq("role", "mentorado");
       
     if (mentoreesError) throw mentoreesError;
     
-    // Contagem de cursos
+    // Get count of courses
     const { count: coursesCount, error: coursesError } = await supabase
       .from("cursos")
-      .select("*", { count: 'exact', head: true });
+      .select("*", { count: "exact", head: true });
       
     if (coursesError) throw coursesError;
     
-    // Contagem de matrículas
+    // Get count of enrollments
     const { count: enrollmentsCount, error: enrollmentsError } = await supabase
-      .from("inscricoes")
-      .select("*", { count: 'exact', head: true });
+      .from("enrollments")
+      .select("*", { count: "exact", head: true });
       
     if (enrollmentsError) throw enrollmentsError;
     
@@ -131,137 +118,135 @@ export async function getPlatformStats() {
       mentorsCount: mentorsCount || 0,
       mentoreesCount: mentoreesCount || 0,
       coursesCount: coursesCount || 0,
-      enrollmentsCount: enrollmentsCount || 0
+      enrollmentsCount: enrollmentsCount || 0,
     };
   } catch (error) {
-    console.error("Erro ao buscar estatísticas da plataforma:", error);
+    console.error("Error fetching platform stats:", error);
     return {
       mentorsCount: 0,
       mentoreesCount: 0,
       coursesCount: 0,
-      enrollmentsCount: 0
+      enrollmentsCount: 0,
     };
   }
 }
 
-// Função para obter todos os mentores (updated function signature)
-export async function getAllMentors(context?: { queryKey: string[], signal?: AbortSignal }) {
-  const limit = typeof context === 'object' ? 100 : (context || 100);
-  
+// Get all courses for admin
+export async function getAllCourses({ signal }: { queryKey: QueryKey, signal?: AbortSignal }) {
   try {
     const { data, error } = await supabase
-      .from("profiles")
+      .from("cursos")
       .select(`
-        id,
-        full_name,
-        avatar_url,
-        bio
+        id, 
+        titulo as title, 
+        descricao as description, 
+        mentor_id,
+        profiles:mentor_id (full_name),
+        eh_pago as is_paid,
+        preco as price,
+        criado_em as created_at,
+        (SELECT COUNT(*) FROM enrollments WHERE course_id = cursos.id) as enrollments_count
       `)
-      .eq("role", "mentor")
-      .limit(typeof limit === 'number' ? limit : 100);
-      
+      .order("criado_em", { ascending: false });
+
     if (error) throw error;
     
-    // Calcular estatísticas para cada mentor
-    const mentorsWithStats = await Promise.all(
-      data.map(async (mentor) => {
-        // Contar cursos
-        const { count: coursesCount, error: coursesError } = await supabase
-          .from("cursos")
-          .select("*", { count: 'exact', head: true })
-          .eq("mentor_id", mentor.id);
-          
-        if (coursesError) {
-          console.error(`Erro ao contar cursos do mentor ${mentor.id}:`, coursesError);
-          return { ...mentor, courses_count: 0, followers_count: 0 };
-        }
-        
-        // Contar seguidores
-        const { count: followersCount, error: followersError } = await supabase
-          .from("mentor_followers")
-          .select("*", { count: 'exact', head: true })
-          .eq("mentor_id", mentor.id);
-          
-        if (followersError) {
-          console.error(`Erro ao contar seguidores do mentor ${mentor.id}:`, followersError);
-          return { ...mentor, courses_count: coursesCount || 0, followers_count: 0 };
-        }
-        
-        return {
-          ...mentor,
-          courses_count: coursesCount || 0,
-          followers_count: followersCount || 0
-        };
-      })
-    );
-    
-    return mentorsWithStats;
+    return data.map(course => ({
+      ...course,
+      mentor_name: course.profiles?.full_name || null,
+      enrollments_count: parseInt(course.enrollments_count) || 0
+    }));
   } catch (error) {
-    console.error("Erro ao buscar mentores:", error);
+    console.error("Error fetching all courses:", error);
     return [];
   }
 }
 
-// Função para obter todos os mentorados (updated function signature)
-export async function getAllMentorados(context?: { queryKey: string[], signal?: AbortSignal }) {
-  const limit = typeof context === 'object' ? 100 : (context || 100);
-  
+// Delete course (admin function)
+export async function deleteCourse(courseId: string) {
   try {
-    const { data, error } = await supabase
+    // Check if user is admin
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) throw new Error("Not authenticated");
+    
+    const { data: profile, error: profileError } = await supabase
       .from("profiles")
-      .select(`
-        id,
-        full_name,
-        avatar_url,
-        bio
-      `)
-      .eq("role", "mentorado")
-      .limit(typeof limit === 'number' ? limit : 100);
+      .select("role")
+      .eq("id", user.id)
+      .single();
       
-    if (error) throw error;
+    if (profileError) throw profileError;
     
-    // Calcular estatísticas para cada mentorado
-    const mentoreesWithStats = await Promise.all(
-      data.map(async (mentoree) => {
-        // Contar matrículas
-        const { count: enrollmentsCount, error: enrollmentsError } = await supabase
-          .from("inscricoes")
-          .select("*", { count: 'exact', head: true })
-          .eq("usuario_id", mentoree.id);
-          
-        if (enrollmentsError) {
-          console.error(`Erro ao contar matrículas do mentorado ${mentoree.id}:`, enrollmentsError);
-          return { ...mentoree, enrollments_count: 0 };
-        }
-        
-        return {
-          ...mentoree,
-          enrollments_count: enrollmentsCount || 0
-        };
-      })
-    );
+    if (profile.role !== "admin") {
+      throw new Error("Not authorized: Admin role required");
+    }
     
-    return mentoreesWithStats;
-  } catch (error) {
-    console.error("Erro ao buscar mentorados:", error);
-    return [];
-  }
-}
-
-// Função para deletar um usuário
-export async function deleteUser(userId: string) {
-  try {
-    // Note: em uma aplicação real, você precisaria de permissões de administrador 
-    // ou usar Supabase Edge Functions para deletar usuários
+    // Delete course
     const { error } = await supabase
-      .from("profiles")
+      .from("cursos")
       .delete()
-      .eq("id", userId);
+      .eq("id", courseId);
       
     if (error) throw error;
-    return true;
+    
+    return { success: true };
   } catch (error) {
-    console.error("Erro ao deletar usuário:", error);
+    console.error("Error deleting course:", error);
     throw error;
+  }
+}
+
+// Log admin action
+export async function logAdminAction(actionType: string, targetType: string, targetId: string, details?: any) {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) throw new Error("Not authenticated");
+    
+    const { data, error } = await supabase
+      .from("admin_actions")
+      .insert({
+        admin_id: user.id,
+        action_type: actionType,
+        target_type: targetType,
+        target_id: targetId,
+        details: details
+      })
+      .select()
+      .single();
+      
+    if (error) throw error;
+    
+    return data;
+  } catch (error) {
+    console.error("Error logging admin action:", error);
+    return null;
+  }
+}
+
+// Get recent admin actions
+export async function getAdminActions(limit = 10) {
+  try {
+    const { data, error } = await supabase
+      .from("admin_actions")
+      .select(`
+        id,
+        action_type,
+        target_type,
+        target_id,
+        details,
+        created_at,
+        profiles:admin_id (full_name, avatar_url)
+      `)
+      .order("created_at", { ascending: false })
+      .limit(limit);
+      
+    if (error) throw error;
+    
+    return data;
+  } catch (error) {
+    console.error("Error fetching admin actions:", error);
+    return [];
   }
 }

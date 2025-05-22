@@ -40,16 +40,14 @@ export async function markContentCompleted(courseId: string, moduleId: string, c
     }
     
     // Inserir novo registro de conteúdo concluído
-    const completedContent: CompletedContent = {
-      user_id: user.id,
-      course_id: courseId,
-      module_id: moduleId,
-      content_id: contentId
-    };
-    
     const { data, error } = await supabase
       .from("conteudo_concluido")
-      .insert(completedContent)
+      .insert({
+        user_id: user.id,
+        curso_id: courseId,
+        modulo_id: moduleId,
+        conteudo_id: contentId
+      })
       .select()
       .single();
 
@@ -148,8 +146,8 @@ async function updateCourseProgress(courseId: string) {
     const { count: totalContents, error: totalError } = await supabase
       .from("conteudos")
       .select("id", { count: 'exact', head: true })
-      .eq("module_id", "modulos.id")
-      .eq("modulos.course_id", courseId);
+      .eq("modulo_id", "modulos.id")
+      .eq("modulos.curso_id", courseId);
       
     if (totalError) throw totalError;
     
@@ -160,7 +158,7 @@ async function updateCourseProgress(courseId: string) {
       .from("conteudo_concluido")
       .select("id", { count: 'exact', head: true })
       .eq("user_id", user.id)
-      .eq("course_id", courseId);
+      .eq("curso_id", courseId);
       
     if (completedError) throw completedError;
     
@@ -175,10 +173,10 @@ async function updateCourseProgress(courseId: string) {
     
     // Atualizar a matrícula com o progresso
     const { error: updateError } = await supabase
-      .from("inscricoes")
-      .update({ progresso: progressData })
-      .eq("usuario_id", user.id)
-      .eq("curso_id", courseId);
+      .from("enrollments")
+      .update({ progress: progressData })
+      .eq("user_id", user.id)
+      .eq("course_id", courseId);
       
     if (updateError) throw updateError;
   } catch (error) {

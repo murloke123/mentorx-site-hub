@@ -139,7 +139,7 @@ export async function updateProgress(courseId: string, lessonId: string, complet
     const { count: totalConteudos, error: countError } = await supabase
       .from("conteudos")
       .select("*", { count: 'exact', head: true })
-      .eq("module_id", "modulos.id")
+      .eq("modulo_id", "modulos.id")
       .eq("modulos.curso_id", courseId);
       
     if (countError) throw countError;
