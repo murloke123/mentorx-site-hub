@@ -14,10 +14,22 @@ interface Mentor {
 }
 
 const AdminMentorsPage = () => {
-  const { data: mentors = [], isLoading, refetch } = useQuery({
+  const { data: mentorsData = [], isLoading, refetch } = useQuery({
     queryKey: ['allMentors'],
     queryFn: getAllMentors,
   });
+  
+  // Process the data to ensure types match
+  const mentors: Mentor[] = mentorsData.map(mentor => ({
+    id: mentor.id,
+    full_name: mentor.full_name,
+    avatar_url: mentor.avatar_url || '',
+    bio: mentor.bio || '',
+    followers_count: mentor.followers_count || 0,
+    courses_count: typeof mentor.courses_count === 'number' ? 
+      mentor.courses_count : 
+      (Array.isArray(mentor.courses_count) ? mentor.courses_count.length : 0)
+  }));
   
   return (
     <div className="flex">

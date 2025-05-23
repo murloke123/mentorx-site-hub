@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { QueryKey } from "@tanstack/react-query";
 
@@ -48,7 +47,10 @@ export async function getAllMentors({ signal }: { queryKey: QueryKey, signal?: A
       full_name: mentor.full_name,
       avatar_url: mentor.avatar_url,
       bio: mentor.bio,
-      courses_count: mentor.courses_count || 0,
+      // Ensure courses_count is a number
+      courses_count: typeof mentor.courses_count === 'number' ? 
+        mentor.courses_count : 
+        Array.isArray(mentor.courses_count) ? mentor.courses_count.length : 0,
       followers_count: 0 // Adding the missing followers_count field
     }));
   } catch (error) {
@@ -80,7 +82,10 @@ export async function getAllMentorados({ signal }: { queryKey: QueryKey, signal?
       full_name: mentorado.full_name,
       avatar_url: mentorado.avatar_url,
       bio: mentorado.bio,
-      enrollments_count: mentorado.enrollments_count || 0
+      // Ensure enrollments_count is a number
+      enrollments_count: typeof mentorado.enrollments_count === 'number' ? 
+        mentorado.enrollments_count : 
+        Array.isArray(mentorado.enrollments_count) ? mentorado.enrollments_count.length : 0
     }));
   } catch (error) {
     console.error("Error fetching mentorados:", error);
@@ -168,7 +173,9 @@ export async function getAllCourses({ signal }: { queryKey: QueryKey, signal?: A
       is_paid: course.is_paid,
       price: course.price,
       created_at: course.created_at,
-      enrollments_count: course.enrollments?.length || 0
+      enrollments_count: typeof course.enrollments === 'number' ? 
+        course.enrollments : 
+        Array.isArray(course.enrollments) ? course.enrollments.length : 0
     }));
   } catch (error) {
     console.error("Error fetching all courses:", error);

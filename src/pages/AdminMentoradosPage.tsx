@@ -13,10 +13,21 @@ interface Mentorado {
 }
 
 const AdminMentoradosPage = () => {
-  const { data: mentorados = [], isLoading, refetch } = useQuery({
+  const { data: mentoradosData = [], isLoading, refetch } = useQuery({
     queryKey: ['allMentorados'],
     queryFn: getAllMentorados,
   });
+  
+  // Process the data to ensure types match
+  const mentorados: Mentorado[] = mentoradosData.map(mentorado => ({
+    id: mentorado.id,
+    full_name: mentorado.full_name,
+    avatar_url: mentorado.avatar_url || '',
+    bio: mentorado.bio || '',
+    enrollments_count: typeof mentorado.enrollments_count === 'number' ? 
+      mentorado.enrollments_count : 
+      (Array.isArray(mentorado.enrollments_count) ? mentorado.enrollments_count.length : 0)
+  }));
   
   return (
     <div className="flex">

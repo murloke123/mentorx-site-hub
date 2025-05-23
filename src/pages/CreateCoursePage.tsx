@@ -37,7 +37,7 @@ const CreateCoursePage = () => {
         throw new Error("Você precisa estar autenticado para criar um curso.");
       }
       
-      const newCourse = await createCourse(formData, user.id);
+      const newCourse = await createCourse({...formData}, user.id);
       navigate(`/mentor/cursos/${newCourse.id}/modulos`);
     } catch (err: any) {
       console.error('Erro ao criar curso:', err);
