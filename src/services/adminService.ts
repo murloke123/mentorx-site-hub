@@ -28,6 +28,7 @@ export async function getAdminProfile() {
 // Get all mentors
 export async function getAllMentors({ signal }: { queryKey: QueryKey, signal?: AbortSignal }) {
   try {
+    // Fixed SQL query to avoid parsing errors
     const { data, error } = await supabase
       .from("profiles")
       .select(`
@@ -35,7 +36,7 @@ export async function getAllMentors({ signal }: { queryKey: QueryKey, signal?: A
         full_name, 
         avatar_url, 
         bio,
-        (SELECT COUNT(*) FROM cursos WHERE mentor_id = profiles.id) as courses_count
+        courses_count:cursos(count)
       `)
       .eq("role", "mentor")
       .order("full_name", { ascending: true });
@@ -47,7 +48,8 @@ export async function getAllMentors({ signal }: { queryKey: QueryKey, signal?: A
       full_name: mentor.full_name,
       avatar_url: mentor.avatar_url,
       bio: mentor.bio,
-      courses_count: mentor.courses_count || 0
+      courses_count: mentor.courses_count || 0,
+      followers_count: 0 // Adding the missing followers_count field
     }));
   } catch (error) {
     console.error("Error fetching mentors:", error);
@@ -58,6 +60,7 @@ export async function getAllMentors({ signal }: { queryKey: QueryKey, signal?: A
 // Get all mentorados
 export async function getAllMentorados({ signal }: { queryKey: QueryKey, signal?: AbortSignal }) {
   try {
+    // Fixed SQL query
     const { data, error } = await supabase
       .from("profiles")
       .select(`
@@ -65,7 +68,7 @@ export async function getAllMentorados({ signal }: { queryKey: QueryKey, signal?
         full_name, 
         avatar_url, 
         bio,
-        (SELECT COUNT(*) FROM enrollments WHERE user_id = profiles.id) as enrollments_count
+        enrollments_count:enrollments(count)
       `)
       .eq("role", "mentorado")
       .order("full_name", { ascending: true });
@@ -138,6 +141,7 @@ export async function getPlatformStats() {
 // Get all courses for admin
 export async function getAllCourses({ signal }: { queryKey: QueryKey, signal?: AbortSignal }) {
   try {
+    // Fixed SQL query
     const { data, error } = await supabase
       .from("cursos")
       .select(`
@@ -145,11 +149,11 @@ export async function getAllCourses({ signal }: { queryKey: QueryKey, signal?: A
         title, 
         description, 
         mentor_id,
-        profiles:mentor_id (full_name),
+        mentor:profiles!mentor_id(full_name),
         is_paid,
         price,
         created_at,
-        (SELECT COUNT(*) FROM enrollments WHERE course_id = cursos.id) as enrollments_count
+        enrollments(count)
       `)
       .order("created_at", { ascending: false });
 
@@ -160,11 +164,11 @@ export async function getAllCourses({ signal }: { queryKey: QueryKey, signal?: A
       title: course.title,
       description: course.description,
       mentor_id: course.mentor_id,
-      mentor_name: course.profiles?.full_name || null,
+      mentor_name: course.mentor?.full_name || null,
       is_paid: course.is_paid,
       price: course.price,
       created_at: course.created_at,
-      enrollments_count: course.enrollments_count || 0
+      enrollments_count: course.enrollments?.length || 0
     }));
   } catch (error) {
     console.error("Error fetching all courses:", error);

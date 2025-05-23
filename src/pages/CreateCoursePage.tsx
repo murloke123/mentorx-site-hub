@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createCourse } from '@/services/courseService';
@@ -13,8 +14,7 @@ const CreateCoursePage = () => {
 
   // Fix the default values to match CourseFormData requirements
   const defaultValues: CourseFormData = {
-    title: "",
-    name: "", // Adding this required field
+    name: "", // This is required per the schema
     description: "",
     category: "",
     image: "",

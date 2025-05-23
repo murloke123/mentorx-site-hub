@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "@/hooks/use-toast";
@@ -57,12 +58,12 @@ const DatabaseFieldsComparison = () => {
         }
 
         const firstRow = data[0];
-        const fields = Object.keys(firstRow).map(key => {
-          const column = Object.getPrototypeOf(firstRow).constructor.getColumn(key);
+        // Fix: properly handle column retrieval without using Object.getPrototypeOf
+        const fields: DatabaseField[] = Object.keys(firstRow).map(key => {
           return {
             name: key,
-            type: column?.constructor.name || 'unknown',
-            isNullable: column?.isNullable || true,
+            type: typeof firstRow[key as keyof typeof firstRow], // Fix: use keyof typeof for type safety
+            isNullable: firstRow[key as keyof typeof firstRow] === null,
           };
         });
 
