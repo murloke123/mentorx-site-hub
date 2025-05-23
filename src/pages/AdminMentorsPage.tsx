@@ -28,7 +28,7 @@ const AdminMentorsPage = () => {
     followers_count: mentor.followers_count || 0,
     courses_count: typeof mentor.courses_count === 'number' ? 
       mentor.courses_count : 
-      (Array.isArray(mentor.courses_count) ? mentor.courses_count.length : 0)
+      (Array.isArray(mentor.courses_count) ? (mentor.courses_count as any[]).length : 0)
   }));
   
   return (

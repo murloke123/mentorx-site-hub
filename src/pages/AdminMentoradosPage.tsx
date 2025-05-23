@@ -26,7 +26,7 @@ const AdminMentoradosPage = () => {
     bio: mentorado.bio || '',
     enrollments_count: typeof mentorado.enrollments_count === 'number' ? 
       mentorado.enrollments_count : 
-      (Array.isArray(mentorado.enrollments_count) ? mentorado.enrollments_count.length : 0)
+      (Array.isArray(mentorado.enrollments_count) ? (mentorado.enrollments_count as any[]).length : 0)
   }));
   
   return (

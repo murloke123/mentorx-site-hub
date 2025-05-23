@@ -70,17 +70,17 @@ const AdminDashboardPage = () => {
           mentors={mentorsData.map(mentor => ({ 
             ...mentor, 
             followers_count: mentor.followers_count || 0,
-            // Fix: Ensure courses_count is always a number
+            // Fix: Ensure courses_count is always a number - using Number() to convert safely
             courses_count: typeof mentor.courses_count === 'number' ? 
               mentor.courses_count : 
-              (Array.isArray(mentor.courses_count) ? mentor.courses_count.length : 0)
+              (Array.isArray(mentor.courses_count) ? (mentor.courses_count as any[]).length : 0)
           }))}
           mentorados={mentorados.map(mentorado => ({
             ...mentorado,
-            // Fix: Ensure enrollments_count is always a number
+            // Fix: Ensure enrollments_count is always a number - using Number() to convert safely
             enrollments_count: typeof mentorado.enrollments_count === 'number' ? 
               mentorado.enrollments_count : 
-              (Array.isArray(mentorado.enrollments_count) ? mentorado.enrollments_count.length : 0)
+              (Array.isArray(mentorado.enrollments_count) ? (mentorado.enrollments_count as any[]).length : 0)
           }))}
           courses={courses}
           isLoadingMentors={isLoadingMentors}
