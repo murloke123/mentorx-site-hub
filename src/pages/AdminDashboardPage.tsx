@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { getAdminProfile, getPlatformStats, getAllMentors, getAllMentorados, getAllCourses } from '@/services/adminService';
 import AdminSidebar from '@/components/admin/AdminSidebar';
@@ -36,7 +35,7 @@ const AdminDashboardPage = () => {
   });
   
   // Fetch recent mentors
-  const { data: mentors = [], isLoading: isLoadingMentors } = useQuery({
+  const { data: mentorsData = [], isLoading: isLoadingMentors } = useQuery({
     queryKey: ['recentMentors'],
     queryFn: () => getAllMentors({ queryKey: ['recentMentors'], signal: undefined }),
   });
@@ -67,7 +66,10 @@ const AdminDashboardPage = () => {
         />
         
         <DashboardTabs 
-          mentors={mentors}
+          mentors={mentorsData.map(mentor => ({ 
+            ...mentor, 
+            followers_count: mentor.followers_count || 0 
+          }))}
           mentorados={mentorados}
           courses={courses}
           isLoadingMentors={isLoadingMentors}
