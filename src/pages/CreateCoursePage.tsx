@@ -4,27 +4,13 @@ import { useNavigate } from 'react-router-dom';
 import { createCourse } from '@/services/courseService';
 import { supabase } from '@/integrations/supabase/client';
 import CourseForm from '@/components/mentor/course-form';
-import { CourseFormData } from '@/components/mentor/course-form/FormSchema';
+import { CourseFormData, defaultValues } from '@/components/mentor/course-form/FormSchema';
 import MentorSidebar from '@/components/mentor/MentorSidebar';
 
 const CreateCoursePage = () => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Fix the default values to match CourseFormData requirements
-  const defaultValues: CourseFormData = {
-    name: "", // This is required per the schema
-    description: "",
-    category: "",
-    image: "",
-    type: "free",
-    price: 0,
-    discount: 0,
-    currency: "BRL",
-    visibility: "public",
-    isPublished: false
-  };
 
   const handleSubmit = async (formData: CourseFormData) => {
     try {
