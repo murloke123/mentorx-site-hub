@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Spinner } from "@/components/ui/spinner";
@@ -83,17 +82,11 @@ const ProfilePage = ({ userRole }: ProfilePageProps) => {
   }
 
   return (
-    <div className="container mx-auto py-8">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-2xl font-bold mb-6">Meu Perfil</h1>
-        
-        <ProfileForm 
-          user={user} 
-          profileData={profileData}
-          onProfileUpdate={() => fetchProfileData(user?.id || "")}
-        />
-      </div>
-    </div>
+    <ProfileForm 
+      user={user} 
+      profileData={profileData}
+      onProfileUpdate={() => fetchProfileData(user?.id || "")}
+    />
   );
 };
 

@@ -1,10 +1,9 @@
-
-import React from "react";
+import React, { useState, useEffect } from "react";
 import MentorSidebar from "@/components/mentor/MentorSidebar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Facebook, Instagram, Youtube } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Facebook, Instagram, Youtube, Camera } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { 
   Carousel,
   CarouselContent,
@@ -12,10 +11,108 @@ import {
   CarouselNext,
   CarouselPrevious
 } from "@/components/ui/carousel";
-import MentorCard from "@/components/MentorCard";
-import ProfilePage from "@/components/profile/ProfilePage";
+import ProfileForm from "@/components/profile/ProfileForm";
+import { supabase } from "@/integrations/supabase/client";
+import { uploadImage } from "@/utils/uploadImage";
+import { useToast } from "@/hooks/use-toast";
+import { Spinner } from "@/components/ui/spinner";
 
 const MentorProfilePage = () => {
+  const { toast } = useToast();
+  const [mentorAvatarUrl, setMentorAvatarUrl] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [currentAvatarPath, setCurrentAvatarPath] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Extract path from URL
+  const extractPathFromUrl = (url: string | null): string | null => {
+    if (!url) return null;
+    const urlParts = url.split('/');
+    return urlParts[urlParts.length - 1].split('?')[0]; // Get filename and remove query params
+  };
+
+  // Fetch current user data and avatar
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data: profile, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", user.id)
+          .single();
+
+        if (error) throw error;
+
+        setCurrentUser(profile);
+        setMentorAvatarUrl(profile.avatar_url);
+        if (profile.avatar_url) {
+          setCurrentAvatarPath(extractPathFromUrl(profile.avatar_url));
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+  const handleMentorImageChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+
+    try {
+      // Create a preview immediately for better UX
+      const objectUrl = URL.createObjectURL(file);
+      setMentorAvatarUrl(objectUrl);
+
+      // Upload new avatar, replacing the existing one if there is a path
+      const result = await uploadImage(file, 'avatars', currentAvatarPath);
+
+      // Update avatar URL with the new one from storage
+      setMentorAvatarUrl(result.url);
+      setCurrentAvatarPath(result.path);
+
+      // Update user profile in database
+      if (currentUser?.id) {
+        const { error } = await supabase
+          .from("profiles")
+          .update({ avatar_url: result.url })
+          .eq("id", currentUser.id);
+
+        if (error) throw error;
+
+        toast({
+          title: "Avatar atualizado",
+          description: "Sua foto de perfil foi atualizada com sucesso.",
+        });
+      }
+
+      // Clean up the temporary object URL
+      URL.revokeObjectURL(objectUrl);
+    } catch (error) {
+      console.error("Error uploading avatar:", error);
+
+      // Reset preview if upload fails
+      setMentorAvatarUrl(currentUser?.avatar_url || null);
+
+      toast({
+        variant: "destructive",
+        title: "Erro ao fazer upload da imagem",
+        description: "Verifique se o bucket 'avatars' existe no Supabase.",
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   // Mock data for visual purposes only
   const mockCourses = [
     { 
@@ -44,6 +141,18 @@ const MentorProfilePage = () => {
     }
   ];
 
+  // Show loading spinner while fetching user data
+  if (isLoading) {
+    return (
+      <div className="flex">
+        <MentorSidebar />
+        <div className="flex-1 flex items-center justify-center min-h-screen">
+          <Spinner className="h-8 w-8" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex">
       <MentorSidebar />
@@ -63,19 +172,57 @@ const MentorProfilePage = () => {
           <div className="absolute -bottom-20 left-1/2 transform -translate-x-1/2">
             <div className="relative group">
               <div className="w-[130px] h-[130px] md:w-[150px] md:h-[150px] rounded-full overflow-hidden border-4 border-white shadow-xl bg-white">
-                <Avatar className="w-full h-full">
-                  <AvatarImage src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80" alt="Profile picture" className="object-cover" />
-                  <AvatarFallback>MX</AvatarFallback>
-                </Avatar>
+                <span className="relative flex shrink-0 overflow-hidden rounded-full w-full h-full">
+                  {mentorAvatarUrl ? (
+                    <div className="relative w-full h-full">
+                      <img
+                        src={mentorAvatarUrl}
+                        alt="Profile picture"
+                        className="aspect-square h-full w-full object-cover"
+                        key={`mentor-avatar-${Date.now()}`} // Force re-render of image
+                      />
+                      {isUploading && (
+                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                          <Spinner className="h-8 w-8 text-white" />
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <Avatar className="w-full h-full">
+                      <AvatarFallback>
+                        {currentUser?.full_name ? currentUser.full_name.charAt(0).toUpperCase() : "?"}
+                      </AvatarFallback>
+                    </Avatar>
+                  )}
+                </span>
               </div>
+
+              {/* Botão de upload visível ao hover */}
+              <label
+                htmlFor="mentor-avatar-upload"
+                className="absolute bottom-0 right-0 bg-primary text-white p-2 rounded-full cursor-pointer hover:bg-primary/90 transition-colors opacity-0 group-hover:opacity-100"
+              >
+                <Camera className="h-4 w-4" />
+              </label>
+
+              <input
+                id="mentor-avatar-upload"
+                type="file"
+                accept="image/*"
+                onChange={handleMentorImageChange}
+                className="hidden"
+                disabled={isUploading}
+              />
             </div>
           </div>
         </div>
         
         {/* Name and follow section */}
         <div className="mt-24 max-w-5xl mx-auto text-center">
-          <h1 className="text-3xl font-bold text-gray-800">Guilherme Ramalho</h1>
-          <p className="text-gray-600 mt-1">Mentor de Desenvolvimento Web e Mobile</p>
+          <h1 className="text-3xl font-bold text-gray-800">
+            {currentUser?.full_name || ""}
+          </h1>
+          <p className="text-gray-600 mt-1">{currentUser?.bio || ""}</p>
           
           <div className="flex justify-center mt-4 gap-4 items-center">
             <Button className="bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-white px-6 rounded-full shadow-md transition-all hover:shadow-lg">
@@ -106,7 +253,31 @@ const MentorProfilePage = () => {
             
             <TabsContent value="profile" className="mt-4">
               <div className="bg-white p-8 rounded-lg shadow-sm">
-                <ProfilePage userRole="mentor" />
+                <ProfileForm 
+                  user={currentUser} 
+                  profileData={currentUser}
+                  onProfileUpdate={() => {
+                    // Refresh current user data when profile is updated
+                    const fetchUserData = async () => {
+                      try {
+                        const { data: { user } } = await supabase.auth.getUser();
+                        if (!user) return;
+
+                        const { data: profile, error } = await supabase
+                          .from("profiles")
+                          .select("*")
+                          .eq("id", user.id)
+                          .single();
+
+                        if (error) throw error;
+                        setCurrentUser(profile);
+                      } catch (error) {
+                        console.error("Error fetching user data:", error);
+                      }
+                    };
+                    fetchUserData();
+                  }}
+                />
               </div>
             </TabsContent>
             
