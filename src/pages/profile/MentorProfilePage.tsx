@@ -208,7 +208,13 @@ const MentorProfilePage = () => {
           {/* Profile Avatar with Animation */}
           <div className="absolute -bottom-20 left-1/2 transform -translate-x-1/2">
             <div className="relative group">
-              <div className="w-[130px] h-[130px] md:w-[150px] md:h-[150px] rounded-full overflow-hidden border-4 border-white shadow-xl bg-white animate-pulse hover:animate-none transition-all duration-300 hover:scale-110">
+              <div 
+                className="w-[130px] h-[130px] md:w-[150px] md:h-[150px] rounded-full overflow-hidden border-4 border-white shadow-xl bg-white transition-transform duration-300 hover:scale-105"
+                style={{
+                  boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
+                  animation: 'float 3s ease-in-out infinite'
+                }}
+              >
                 <span className="relative flex shrink-0 overflow-hidden rounded-full w-full h-full">
                   {mentorAvatarUrl ? (
                     <div className="relative w-full h-full">
@@ -261,10 +267,34 @@ const MentorProfilePage = () => {
           <p className="text-xl text-gray-600 mb-6">{currentUser?.bio || ""}</p>
           
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-6">
-            <Button className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-8 py-3 rounded-full shadow-lg transition-all hover:shadow-xl hover:scale-105 flex items-center gap-2">
-              <span className="animate-bounce">🚀</span>
+            <button 
+              className="text-white px-8 py-3 rounded-full shadow-lg transition-all hover:shadow-xl flex items-center gap-2 font-semibold text-lg border-none cursor-pointer"
+              style={{
+                background: 'linear-gradient(45deg, #ff6b35, #f7931e)',
+                boxShadow: '0 10px 30px rgba(255, 107, 53, 0.4)',
+                borderRadius: '50px',
+                padding: '15px 40px',
+                fontSize: '1.1rem',
+                fontWeight: '600',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-3px)';
+                e.currentTarget.style.boxShadow = '0 15px 40px rgba(255, 107, 53, 0.6)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0px)';
+                e.currentTarget.style.boxShadow = '0 10px 30px rgba(255, 107, 53, 0.4)';
+              }}
+            >
+              <span 
+                className="text-xl"
+                style={{
+                  animation: 'bounce 1s infinite'
+                }}
+              >🚀</span>
               Seguir Agora
-            </Button>
+            </button>
             
             <div className="flex gap-3">
               <a href="#" className="p-3 rounded-full bg-white shadow-lg hover:shadow-xl transition-all hover:scale-110 border">
@@ -490,6 +520,30 @@ const MentorProfilePage = () => {
             </Button>
           </section>
         </div>
+
+        {/* Add CSS animations */}
+        <style jsx>{`
+          @keyframes float {
+            0%, 100% { 
+              transform: translateY(0px); 
+            }
+            50% { 
+              transform: translateY(-10px); 
+            }
+          }
+          
+          @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+              transform: translateY(0);
+            }
+            40% {
+              transform: translateY(-10px);
+            }
+            60% {
+              transform: translateY(-5px);
+            }
+          }
+        `}</style>
       </div>
     </div>
   );

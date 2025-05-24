@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { createCourse } from '@/services/courseService';
 import { supabase } from '@/integrations/supabase/client';
 import CourseForm from '@/components/mentor/course-form';
-import { CourseFormData, defaultValues } from '@/components/mentor/course-form/FormSchema';
+import { CourseFormData } from '@/components/mentor/course-form/FormSchema';
 import MentorSidebar from '@/components/mentor/MentorSidebar';
 
 const CreateCoursePage = () => {
@@ -35,6 +35,19 @@ const CreateCoursePage = () => {
 
   const handleCancel = () => {
     navigate("/mentor/cursos");
+  };
+
+  const defaultValues: CourseFormData = {
+    name: '',
+    description: '',
+    category: '',
+    image: '',
+    type: 'free',
+    price: 0,
+    currency: 'BRL',
+    discount: 0,
+    visibility: 'public',
+    isPublished: false
   };
 
   return (
