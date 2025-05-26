@@ -11,6 +11,7 @@ import StatsCard from "@/components/mentor/profile/StatsCard";
 import TestimonialCard from "@/components/mentor/profile/TestimonialCard";
 import CourseCard from "@/components/mentor/profile/CourseCard";
 import ContactForm from "@/components/mentor/profile/ContactForm";
+import BadgesSection from "@/components/mentor/profile/BadgesSection";
 
 const MentorPublicProfilePage = () => {
   const { id } = useParams();
@@ -282,10 +283,10 @@ const MentorPublicProfilePage = () => {
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-6">
             <Button
               onClick={handleFollowToggle}
-              className={`px-8 py-3 rounded-full shadow-lg transition-all hover:shadow-xl flex items-center gap-2 font-semibold text-lg ${
+              className={`px-8 py-3 rounded-full transition-all flex items-center gap-2 font-semibold text-lg ${
                 isFollowing 
-                  ? 'bg-gray-500 hover:bg-gray-600 text-white' 
-                  : 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white'
+                  ? 'bg-gray-500 hover:bg-gray-600 text-white shadow-md hover:shadow-lg' 
+                  : 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-md hover:shadow-lg'
               }`}
             >
               <Heart className={`h-5 w-5 ${isFollowing ? 'fill-current' : ''}`} />
@@ -298,7 +299,7 @@ const MentorPublicProfilePage = () => {
               className="px-8 py-3 rounded-full shadow-lg transition-all hover:shadow-xl flex items-center gap-2 font-semibold text-lg"
             >
               <MessageCircle className="h-5 w-5" />
-              Entre em Contato
+              Contato
             </Button>
             
             <div className="flex gap-3">
@@ -324,7 +325,7 @@ const MentorPublicProfilePage = () => {
                 { id: 'cursos', label: 'Cursos', icon: GraduationCap },
                 { id: 'depoimentos', label: 'Depoimentos', icon: Star },
                 { id: 'agenda', label: 'Agenda', icon: Calendar },
-                { id: 'contato', label: 'Contato', icon: Phone }
+                { id: 'contato', label: 'Contato', icon: MessageCircle }
               ].map((item) => {
                 const Icon = item.icon;
                 return (
@@ -361,9 +362,9 @@ const MentorPublicProfilePage = () => {
                   {mentorData.bio && (
                     <div>
                       <h3 className="text-xl font-semibold mb-4">Minha História</h3>
-                      <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-                        {mentorData.bio}
-                      </p>
+                      <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                        {mentorData.bio.replace(/<[^>]*>/g, '')}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -400,6 +401,9 @@ const MentorPublicProfilePage = () => {
                       </p>
                     </div>
                   </div>
+
+                  {/* Add Badges Section here in the right column */}
+                  <BadgesSection />
                 </div>
               </div>
             </div>
@@ -476,7 +480,7 @@ const MentorPublicProfilePage = () => {
           {/* Contato Section */}
           <section id="contato" className="scroll-mt-24">
             <div className="bg-white rounded-2xl shadow-xl p-8 border">
-              <h2 className="text-3xl font-bold text-gray-800 mb-8 text-center">Entre em Contato</h2>
+              <h2 className="text-3xl font-bold text-gray-800 mb-8 text-center">Contato</h2>
               
               <div className="grid md:grid-cols-2 gap-8">
                 <div className="space-y-6">
@@ -485,7 +489,7 @@ const MentorPublicProfilePage = () => {
                   <div className="space-y-4">
                     {mentorData.phone && (
                       <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                        <Phone className="h-6 w-6 text-green-600" />
+                        <MessageCircle className="h-6 w-6 text-green-600" />
                         <div>
                           <p className="font-medium">Telefone/WhatsApp</p>
                           <p className="text-gray-600">{mentorData.phone}</p>

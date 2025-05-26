@@ -33,7 +33,7 @@ const MentorCard: React.FC<MentorCardProps> = ({ mentor }) => {
       
       <CardContent className="flex-grow">
         <p className="text-gray-600 line-clamp-3">
-          {mentor.bio || "Este mentor ainda não adicionou uma biografia."}
+          {mentor.highlight_message || "Este mentor ainda não adicionou uma mensagem de destaque."}
         </p>
       </CardContent>
       
