@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -9,7 +8,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Info } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -24,6 +22,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Info, X } from "lucide-react";
 
 interface ProfileData {
   id: string;
@@ -34,24 +39,13 @@ interface ProfileData {
   email?: string | null;
   role?: string;
   highlight_message?: string | null;
-  sm_tit1?: string | null;
-  sm_desc1?: string | null;
-  sm_tit2?: string | null;
-  sm_desc2?: string | null;
-  sm_tit3?: string | null;
-  sm_desc3?: string | null;
 }
 
 const profileSchema = z.object({
   full_name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
   bio: z.string().optional().nullable(),
-  highlight_message: z.string().max(120, "Máximo de 120 caracteres").optional().nullable(),
-  sm_tit1: z.string().optional().nullable(),
-  sm_desc1: z.string().optional().nullable(),
-  sm_tit2: z.string().optional().nullable(),
-  sm_desc2: z.string().optional().nullable(),
-  sm_tit3: z.string().optional().nullable(),
-  sm_desc3: z.string().optional().nullable(),
+  phone: z.string().optional().nullable(),
+  highlight_message: z.string().optional().nullable(),
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
@@ -65,19 +59,16 @@ interface ProfileFormProps {
 const ProfileForm = ({ user, profileData, onProfileUpdate }: ProfileFormProps) => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [isHighlightModalOpen, setIsHighlightModalOpen] = useState(false);
+  const [isBioModalOpen, setIsBioModalOpen] = useState(false);
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
       full_name: profileData?.full_name || "",
       bio: profileData?.bio || "",
+      phone: profileData?.phone || "",
       highlight_message: profileData?.highlight_message || "",
-      sm_tit1: profileData?.sm_tit1 || "Resultados Comprovados",
-      sm_desc1: profileData?.sm_desc1 || "Mais de 1.250 vidas transformadas com metodologias testadas e aprovadas.",
-      sm_tit2: profileData?.sm_tit2 || "Metodologia Exclusiva",
-      sm_desc2: profileData?.sm_desc2 || "Sistema proprietário desenvolvido ao longo de 15 anos de experiência.",
-      sm_tit3: profileData?.sm_tit3 || "ROI Garantido",
-      sm_desc3: profileData?.sm_desc3 || "Investimento retorna em até 90 dias ou seu dinheiro de volta.",
     },
   });
 
@@ -95,13 +86,8 @@ const ProfileForm = ({ user, profileData, onProfileUpdate }: ProfileFormProps) =
         .update({
           full_name: data.full_name,
           bio: data.bio,
+          phone: data.phone,
           highlight_message: data.highlight_message,
-          sm_tit1: data.sm_tit1,
-          sm_desc1: data.sm_desc1,
-          sm_tit2: data.sm_tit2,
-          sm_desc2: data.sm_desc2,
-          sm_tit3: data.sm_tit3,
-          sm_desc3: data.sm_desc3,
         })
         .eq("id", user.id);
 
@@ -153,11 +139,17 @@ const ProfileForm = ({ user, profileData, onProfileUpdate }: ProfileFormProps) =
                 <FormLabel className="flex items-center gap-2">
                   Mensagem de Destaque
                   <Tooltip>
-                    <TooltipTrigger>
-                      <Info className="h-4 w-4 text-blue-500" />
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        onClick={() => setIsHighlightModalOpen(true)}
+                        className="flex items-center"
+                      >
+                        <Info className="h-4 w-4 text-blue-500 hover:text-blue-700 cursor-pointer" />
+                      </button>
                     </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      <p>Aqui você pode colocar uma mensagem de destaque para seu público vinculada ao seu perfil</p>
+                    <TooltipContent>
+                      <p>Clique no ícone para saber mais!</p>
                     </TooltipContent>
                   </Tooltip>
                 </FormLabel>
@@ -185,11 +177,17 @@ const ProfileForm = ({ user, profileData, onProfileUpdate }: ProfileFormProps) =
                 <FormLabel className="flex items-center gap-2">
                   Sobre mim
                   <Tooltip>
-                    <TooltipTrigger>
-                      <Info className="h-4 w-4 text-blue-500" />
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        onClick={() => setIsBioModalOpen(true)}
+                        className="flex items-center"
+                      >
+                        <Info className="h-4 w-4 text-blue-500 hover:text-blue-700 cursor-pointer" />
+                      </button>
                     </TooltipTrigger>
-                    <TooltipContent className="max-w-md">
-                      <p>Aqui você pode contar um pouco da sua história ou sua trajetória, tente separar os textos corretamente, deixar organizado, aqui que o seu público te conhece melhor, suas experiências de vida, suas conquistas, seu currículo, etc. Traga algo que seja interessante para te conhecerem e porque seria bom te seguir, um motivo por exemplo, para quem te seguir terá algum conteúdo gratuito ou exclusividade para seguidores.</p>
+                    <TooltipContent>
+                      <p>Clique no ícone para saber mais!</p>
                     </TooltipContent>
                   </Tooltip>
                 </FormLabel>
@@ -197,7 +195,7 @@ const ProfileForm = ({ user, profileData, onProfileUpdate }: ProfileFormProps) =
                   <Textarea
                     {...field}
                     placeholder="Conte um pouco sobre você"
-                    className="resize-none"
+                    className="resize-y min-h-[120px]"
                     rows={5}
                     value={field.value || ""}
                   />
@@ -207,111 +205,23 @@ const ProfileForm = ({ user, profileData, onProfileUpdate }: ProfileFormProps) =
             )}
           />
 
-          <div className="mt-8">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-              <p className="text-blue-800 font-medium">
-                💡 <strong>Dica:</strong> Você pode personalizar os títulos e descrições das caixas abaixo para destacar seus principais diferenciais como mentor.
-              </p>
-            </div>
-
-            <div className="space-y-6">
-              <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-6 rounded-xl border-l-4 border-purple-500">
-                <h3 className="text-lg font-semibold mb-4 text-purple-700">Caixa 1 (Roxa)</h3>
-                <div className="grid md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="sm_tit1"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Título</FormLabel>
-                        <FormControl>
-                          <Input {...field} value={field.value || ""} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+          <FormField
+            control={form.control}
+            name="phone"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Telefone</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    placeholder="Seu telefone"
+                    value={field.value || ""}
                   />
-                  <FormField
-                    control={form.control}
-                    name="sm_desc1"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Descrição</FormLabel>
-                        <FormControl>
-                          <Textarea {...field} rows={3} value={field.value || ""} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
-
-              <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-xl border-l-4 border-green-500">
-                <h3 className="text-lg font-semibold mb-4 text-green-700">Caixa 2 (Verde)</h3>
-                <div className="grid md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="sm_tit2"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Título</FormLabel>
-                        <FormControl>
-                          <Input {...field} value={field.value || ""} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="sm_desc2"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Descrição</FormLabel>
-                        <FormControl>
-                          <Textarea {...field} rows={3} value={field.value || ""} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
-
-              <div className="bg-gradient-to-r from-orange-50 to-red-50 p-6 rounded-xl border-l-4 border-orange-500">
-                <h3 className="text-lg font-semibold mb-4 text-orange-700">Caixa 3 (Laranja)</h3>
-                <div className="grid md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="sm_tit3"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Título</FormLabel>
-                        <FormControl>
-                          <Input {...field} value={field.value || ""} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="sm_desc3"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Descrição</FormLabel>
-                        <FormControl>
-                          <Textarea {...field} rows={3} value={field.value || ""} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           <div className="flex justify-end">
             <Button type="submit" disabled={isLoading}>
@@ -320,6 +230,148 @@ const ProfileForm = ({ user, profileData, onProfileUpdate }: ProfileFormProps) =
           </div>
         </form>
       </Form>
+
+      {/* Modal para Mensagem de Destaque */}
+      <Dialog open={isHighlightModalOpen} onOpenChange={setIsHighlightModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">
+              Dicas para Criar uma Excelente Mensagem de Destaque
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6 p-6 border rounded-lg">
+            <p className="text-gray-700 leading-relaxed">
+              A <strong>Mensagem de Destaque</strong> é uma frase curta (até 120 caracteres) que aparece no seu perfil para chamar a atenção do público logo de cara. Use-a para comunicar seu diferencial de forma clara, direta e impactante.
+            </p>
+            
+            <p className="text-gray-700 font-semibold">
+              Veja alguns exemplos organizados por área de atuação:
+            </p>
+
+            <div className="space-y-4">
+              <div>
+                <h3 className="font-bold text-lg text-green-700 mb-2">Finanças & Investimentos</h3>
+                <ul className="space-y-1 text-sm text-gray-600 ml-4">
+                  <li>• 💰 Transformo pessoas comuns em investidores de sucesso | +500 alunos aprovados</li>
+                  <li>• 📈 Especialista em renda passiva | Ensino do zero ao primeiro milhão</li>
+                  <li>• 💎 Mentor financeiro | Método exclusivo para multiplicar seu dinheiro</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="font-bold text-lg text-blue-700 mb-2">Tecnologia & Programação</h3>
+                <ul className="space-y-1 text-sm text-gray-600 ml-4">
+                  <li>• 👨‍💻 Dev Full Stack | Ensino programação do básico ao avançado de forma prática</li>
+                  <li>• 🚀 CTO experiente | Transformo iniciantes em desenvolvedores profissionais</li>
+                  <li>• ⚡ Especialista em IA | Automatizo processos e ensino tecnologias do futuro</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="font-bold text-lg text-purple-700 mb-2">Marketing & Vendas</h3>
+                <ul className="space-y-1 text-sm text-gray-600 ml-4">
+                  <li>• 📱 Expert em Marketing Digital | +1.000 negócios impactados positivamente</li>
+                  <li>• 🎯 Especialista em vendas | Método comprovado para triplicar faturamento</li>
+                  <li>• 💡 Growth Hacker | Estratégias exclusivas para escalar seu negócio</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="font-bold text-lg text-orange-700 mb-2">Desenvolvimento Pessoal</h3>
+                <ul className="space-y-1 text-sm text-gray-600 ml-4">
+                  <li>• 🌟 Coach de alta performance | Ajudo pessoas a desbloquearem seu potencial</li>
+                  <li>• 🧠 Especialista em produtividade | Métodos científicos para máximos resultados</li>
+                  <li>• 💪 Mentor de liderança | Formo líderes que transformam equipes e empresas</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="font-bold text-lg text-pink-700 mb-2">Saúde & Bem-estar</h3>
+                <ul className="space-y-1 text-sm text-gray-600 ml-4">
+                  <li>• 🏃‍♂️ Personal trainer | Especialista em transformação corporal sustentável</li>
+                  <li>• 🥗 Nutricionista funcional | Reeducação alimentar sem sofrimento</li>
+                  <li>• 🧘‍♀️ Terapeuta holística | Equilíbrio mental, físico e emocional</li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="bg-green-50 p-4 rounded-lg border-l-4 border-green-500">
+              <h3 className="font-bold text-green-800 mb-2">✅ Dica Final</h3>
+              <p className="text-green-700 text-sm leading-relaxed">
+                Use um emoji no início da frase para atrair o olhar e definir seu nicho — mas mantenha o equilíbrio e evite exageros. A mensagem deve ser concisa, objetiva e impactante. Pense: se alguém tivesse apenas 5 segundos para ler algo sobre você, o que faria essa pessoa querer te seguir?
+              </p>
+            </div>
+
+            <div className="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-500">
+              <h3 className="font-bold text-yellow-800 mb-2">Como inserir emojis no teclado:</h3>
+              <ul className="text-yellow-700 text-sm space-y-1">
+                <li>• <strong>Windows:</strong> pressione Win + . (tecla Windows + ponto)</li>
+                <li>• <strong>Mac:</strong> pressione Ctrl + Cmd + Barra de Espaço</li>
+              </ul>
+              <p className="text-yellow-700 text-sm mt-2">
+                A janela de emojis será aberta e você pode procurar pelo símbolo desejado.
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal para Sobre Mim */}
+      <Dialog open={isBioModalOpen} onOpenChange={setIsBioModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">
+              Dicas para criar um excelente "Sobre Mim"
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6 p-6 border rounded-lg">
+            <p className="text-gray-700 leading-relaxed">
+              A seção <strong>"Sobre Mim"</strong> é sua chance de mostrar quem você é de verdade, o que te move e o valor que você pode gerar como mentor(a). Esse espaço é importante para criar conexão com quem visita seu perfil.
+            </p>
+            
+            <p className="text-gray-700 font-semibold">
+              Aqui vão algumas recomendações:
+            </p>
+
+            <div className="bg-green-50 p-4 rounded-lg border-l-4 border-green-500">
+              <h3 className="font-bold text-green-800 mb-3">✅ O que incluir</h3>
+              <ul className="text-green-700 text-sm space-y-2">
+                <li>• Um pouco da sua história e trajetória</li>
+                <li>• Suas conquistas, experiências de vida e carreira</li>
+                <li>• Sua forma de trabalhar e ensinar</li>
+                <li>• Motivos para alguém te seguir ou agendar uma mentoria</li>
+                <li>• Benefícios ou conteúdos exclusivos que você oferece para seguidores</li>
+              </ul>
+            </div>
+
+            <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
+              <h3 className="font-bold text-blue-800 mb-3">💡 Dica de Estilo</h3>
+              <p className="text-blue-700 text-sm leading-relaxed mb-3">
+                Use ícones/emojis para destacar seções e tornar o texto mais visual e atrativo. Eles ajudam a criar uma identidade única para o seu perfil.
+              </p>
+              <p className="text-blue-700 text-sm leading-relaxed mb-3">
+                <strong>Mas atenção:</strong> evite excessos! O ideal é usar um emoji por título ou, no máximo, um por parágrafo. O excesso pode poluir e dificultar a leitura.
+              </p>
+              <p className="text-blue-700 text-sm leading-relaxed">
+                Também é importante que o texto esteja bem estruturado, com frases curtas e parágrafos separados por tema. Isso facilita a leitura e torna sua apresentação mais profissional.
+              </p>
+            </div>
+
+            <div className="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-500">
+              <h3 className="font-bold text-yellow-800 mb-2">Como inserir emojis no teclado:</h3>
+              <ul className="text-yellow-700 text-sm space-y-1">
+                <li>• <strong>Windows:</strong> pressione Win + . (tecla Windows + ponto)</li>
+                <li>• <strong>Mac:</strong> pressione Ctrl + Cmd + Barra de Espaço</li>
+              </ul>
+              <p className="text-yellow-700 text-sm mt-2">
+                A janela de emojis será aberta e você pode procurar pelo símbolo desejado.
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </TooltipProvider>
   );
 };

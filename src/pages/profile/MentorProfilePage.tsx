@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import MentorSidebar from "@/components/mentor/MentorSidebar";
 import { Button } from "@/components/ui/button";
-import { Facebook, Instagram, Youtube, Camera, User, GraduationCap, Star, Calendar, Phone } from "lucide-react";
+import { Facebook, Instagram, Youtube, Camera, User, GraduationCap, Star, Calendar, Phone, Edit, Save } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import ProfileForm from "@/components/profile/ProfileForm";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +12,16 @@ import StatsCard from "@/components/mentor/profile/StatsCard";
 import TestimonialCard from "@/components/mentor/profile/TestimonialCard";
 import CourseCard from "@/components/mentor/profile/CourseCard";
 import ContactForm from "@/components/mentor/profile/ContactForm";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
 const MentorProfilePage = () => {
   const { toast } = useToast();
@@ -21,6 +31,18 @@ const MentorProfilePage = () => {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeSection, setActiveSection] = useState('sobre');
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  
+  // Estados para edição das caixas
+  const [editData, setEditData] = useState({
+    sm_tit1: '',
+    sm_desc1: '',
+    sm_tit2: '',
+    sm_desc2: '',
+    sm_tit3: '',
+    sm_desc3: ''
+  });
 
   // Extract path from URL
   const extractPathFromUrl = (url: string | null): string | null => {
@@ -49,6 +71,16 @@ const MentorProfilePage = () => {
         if (profile.avatar_url) {
           setCurrentAvatarPath(extractPathFromUrl(profile.avatar_url));
         }
+        
+        // Inicializar dados de edição das caixas
+        setEditData({
+          sm_tit1: profile.sm_tit1 || '',
+          sm_desc1: profile.sm_desc1 || '',
+          sm_tit2: profile.sm_tit2 || '',
+          sm_desc2: profile.sm_desc2 || '',
+          sm_tit3: profile.sm_tit3 || '',
+          sm_desc3: profile.sm_desc3 || ''
+        });
       } catch (error) {
         console.error("Error fetching user data:", error);
       } finally {
@@ -101,6 +133,46 @@ const MentorProfilePage = () => {
     }
   };
 
+  const handleSaveBoxes = async () => {
+    if (!currentUser?.id) return;
+
+    setIsSaving(true);
+
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          sm_tit1: editData.sm_tit1,
+          sm_desc1: editData.sm_desc1,
+          sm_tit2: editData.sm_tit2,
+          sm_desc2: editData.sm_desc2,
+          sm_tit3: editData.sm_tit3,
+          sm_desc3: editData.sm_desc3
+        })
+        .eq("id", currentUser.id);
+
+      if (error) throw error;
+
+      // Atualizar currentUser com os novos dados
+      setCurrentUser(prev => ({ ...prev, ...editData }));
+      setIsEditModalOpen(false);
+
+      toast({
+        title: "Caixas atualizadas",
+        description: "Suas informações foram atualizadas com sucesso.",
+      });
+    } catch (error) {
+      console.error("Error updating boxes:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao atualizar",
+        description: "Ocorreu um erro ao atualizar as caixas. Tente novamente.",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   // Mock data
   const stats = [
     { value: "1.250+", label: "Mentorados de Sucesso", icon: "👥" },
@@ -116,7 +188,7 @@ const MentorProfilePage = () => {
       content: "A mentoria transformou completamente meu negócio. Em 6 meses consegui aumentar meu faturamento em 300%!",
       rating: 5
     },
-    {
+    { 
       name: "João Santos",
       profession: "Desenvolvedor",
       content: "Graças aos ensinamentos do mentor, consegui minha primeira promoção e dobrei meu salário.",
@@ -343,7 +415,7 @@ const MentorProfilePage = () => {
             </nav>
           </div>
         </div>
-        
+            
         {/* Main Content */}
         <div className="max-w-5xl mx-auto px-4 py-8 space-y-16">
           
@@ -378,7 +450,7 @@ const MentorProfilePage = () => {
                       fetchUserData();
                     }}
                   />
-                </div>
+              </div>
                 
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 gap-4">
@@ -386,7 +458,7 @@ const MentorProfilePage = () => {
                       <h3 className="font-bold text-lg mb-2">
                         {currentUser?.sm_tit1 || "🎯 Resultados Comprovados"}
                       </h3>
-                      <p className="text-gray-700">
+                      <p className="text-gray-700 whitespace-pre-wrap">
                         {currentUser?.sm_desc1 || "Mais de 1.250 vidas transformadas com metodologias testadas e aprovadas."}
                       </p>
                     </div>
@@ -395,7 +467,7 @@ const MentorProfilePage = () => {
                       <h3 className="font-bold text-lg mb-2">
                         {currentUser?.sm_tit2 || "🚀 Metodologia Exclusiva"}
                       </h3>
-                      <p className="text-gray-700">
+                      <p className="text-gray-700 whitespace-pre-wrap">
                         {currentUser?.sm_desc2 || "Sistema proprietário desenvolvido ao longo de 15 anos de experiência."}
                       </p>
                     </div>
@@ -404,9 +476,130 @@ const MentorProfilePage = () => {
                       <h3 className="font-bold text-lg mb-2">
                         {currentUser?.sm_tit3 || "💰 ROI Garantido"}
                       </h3>
-                      <p className="text-gray-700">
+                      <p className="text-gray-700 whitespace-pre-wrap">
                         {currentUser?.sm_desc3 || "Investimento retorna em até 90 dias ou seu dinheiro de volta."}
                       </p>
+                    </div>
+                  </div>
+
+                  {/* Rodapé com linha separadora e botão */}
+                  <div className="border-t pt-4 mt-6">
+                    <div className="flex justify-end">
+                      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+                        <DialogTrigger asChild>
+                          <Button variant="outline" size="sm" className="flex items-center gap-2">
+                            <Edit className="h-4 w-4" />
+                            Editar Caixas de Diferenciais
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                          <DialogHeader>
+                            <DialogTitle>Editar Caixas de Diferenciais</DialogTitle>
+                          </DialogHeader>
+                          
+                          <div className="space-y-6">
+                            {/* Caixa 1 - Roxa */}
+                            <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-6 rounded-xl border-l-4 border-purple-500">
+                              <h3 className="text-lg font-semibold mb-4 text-purple-700">Diferencial 1</h3>
+                              <div className="grid md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                  <Label htmlFor="sm_tit1">Título</Label>
+                                  <Input
+                                    id="sm_tit1"
+                                    value={editData.sm_tit1}
+                                    onChange={(e) => setEditData({...editData, sm_tit1: e.target.value})}
+                                    placeholder="Ex: 🎯 Resultados Comprovados"
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label htmlFor="sm_desc1">Descrição</Label>
+                                  <Textarea
+                                    id="sm_desc1"
+                                    value={editData.sm_desc1}
+                                    onChange={(e) => setEditData({...editData, sm_desc1: e.target.value})}
+                                    placeholder="Descrição dos seus resultados comprovados"
+                                    rows={3}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {/* Caixa 2 - Verde */}
+                            <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-xl border-l-4 border-green-500">
+                              <h3 className="text-lg font-semibold mb-4 text-green-700">Diferencial 2</h3>
+                              <div className="grid md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                  <Label htmlFor="sm_tit2">Título</Label>
+                                  <Input
+                                    id="sm_tit2"
+                                    value={editData.sm_tit2}
+                                    onChange={(e) => setEditData({...editData, sm_tit2: e.target.value})}
+                                    placeholder="Ex: 🚀 Metodologia Exclusiva"
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label htmlFor="sm_desc2">Descrição</Label>
+                                  <Textarea
+                                    id="sm_desc2"
+                                    value={editData.sm_desc2}
+                                    onChange={(e) => setEditData({...editData, sm_desc2: e.target.value})}
+                                    placeholder="Descrição da sua metodologia exclusiva"
+                                    rows={3}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {/* Caixa 3 - Laranja */}
+                            <div className="bg-gradient-to-r from-orange-50 to-red-50 p-6 rounded-xl border-l-4 border-orange-500">
+                              <h3 className="text-lg font-semibold mb-4 text-orange-700">Diferencial 3</h3>
+                              <div className="grid md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                  <Label htmlFor="sm_tit3">Título</Label>
+                                  <Input
+                                    id="sm_tit3"
+                                    value={editData.sm_tit3}
+                                    onChange={(e) => setEditData({...editData, sm_tit3: e.target.value})}
+                                    placeholder="Ex: 💰 ROI Garantido"
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label htmlFor="sm_desc3">Descrição</Label>
+                                  <Textarea
+                                    id="sm_desc3"
+                                    value={editData.sm_desc3}
+                                    onChange={(e) => setEditData({...editData, sm_desc3: e.target.value})}
+                                    placeholder="Descrição do ROI ou garantia"
+                                    rows={3}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div className="flex justify-end gap-2 pt-4 border-t">
+                              <Button 
+                                variant="outline" 
+                                onClick={() => setIsEditModalOpen(false)}
+                                disabled={isSaving}
+                              >
+                                Cancelar
+                              </Button>
+                              <Button 
+                                onClick={handleSaveBoxes}
+                                disabled={isSaving}
+                                className="flex items-center gap-2"
+                              >
+                                {isSaving ? (
+                                  <Spinner className="h-4 w-4" />
+                                ) : (
+                                  <Save className="h-4 w-4" />
+                                )}
+                                Salvar Alterações
+                              </Button>
+                            </div>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
                     </div>
                   </div>
                 </div>
@@ -422,7 +615,7 @@ const MentorProfilePage = () => {
               <div className="grid md:grid-cols-3 gap-6">
                 {courses.map((course, index) => (
                   <CourseCard key={index} {...course} />
-                ))}
+                    ))}
               </div>
             </div>
           </section>
@@ -460,8 +653,8 @@ const MentorProfilePage = () => {
                   
                   <Button className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold py-4 rounded-lg">
                     Agendar Agora
-                  </Button>
-                </div>
+                            </Button>
+                          </div>
                 
                 <div className="bg-gradient-to-br from-purple-100 to-blue-100 p-6 rounded-xl">
                   <h3 className="text-lg font-semibold mb-4">Calendário do Mês</h3>
@@ -474,7 +667,7 @@ const MentorProfilePage = () => {
                         (i + 1) % 7 === 0 ? 'bg-red-100' : 'bg-white hover:bg-purple-200 cursor-pointer'
                       }`}>
                         {i + 1}
-                      </div>
+                        </div>
                     ))}
                   </div>
                 </div>

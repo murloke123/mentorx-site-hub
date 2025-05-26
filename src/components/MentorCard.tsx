@@ -38,7 +38,7 @@ const MentorCard: React.FC<MentorCardProps> = ({ mentor }) => {
       </CardContent>
       
       <CardFooter>
-        <Link to={`/mentors/${mentor.id}`} className="w-full">
+        <Link to={`/mentor/publicview/${mentor.id}`} className="w-full">
           <Button variant="outline" className="w-full">
             Ver perfil
           </Button>

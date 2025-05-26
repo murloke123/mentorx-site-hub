@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
@@ -14,7 +13,7 @@ import CourseCard from "@/components/mentor/profile/CourseCard";
 import ContactForm from "@/components/mentor/profile/ContactForm";
 
 const MentorPublicProfilePage = () => {
-  const { mentorId } = useParams();
+  const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [mentorData, setMentorData] = useState<any>(null);
@@ -27,13 +26,13 @@ const MentorPublicProfilePage = () => {
   useEffect(() => {
     const fetchMentorData = async () => {
       try {
-        if (!mentorId) return;
+        if (!id) return;
 
         // Get mentor profile
         const { data: mentor, error: mentorError } = await supabase
           .from("profiles")
           .select("*")
-          .eq("id", mentorId)
+          .eq("id", id)
           .eq("role", "mentor")
           .single();
 
@@ -48,7 +47,7 @@ const MentorPublicProfilePage = () => {
           const { data: followData } = await supabase
             .from("mentor_followers")
             .select("*")
-            .eq("mentor_id", mentorId)
+            .eq("mentor_id", id)
             .eq("follower_id", user.id)
             .single();
 
@@ -61,14 +60,14 @@ const MentorPublicProfilePage = () => {
           title: "Erro",
           description: "Não foi possível carregar o perfil do mentor."
         });
-        navigate("/mentors");
+        navigate("/");
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchMentorData();
-  }, [mentorId, navigate, toast]);
+  }, [id, navigate, toast]);
 
   const handleFollowToggle = async () => {
     if (!currentUser) {
@@ -87,7 +86,7 @@ const MentorPublicProfilePage = () => {
         const { error } = await supabase
           .from("mentor_followers")
           .delete()
-          .eq("mentor_id", mentorId)
+          .eq("mentor_id", id)
           .eq("follower_id", currentUser.id);
 
         if (error) throw error;
@@ -102,7 +101,7 @@ const MentorPublicProfilePage = () => {
         const { error } = await supabase
           .from("mentor_followers")
           .insert({
-            mentor_id: mentorId,
+            mentor_id: id,
             follower_id: currentUser.id
           });
 
@@ -378,7 +377,7 @@ const MentorPublicProfilePage = () => {
                       <h4 className="font-bold text-lg mb-2">
                         {mentorData.sm_tit1 || "🎯 Resultados Comprovados"}
                       </h4>
-                      <p className="text-gray-700">
+                      <p className="text-gray-700 whitespace-pre-wrap">
                         {mentorData.sm_desc1 || "Mais de 1.250 vidas transformadas com metodologias testadas e aprovadas."}
                       </p>
                     </div>
@@ -387,7 +386,7 @@ const MentorPublicProfilePage = () => {
                       <h4 className="font-bold text-lg mb-2">
                         {mentorData.sm_tit2 || "🚀 Metodologia Exclusiva"}
                       </h4>
-                      <p className="text-gray-700">
+                      <p className="text-gray-700 whitespace-pre-wrap">
                         {mentorData.sm_desc2 || "Sistema proprietário desenvolvido ao longo de 15 anos de experiência."}
                       </p>
                     </div>
@@ -396,7 +395,7 @@ const MentorPublicProfilePage = () => {
                       <h4 className="font-bold text-lg mb-2">
                         {mentorData.sm_tit3 || "💰 ROI Garantido"}
                       </h4>
-                      <p className="text-gray-700">
+                      <p className="text-gray-700 whitespace-pre-wrap">
                         {mentorData.sm_desc3 || "Investimento retorna em até 90 dias ou seu dinheiro de volta."}
                       </p>
                     </div>

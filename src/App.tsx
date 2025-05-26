@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -26,6 +25,7 @@ import DatabaseMappingPage from "./pages/mentor/configuracoes/DatabaseMappingPag
 
 // Importar as novas páginas de perfil
 import MentorProfilePage from "@/pages/profile/MentorProfilePage";
+import MentorPublicProfilePage from "@/pages/profile/MentorPublicProfilePage";
 import MentoradoProfilePage from "@/pages/profile/MentoradoProfilePage";
 import AdminProfilePage from "@/pages/profile/AdminProfilePage";
 
@@ -56,6 +56,7 @@ const AppContent = () => {
           {/* Rotas de Mentor */}
           <Route path="/mentor/dashboard" element={<MentorDashboardPage />} />
           <Route path="/mentor/perfil" element={<MentorProfilePage />} />
+          <Route path="/mentor/publicview/:id" element={<MentorPublicProfilePage />} />
           <Route path="/mentor/cursos" element={<MeusCursosPage />} />
           <Route path="/mentor/cursos/novo" element={<CreateCoursePage />} />
           <Route path="/mentor/cursos/:id/editar" element={<EditCoursePage />} />
