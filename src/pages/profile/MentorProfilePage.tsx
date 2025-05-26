@@ -602,11 +602,11 @@ const MentorProfilePage = () => {
                       </Dialog>
                     </div>
                   </div>
+
+                  {/* Add Badges Section here in the right column */}
+                  <BadgesSection />
                 </div>
               </div>
-
-              {/* Add Badges Section */}
-              <BadgesSection />
             </div>
           </section>
 
@@ -656,8 +656,8 @@ const MentorProfilePage = () => {
                   
                   <Button className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold py-4 rounded-lg">
                     Agendar Agora
-                            </Button>
-                          </div>
+                  </Button>
+                </div>
                 
                 <div className="bg-gradient-to-br from-purple-100 to-blue-100 p-6 rounded-xl">
                   <h3 className="text-lg font-semibold mb-4">Calendário do Mês</h3>
@@ -670,7 +670,7 @@ const MentorProfilePage = () => {
                         (i + 1) % 7 === 0 ? 'bg-red-100' : 'bg-white hover:bg-purple-200 cursor-pointer'
                       }`}>
                         {i + 1}
-                        </div>
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -688,14 +688,6 @@ const MentorProfilePage = () => {
                   <h3 className="text-xl font-semibold">Formas de Contato</h3>
                   
                   <div className="space-y-4">
-                    <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                      <Phone className="h-6 w-6 text-green-600" />
-                      <div>
-                        <p className="font-medium">Telefone/WhatsApp</p>
-                        <p className="text-gray-600">{currentUser?.phone || "(11) 95379-8454"}</p>
-                      </div>
-                    </div>
-                    
                     <Button className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-4 rounded-lg flex items-center justify-center gap-2">
                       <span>💬</span>
                       Chamar no WhatsApp
