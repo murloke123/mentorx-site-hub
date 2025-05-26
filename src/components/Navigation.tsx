@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -168,7 +169,7 @@ const Navigation = () => {
                     <User className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent align="end" className="bg-white z-50">
                   <Link to={getProfileRoute()}>
                     <DropdownMenuItem className="cursor-pointer">
                       Meu Perfil
