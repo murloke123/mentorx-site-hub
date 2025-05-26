@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Facebook, Instagram, Youtube, Camera, User, GraduationCap, Star, Calendar, Phone, Edit, Save } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import ProfileForm from "@/components/profile/ProfileForm";
+import BadgesSection from "@/components/mentor/profile/BadgesSection";
 import { supabase } from "@/integrations/supabase/client";
 import { uploadImage } from "@/utils/uploadImage";
 import { useToast } from "@/hooks/use-toast";
@@ -450,7 +451,7 @@ const MentorProfilePage = () => {
                       fetchUserData();
                     }}
                   />
-              </div>
+                </div>
                 
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 gap-4">
@@ -482,7 +483,6 @@ const MentorProfilePage = () => {
                     </div>
                   </div>
 
-                  {/* Rodapé com linha separadora e botão */}
                   <div className="border-t pt-4 mt-6">
                     <div className="flex justify-end">
                       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
@@ -604,6 +604,9 @@ const MentorProfilePage = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Add Badges Section */}
+              <BadgesSection />
             </div>
           </section>
 
@@ -615,7 +618,7 @@ const MentorProfilePage = () => {
               <div className="grid md:grid-cols-3 gap-6">
                 {courses.map((course, index) => (
                   <CourseCard key={index} {...course} />
-                    ))}
+                ))}
               </div>
             </div>
           </section>

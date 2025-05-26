@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -7,7 +8,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Form,
   FormControl,
@@ -28,13 +28,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Info, X } from "lucide-react";
+import { Info } from "lucide-react";
+import RichTextEditor from "@/components/mentor/content/RichTextEditor";
 
 interface ProfileData {
   id: string;
   full_name?: string | null;
   bio?: string | null;
-  phone?: string | null;
   avatar_url?: string | null;
   email?: string | null;
   role?: string;
@@ -44,7 +44,6 @@ interface ProfileData {
 const profileSchema = z.object({
   full_name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
   bio: z.string().optional().nullable(),
-  phone: z.string().optional().nullable(),
   highlight_message: z.string().optional().nullable(),
 });
 
@@ -61,13 +60,13 @@ const ProfileForm = ({ user, profileData, onProfileUpdate }: ProfileFormProps) =
   const [isLoading, setIsLoading] = useState(false);
   const [isHighlightModalOpen, setIsHighlightModalOpen] = useState(false);
   const [isBioModalOpen, setIsBioModalOpen] = useState(false);
+  const [bioContent, setBioContent] = useState(profileData?.bio || "");
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
       full_name: profileData?.full_name || "",
       bio: profileData?.bio || "",
-      phone: profileData?.phone || "",
       highlight_message: profileData?.highlight_message || "",
     },
   });
@@ -85,8 +84,7 @@ const ProfileForm = ({ user, profileData, onProfileUpdate }: ProfileFormProps) =
         .from("profiles")
         .update({
           full_name: data.full_name,
-          bio: data.bio,
-          phone: data.phone,
+          bio: bioContent,
           highlight_message: data.highlight_message,
         })
         .eq("id", user.id);
@@ -169,59 +167,30 @@ const ProfileForm = ({ user, profileData, onProfileUpdate }: ProfileFormProps) =
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="bio"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="flex items-center gap-2">
-                  Sobre mim
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        type="button"
-                        onClick={() => setIsBioModalOpen(true)}
-                        className="flex items-center"
-                      >
-                        <Info className="h-4 w-4 text-blue-500 hover:text-blue-700 cursor-pointer" />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Clique no ícone para saber mais!</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </FormLabel>
-                <FormControl>
-                  <Textarea
-                    {...field}
-                    placeholder="Conte um pouco sobre você"
-                    className="resize-y min-h-[120px]"
-                    rows={5}
-                    value={field.value || ""}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="phone"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Telefone</FormLabel>
-                <FormControl>
-                  <Input
-                    {...field}
-                    placeholder="Seu telefone"
-                    value={field.value || ""}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div className="space-y-2">
+            <FormLabel className="flex items-center gap-2">
+              Sobre mim
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    onClick={() => setIsBioModalOpen(true)}
+                    className="flex items-center"
+                  >
+                    <Info className="h-4 w-4 text-blue-500 hover:text-blue-700 cursor-pointer" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Clique no ícone para saber mais!</p>
+                </TooltipContent>
+              </Tooltip>
+            </FormLabel>
+            <RichTextEditor
+              initialValue={bioContent}
+              onChange={setBioContent}
+              disabled={isLoading}
+            />
+          </div>
 
           <div className="flex justify-end">
             <Button type="submit" disabled={isLoading}>
