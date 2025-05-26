@@ -1,8 +1,7 @@
-
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Calendar, MessageSquare, User } from "lucide-react";
+import { Calendar, MessageSquare, User, LayoutDashboard } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -149,6 +148,18 @@ const Navigation = () => {
                 Agendar
               </Button>
             </Link>
+            
+            {session && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="flex items-center gap-2"
+                onClick={handleDashboardAccess}
+              >
+                <LayoutDashboard className="h-4 w-4" />
+                Meu Dashboard
+              </Button>
+            )}
             
             {session ? (
               <DropdownMenu>

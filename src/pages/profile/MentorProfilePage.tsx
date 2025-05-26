@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import MentorSidebar from "@/components/mentor/MentorSidebar";
 import { Button } from "@/components/ui/button";
@@ -522,7 +521,7 @@ const MentorProfilePage = () => {
         </div>
 
         {/* Add CSS animations */}
-        <style jsx>{`
+        <style>{`
           @keyframes float {
             0%, 100% { 
               transform: translateY(0px); 
