@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
-import { Facebook, Instagram, Youtube, User, GraduationCap, Star, Calendar, Phone, Heart, MessageCircle } from "lucide-react";
+import { Facebook, Instagram, Youtube, User, GraduationCap, Star, Calendar, Heart, MessageCircle } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -299,7 +300,7 @@ const MentorPublicProfilePage = () => {
               className="px-8 py-3 rounded-full shadow-lg transition-all hover:shadow-xl flex items-center gap-2 font-semibold text-lg"
             >
               <MessageCircle className="h-5 w-5" />
-              Contato
+              Entre em Contato
             </Button>
             
             <div className="flex gap-3">
@@ -353,26 +354,20 @@ const MentorPublicProfilePage = () => {
           {/* Sobre Section */}
           <section id="sobre" className="scroll-mt-24">
             <div className="bg-white rounded-2xl shadow-xl p-8 border">
-              <h2 className="text-3xl font-bold text-gray-800 mb-8 text-center">
-                Sobre {mentorData.full_name?.split(' ')[0]}
-              </h2>
-              
               <div className="grid md:grid-cols-2 gap-8">
                 <div className="space-y-6">
                   {mentorData.bio && (
                     <div>
                       <h3 className="text-xl font-semibold mb-4">Minha História</h3>
-                      <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-                        {mentorData.bio.replace(/<[^>]*>/g, '')}
+                      <div className="text-gray-700 leading-relaxed">
+                        <div dangerouslySetInnerHTML={{ __html: mentorData.bio }} />
                       </div>
                     </div>
                   )}
                 </div>
                 
                 <div className="space-y-6">
-                  <h3 className="text-xl font-semibold mb-4">
-                    Por que seguir {mentorData.full_name?.split(' ')[0]}?
-                  </h3>
+                  <h3 className="text-xl font-semibold mb-4">Por que me seguir?</h3>
                   <div className="grid grid-cols-1 gap-4">
                     <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-6 rounded-xl border-l-4 border-purple-500">
                       <h4 className="font-bold text-lg mb-2">
@@ -487,16 +482,6 @@ const MentorPublicProfilePage = () => {
                   <h3 className="text-xl font-semibold">Formas de Contato</h3>
                   
                   <div className="space-y-4">
-                    {mentorData.phone && (
-                      <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                        <MessageCircle className="h-6 w-6 text-green-600" />
-                        <div>
-                          <p className="font-medium">Telefone/WhatsApp</p>
-                          <p className="text-gray-600">{mentorData.phone}</p>
-                        </div>
-                      </div>
-                    )}
-                    
                     <Button className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-4 rounded-lg flex items-center justify-center gap-2">
                       <span>💬</span>
                       Chamar no WhatsApp

@@ -239,6 +239,7 @@ export interface Mentor {
   full_name: string;
   avatar_url: string | null;
   bio: string | null;
+  highlight_message: string | null;
   courses_count: number;
 }
 
@@ -251,6 +252,7 @@ export async function getFeaturedMentors(): Promise<Mentor[]> {
         full_name,
         avatar_url,
         bio,
+        highlight_message,
         courses:cursos(count)
       `)
       .eq("role", "mentor")
@@ -264,6 +266,7 @@ export async function getFeaturedMentors(): Promise<Mentor[]> {
       full_name: mentor.full_name,
       avatar_url: mentor.avatar_url,
       bio: mentor.bio,
+      highlight_message: mentor.highlight_message,
       courses_count: mentor.courses?.[0]?.count || 0
     }));
   } catch (error) {

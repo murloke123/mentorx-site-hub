@@ -1,3 +1,4 @@
+
 import React from "react";
 
 const BadgesSection = () => {
@@ -18,8 +19,8 @@ const BadgesSection = () => {
       {/* Badges Container */}
       <div className="flex justify-center items-center">
         <div className="relative">
-          {/* Badge Image - Aumentado de w-32 h-32 (128px) para w-40 h-40 (160px) = ~25% maior */}
-          <div className="w-40 h-40 mx-auto">
+          {/* Badge Image - Aumentado de w-40 h-40 (160px) para w-52 h-52 (~208px) = ~30% maior */}
+          <div className="w-52 h-52 mx-auto">
             <img 
               src="/src/img/brasoessemfundo.png"
               alt="Brasões do Mentor"

@@ -14,7 +14,6 @@ const CreateCoursePage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const initialValues: CourseFormData = {
-    title: "",
     description: "",
     image_url: "",
     category: "",
