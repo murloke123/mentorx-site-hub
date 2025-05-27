@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import MentorSidebar from "@/components/mentor/MentorSidebar";
 import { Button } from "@/components/ui/button";
-import { Facebook, Instagram, Youtube, Camera, User, GraduationCap, Star, Calendar, Phone, Edit, Save } from "lucide-react";
+import { Facebook, Instagram, Youtube, Camera, User, GraduationCap, Star, Calendar, Phone, Edit, Save, Heart, ChevronLeft, ChevronRight, MessageCircle } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import ProfileForm from "@/components/profile/ProfileForm";
 import BadgesSection from "@/components/mentor/profile/BadgesSection";
@@ -23,6 +23,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { useQuery } from "@tanstack/react-query";
 
 const MentorProfilePage = () => {
   const { toast } = useToast();
@@ -34,6 +35,8 @@ const MentorProfilePage = () => {
   const [activeSection, setActiveSection] = useState('sobre');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isFollowing, setIsFollowing] = useState(false);
   
   // Estados para edição das caixas
   const [editData, setEditData] = useState({
@@ -44,6 +47,54 @@ const MentorProfilePage = () => {
     sm_tit3: '',
     sm_desc3: ''
   });
+
+  // Fetch mentor courses
+  const { data: mentorCourses = [], isLoading: coursesLoading } = useQuery({
+    queryKey: ['mentorCourses', currentUser?.id],
+    queryFn: async () => {
+      if (!currentUser?.id) return [];
+      
+      const { data, error } = await supabase
+        .from("cursos")
+        .select(`
+          id, 
+          title, 
+          description, 
+          is_public, 
+          is_paid, 
+          price, 
+          discount,
+          discounted_price,
+          image_url, 
+          created_at, 
+          updated_at, 
+          mentor_id
+        `)
+        .eq("mentor_id", currentUser.id)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Error fetching mentor courses:", error);
+        return [];
+      }
+      
+      return data || [];
+    },
+    enabled: !!currentUser?.id
+  });
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % Math.ceil(mentorCourses.length / 3));
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + Math.ceil(mentorCourses.length / 3)) % Math.ceil(mentorCourses.length / 3));
+  };
+
+  const handleFollowToggle = async () => {
+    // Mock function for consistency with public page
+    setIsFollowing(!isFollowing);
+  };
 
   // Extract path from URL
   const extractPathFromUrl = (url: string | null): string | null => {
@@ -176,10 +227,10 @@ const MentorProfilePage = () => {
 
   // Mock data
   const stats = [
-    { value: "1.250+", label: "Mentorados de Sucesso", icon: "👥" },
-    { value: "98%", label: "Taxa de Satisfação", icon: "⭐" },
-    { value: "15+", label: "Anos de Experiência", icon: "🎯" },
-    { value: "R$ 50M+", label: "Movimentados pelos Alunos", icon: "💰" }
+    { value: "1.250+", label: "Mentorados de Sucesso", icon: "/src/img/icons/group.png" },
+    { value: "98%", label: "Taxa de Satisfação", icon: "/src/img/icons/star.png" },
+    { value: "15+", label: "Anos de Experiência", icon: "/src/img/icons/goal.png" },
+    { value: "R$ 50M+", label: "Movimentados pelos Alunos", icon: "/src/img/icons/value.png" }
   ];
 
   const testimonials = [
@@ -267,11 +318,21 @@ const MentorProfilePage = () => {
             />
             <div className="absolute inset-0 bg-gradient-to-r from-purple-600/30 to-blue-600/30"></div>
             
-            {/* Floating Stats */}
+            {/* Floating Stats with 20% transparency */}
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 px-4">
                 {stats.map((stat, index) => (
-                  <StatsCard key={index} {...stat} />
+                  <div key={index} className="bg-white/80 backdrop-blur-sm rounded-xl p-4 text-center shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                    <div className="mb-2 flex justify-center">
+                      <img 
+                        src={stat.icon} 
+                        alt={stat.label}
+                        className="w-8 h-8 object-contain"
+                      />
+                    </div>
+                    <div className="text-2xl font-bold text-gray-800">{stat.value}</div>
+                    <div className="text-sm text-gray-600">{stat.label}</div>
+                  </div>
                 ))}
               </div>
             </div>
@@ -343,34 +404,26 @@ const MentorProfilePage = () => {
           )}
           
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-6">
-            <button 
-              className="text-white px-8 py-3 rounded-full shadow-lg transition-all hover:shadow-xl flex items-center gap-2 font-semibold text-lg border-none cursor-pointer"
-              style={{
-                background: 'linear-gradient(45deg, #ff6b35, #f7931e)',
-                boxShadow: '0 10px 30px rgba(255, 107, 53, 0.4)',
-                borderRadius: '50px',
-                padding: '15px 40px',
-                fontSize: '1.1rem',
-                fontWeight: '600',
-                transition: 'all 0.3s ease'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-3px)';
-                e.currentTarget.style.boxShadow = '0 15px 40px rgba(255, 107, 53, 0.6)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0px)';
-                e.currentTarget.style.boxShadow = '0 10px 30px rgba(255, 107, 53, 0.4)';
-              }}
+            <Button
+              onClick={handleFollowToggle}
+              className={`px-8 py-3 rounded-full transition-all flex items-center gap-2 font-semibold text-lg ${
+                isFollowing 
+                  ? 'bg-gray-500 hover:bg-gray-600 text-white shadow-md hover:shadow-lg' 
+                  : 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-md hover:shadow-lg'
+              }`}
             >
-              <span 
-                className="text-xl"
-                style={{
-                  animation: 'bounce 1s infinite'
-                }}
-              >🚀</span>
-              Seguir Agora
-            </button>
+              <Heart className={`h-5 w-5 ${isFollowing ? 'fill-current' : ''}`} />
+              {isFollowing ? 'Seguindo' : 'Seguir Mentor'}
+            </Button>
+            
+            <Button
+              variant="outline"
+              onClick={() => scrollToSection('contato')}
+              className="px-8 py-3 rounded-full shadow-lg transition-all hover:shadow-xl flex items-center gap-2 font-semibold text-lg"
+            >
+              <MessageCircle className="h-5 w-5" />
+              Entre em Contato
+            </Button>
             
             <div className="flex gap-3">
               <a href="#" className="p-3 rounded-full bg-white shadow-lg hover:shadow-xl transition-all hover:scale-110 border">
@@ -391,7 +444,7 @@ const MentorProfilePage = () => {
           <div className="max-w-5xl mx-auto px-4">
             <nav className="flex justify-center space-x-8 py-4">
               {[
-                { id: 'sobre', label: 'Sobre Mim', icon: User },
+                { id: 'sobre', label: 'Quem sou eu', icon: User },
                 { id: 'cursos', label: 'Meus Cursos', icon: GraduationCap },
                 { id: 'depoimentos', label: 'Depoimentos', icon: Star },
                 { id: 'agenda', label: 'Agenda', icon: Calendar },
@@ -615,11 +668,121 @@ const MentorProfilePage = () => {
             <div className="bg-white rounded-2xl shadow-xl p-8 border">
               <h2 className="text-3xl font-bold text-gray-800 mb-8 text-center">Meus Cursos</h2>
               
-              <div className="grid md:grid-cols-3 gap-6">
-                {courses.map((course, index) => (
-                  <CourseCard key={index} {...course} />
-                ))}
-              </div>
+              {coursesLoading ? (
+                <div className="flex justify-center">
+                  <Spinner className="h-8 w-8" />
+                </div>
+              ) : mentorCourses.length > 0 ? (
+                <div className="relative">
+                  {/* Carousel Container */}
+                  <div className="overflow-hidden">
+                    <div 
+                      className="flex transition-transform duration-300 ease-in-out"
+                      style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+                    >
+                      {Array.from({ length: Math.ceil(mentorCourses.length / 3) }).map((_, slideIndex) => (
+                        <div key={slideIndex} className="w-full flex-shrink-0">
+                          <div className="grid md:grid-cols-3 gap-6">
+                            {mentorCourses.slice(slideIndex * 3, (slideIndex + 1) * 3).map((course) => (
+                              <div key={course.id} className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border overflow-hidden">
+                                <div className="relative">
+                                  {course.image_url ? (
+                            <img 
+                              src={course.image_url} 
+                              alt={course.title}
+                                      className="w-full h-48 object-cover"
+                                    />
+                                  ) : (
+                                    <div className="w-full h-48 bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center">
+                                      <GraduationCap className="h-16 w-16 text-purple-400" />
+                                    </div>
+                                  )}
+                                  {course.discount && course.discount > 0 && (
+                                    <div className="absolute top-4 right-4 bg-red-500 text-white px-2 py-1 rounded-full text-sm font-bold">
+                                      -{course.discount}%
+                                    </div>
+                                  )}
+                                </div>
+                                
+                                <div className="p-6">
+                                  <h3 className="text-xl font-bold mb-2 text-gray-800">{course.title}</h3>
+                                  <p className="text-gray-600 mb-4 line-clamp-2">{course.description || "Descrição não disponível"}</p>
+                                  
+                                  <div className="flex items-center justify-between mb-4">
+                                    {course.is_paid ? (
+                                      <div className="flex items-center space-x-2">
+                                        {course.discounted_price ? (
+                                          <>
+                                            <span className="text-2xl font-bold text-green-600">
+                                              R$ {course.discounted_price.toFixed(2)}
+                                            </span>
+                                            <span className="text-lg text-gray-500 line-through">
+                                              R$ {course.price?.toFixed(2)}
+                                            </span>
+                                          </>
+                                        ) : (
+                                          <span className="text-2xl font-bold text-green-600">
+                                            R$ {course.price?.toFixed(2)}
+                                          </span>
+                                        )}
+                                      </div>
+                                    ) : (
+                                      <span className="text-2xl font-bold text-green-600">Gratuito</span>
+                                    )}
+                          </div>
+                                  
+                                  <Button className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-3 rounded-lg">
+                                    Eu quero!
+                            </Button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Carousel Controls */}
+                  {Math.ceil(mentorCourses.length / 3) > 1 && (
+                    <>
+                      <button
+                        onClick={prevSlide}
+                        className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-4 bg-white rounded-full p-2 shadow-lg hover:shadow-xl transition-all"
+                      >
+                        <ChevronLeft className="h-6 w-6 text-gray-600" />
+                      </button>
+                      <button
+                        onClick={nextSlide}
+                        className="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-4 bg-white rounded-full p-2 shadow-lg hover:shadow-xl transition-all"
+                      >
+                        <ChevronRight className="h-6 w-6 text-gray-600" />
+                      </button>
+                    </>
+                  )}
+                </div>
+              ) : (
+                // No courses card
+                <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-12 text-center border-2 border-dashed border-gray-300">
+                  <div className="max-w-md mx-auto">
+                    <img 
+                      src="https://static.vecteezy.com/ti/vetor-gratis/p1/11535870-nenhum-salvo-conceito-ilustracao-design-plano-vector-eps10-elemento-grafico-moderno-para-pagina-de-destino-ui-de-estado-vazio-infografico-icone-vetor.jpg"
+                      alt="Nenhum curso disponível"
+                      className="w-32 h-32 mx-auto mb-6 opacity-60"
+                    />
+                    <h3 className="text-2xl font-bold text-gray-700 mb-4">
+                      Você ainda não criou nenhum curso
+                    </h3>
+                    <p className="text-gray-600 leading-relaxed mb-6">
+                      Comece a compartilhar seu conhecimento criando seu primeiro curso! 
+                      É uma ótima maneira de impactar mais pessoas e gerar renda.
+                    </p>
+                    <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-3 px-6 rounded-lg">
+                      Criar Meu Primeiro Curso
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           </section>
 

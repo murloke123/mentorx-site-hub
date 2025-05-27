@@ -82,11 +82,11 @@ const ProfilePage = ({ userRole }: ProfilePageProps) => {
   }
 
   return (
-    <ProfileForm 
-      user={user} 
-      profileData={profileData}
-      onProfileUpdate={() => fetchProfileData(user?.id || "")}
-    />
+        <ProfileForm 
+          user={user} 
+          profileData={profileData}
+          onProfileUpdate={() => fetchProfileData(user?.id || "")}
+        />
   );
 };
 

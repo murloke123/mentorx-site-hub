@@ -41,11 +41,12 @@ const queryClient = new QueryClient();
 const AppContent = () => {
   const location = useLocation();
   const isCoursePlayerPage = location.pathname.includes('/mentor/cursos/view/');
+  const isMentorPublicProfilePage = location.pathname.includes('/mentor/publicview/');
 
   return (
     <div className="flex flex-col min-h-screen">
       <Debug />
-      {!isCoursePlayerPage && <Navigation />}
+      {!isCoursePlayerPage && !isMentorPublicProfilePage && <Navigation />}
       <main className="flex-grow">
         <Routes>
           <Route path="/" element={<HomePage />} />
@@ -87,7 +88,7 @@ const AppContent = () => {
           <Route path="/admin/configuracoes" element={<NotFound />} />
         </Routes>
       </main>
-      {!isCoursePlayerPage && <Footer />}
+      {!isCoursePlayerPage && !isMentorPublicProfilePage && <Footer />}
     </div>
   );
 };
