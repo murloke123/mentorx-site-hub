@@ -8,7 +8,8 @@ import {
   BarChart2,
   Settings, 
   LogOut,
-  User
+  User,
+  TestTube
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
@@ -94,6 +95,16 @@ const AdminSidebar = () => {
           >
             <BookOpen className="mr-2 h-4 w-4" />
             Cursos
+          </Button>
+        </Link>
+        
+        <Link to="/admin/testes">
+          <Button 
+            variant={isActive("/admin/testes") ? "default" : "ghost"} 
+            className="w-full justify-start"
+          >
+            <TestTube className="mr-2 h-4 w-4" />
+            Testes
           </Button>
         </Link>
         
