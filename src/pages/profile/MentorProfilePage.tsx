@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import MentorSidebar from "@/components/mentor/MentorSidebar";
 import { Button } from "@/components/ui/button";
-import { Facebook, Instagram, Youtube, Camera, User, GraduationCap, Star, Calendar, Phone, Edit, Save, Heart, ChevronLeft, ChevronRight, MessageCircle } from "lucide-react";
+import { Facebook, Instagram, Youtube, Camera, User, GraduationCap, Star, Calendar, Edit, Save, Heart, MessageCircle } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import ProfileForm from "@/components/profile/ProfileForm";
 import BadgesSection from "@/components/mentor/profile/BadgesSection";
@@ -11,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Spinner } from "@/components/ui/spinner";
 import StatsCard from "@/components/mentor/profile/StatsCard";
 import TestimonialCard from "@/components/mentor/profile/TestimonialCard";
-import CourseCard from "@/components/mentor/profile/CourseCard";
+import CourseCard from "@/components/CourseCard";
 import ContactForm from "@/components/mentor/profile/ContactForm";
 import {
   Dialog,
@@ -35,7 +36,6 @@ const MentorProfilePage = () => {
   const [activeSection, setActiveSection] = useState('sobre');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [currentSlide, setCurrentSlide] = useState(0);
   const [isFollowing, setIsFollowing] = useState(false);
   
   // Estados para edição das caixas
@@ -82,14 +82,6 @@ const MentorProfilePage = () => {
     },
     enabled: !!currentUser?.id
   });
-
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % Math.ceil(mentorCourses.length / 3));
-  };
-
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + Math.ceil(mentorCourses.length / 3)) % Math.ceil(mentorCourses.length / 3));
-  };
 
   const handleFollowToggle = async () => {
     // Mock function for consistency with public page
@@ -416,15 +408,6 @@ const MentorProfilePage = () => {
               {isFollowing ? 'Seguindo' : 'Seguir Mentor'}
             </Button>
             
-            <Button
-              variant="outline"
-              onClick={() => scrollToSection('contato')}
-              className="px-8 py-3 rounded-full shadow-lg transition-all hover:shadow-xl flex items-center gap-2 font-semibold text-lg"
-            >
-              <MessageCircle className="h-5 w-5" />
-              Entre em Contato
-            </Button>
-            
             <div className="flex gap-3">
               <a href="#" className="p-3 rounded-full bg-white shadow-lg hover:shadow-xl transition-all hover:scale-110 border">
                 <Instagram className="h-6 w-6 text-pink-600" />
@@ -444,11 +427,11 @@ const MentorProfilePage = () => {
           <div className="max-w-5xl mx-auto px-4">
             <nav className="flex justify-center space-x-8 py-4">
               {[
-                { id: 'sobre', label: 'Quem sou eu', icon: User },
+                { id: 'sobre', label: 'Quem Sou Eu', icon: User },
                 { id: 'cursos', label: 'Meus Cursos', icon: GraduationCap },
                 { id: 'depoimentos', label: 'Depoimentos', icon: Star },
                 { id: 'agenda', label: 'Agenda', icon: Calendar },
-                { id: 'contato', label: 'Contato', icon: Phone }
+                { id: 'contato', label: 'Entre em Contato', icon: MessageCircle }
               ].map((item) => {
                 const Icon = item.icon;
                 return (
@@ -673,97 +656,13 @@ const MentorProfilePage = () => {
                   <Spinner className="h-8 w-8" />
                 </div>
               ) : mentorCourses.length > 0 ? (
-                <div className="relative">
-                  {/* Carousel Container */}
-                  <div className="overflow-hidden">
-                    <div 
-                      className="flex transition-transform duration-300 ease-in-out"
-                      style={{ transform: `translateX(-${currentSlide * 100}%)` }}
-                    >
-                      {Array.from({ length: Math.ceil(mentorCourses.length / 3) }).map((_, slideIndex) => (
-                        <div key={slideIndex} className="w-full flex-shrink-0">
-                          <div className="grid md:grid-cols-3 gap-6">
-                            {mentorCourses.slice(slideIndex * 3, (slideIndex + 1) * 3).map((course) => (
-                              <div key={course.id} className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border overflow-hidden">
-                                <div className="relative">
-                                  {course.image_url ? (
-                            <img 
-                              src={course.image_url} 
-                              alt={course.title}
-                                      className="w-full h-48 object-cover"
-                                    />
-                                  ) : (
-                                    <div className="w-full h-48 bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center">
-                                      <GraduationCap className="h-16 w-16 text-purple-400" />
-                                    </div>
-                                  )}
-                                  {course.discount && course.discount > 0 && (
-                                    <div className="absolute top-4 right-4 bg-red-500 text-white px-2 py-1 rounded-full text-sm font-bold">
-                                      -{course.discount}%
-                                    </div>
-                                  )}
-                                </div>
-                                
-                                <div className="p-6">
-                                  <h3 className="text-xl font-bold mb-2 text-gray-800">{course.title}</h3>
-                                  <p className="text-gray-600 mb-4 line-clamp-2">{course.description || "Descrição não disponível"}</p>
-                                  
-                                  <div className="flex items-center justify-between mb-4">
-                                    {course.is_paid ? (
-                                      <div className="flex items-center space-x-2">
-                                        {course.discounted_price ? (
-                                          <>
-                                            <span className="text-2xl font-bold text-green-600">
-                                              R$ {course.discounted_price.toFixed(2)}
-                                            </span>
-                                            <span className="text-lg text-gray-500 line-through">
-                                              R$ {course.price?.toFixed(2)}
-                                            </span>
-                                          </>
-                                        ) : (
-                                          <span className="text-2xl font-bold text-green-600">
-                                            R$ {course.price?.toFixed(2)}
-                                          </span>
-                                        )}
-                                      </div>
-                                    ) : (
-                                      <span className="text-2xl font-bold text-green-600">Gratuito</span>
-                                    )}
-                          </div>
-                                  
-                                  <Button className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-3 rounded-lg">
-                                    Eu quero!
-                            </Button>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  {/* Carousel Controls */}
-                  {Math.ceil(mentorCourses.length / 3) > 1 && (
-                    <>
-                      <button
-                        onClick={prevSlide}
-                        className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-4 bg-white rounded-full p-2 shadow-lg hover:shadow-xl transition-all"
-                      >
-                        <ChevronLeft className="h-6 w-6 text-gray-600" />
-                      </button>
-                      <button
-                        onClick={nextSlide}
-                        className="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-4 bg-white rounded-full p-2 shadow-lg hover:shadow-xl transition-all"
-                      >
-                        <ChevronRight className="h-6 w-6 text-gray-600" />
-                      </button>
-                    </>
-                  )}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {mentorCourses.map((course) => (
+                    <CourseCard key={course.id} course={course} />
+                  ))}
                 </div>
               ) : (
-                // No courses card
-                <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-12 text-center border-2 border-dashed border-gray-300">
+                <div className="bg-gray-50 rounded-xl p-12 text-center border-2 border-dashed border-gray-300">
                   <div className="max-w-md mx-auto">
                     <img 
                       src="https://static.vecteezy.com/ti/vetor-gratis/p1/11535870-nenhum-salvo-conceito-ilustracao-design-plano-vector-eps10-elemento-grafico-moderno-para-pagina-de-destino-ui-de-estado-vazio-infografico-icone-vetor.jpg"
@@ -777,7 +676,7 @@ const MentorProfilePage = () => {
                       Comece a compartilhar seu conhecimento criando seu primeiro curso! 
                       É uma ótima maneira de impactar mais pessoas e gerar renda.
                     </p>
-                    <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-3 px-6 rounded-lg">
+                    <Button className="bg-purple-600 text-white font-bold py-3 px-6 rounded-lg">
                       Criar Meu Primeiro Curso
                     </Button>
                   </div>

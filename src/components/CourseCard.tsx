@@ -1,77 +1,85 @@
+import React from 'react';
+import { GraduationCap } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
-import { Link } from "react-router-dom";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Course } from "@/types";
-import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { BookOpen, Percent } from "lucide-react";
+interface Course {
+  id: string;
+  title: string;
+  description?: string;
+  image_url?: string;
+  price?: number;
+  discounted_price?: number;
+  discount?: number;
+  is_paid: boolean;
+}
 
 interface CourseCardProps {
   course: Course;
 }
 
-const CourseCard = ({ course }: CourseCardProps) => {
-  // Calculate if there's a discount
-  const hasDiscount = course.discount && course.discount > 0 && course.price && course.price > 0;
+const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
+  const renderPrice = () => {
+    if (!course.is_paid) {
+      return <span className="text-2xl font-bold text-green-600">Gratuito</span>;
+    }
+
+    if (course.discounted_price && course.price) {
+      return (
+        <div className="flex items-center space-x-2">
+          <span className="text-2xl font-bold text-green-600">
+            R$ {course.discounted_price.toFixed(2)}
+          </span>
+          <span className="text-lg text-gray-500 line-through">
+            R$ {course.price.toFixed(2)}
+          </span>
+        </div>
+      );
+    }
+
+    return (
+      <span className="text-2xl font-bold text-green-600">
+        R$ {course.price?.toFixed(2) || '0.00'}
+      </span>
+    );
+  };
 
   return (
-    <Card className="h-full flex flex-col overflow-hidden transition-shadow hover:shadow-md">
-      <AspectRatio ratio={16 / 9}>
+    <div className="bg-white rounded-xl shadow-lg border overflow-hidden">
+      <div className="relative">
         {course.image_url ? (
           <img 
             src={course.image_url} 
-            alt={course.title} 
-            className="w-full h-full object-cover"
+            alt={course.title}
+            className="w-full h-48 object-cover"
           />
         ) : (
-          <div className="w-full h-full bg-muted flex items-center justify-center">
-            <BookOpen className="h-12 w-12 text-muted-foreground" />
+          <div className="w-full h-48 bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center">
+            <GraduationCap className="h-16 w-16 text-purple-400" />
           </div>
         )}
-      </AspectRatio>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-lg">{course.title}</CardTitle>
-        {course.mentor_name && (
-          <div className="flex items-center space-x-2 mt-1">
-            <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
-              <BookOpen className="h-3 w-3 text-primary" />
-            </div>
-            <span className="text-sm text-gray-600">{course.mentor_name}</span>
+        
+        {course.discount != null && course.discount > 0 && (
+          <div className="absolute top-4 right-4 bg-red-500 text-white px-2 py-1 rounded-full text-sm font-bold">
+            -{course.discount}%
           </div>
         )}
-      </CardHeader>
-      <CardContent className="py-2 flex-grow">
-        <p className="text-sm text-gray-600 line-clamp-3">{course.description}</p>
-      </CardContent>
-      <CardFooter className="pt-2 flex justify-between items-center">
-        <div>
-          {course.is_paid ? (
-            hasDiscount ? (
-              <div className="flex flex-col">
-                <span className="line-through text-red-500 text-sm">
-                  R$ {course.price?.toFixed(2)}
-                </span>
-                <div className="flex items-center">
-                  <span className="text-green-600 font-semibold">
-                    R$ {course.discounted_price?.toFixed(2)}
-                  </span>
-                  <span className="ml-1 text-xs bg-green-100 text-green-800 px-1 py-0.5 rounded flex items-center">
-                    <Percent className="h-3 w-3 mr-0.5" />{course.discount}%
-                  </span>
-                </div>
-              </div>
-            ) : (
-              <span className="font-semibold">R$ {course.price?.toFixed(2)}</span>
-            )
-          ) : (
-            <span className="text-green-600 font-semibold">Grátis</span>
-          )}
+      </div>
+      
+      <div className="p-6">
+        <h3 className="text-xl font-bold mb-2 text-gray-800">{course.title}</h3>
+        <p className="text-gray-600 mb-4 line-clamp-2">
+          {course.description || "Descrição não disponível"}
+        </p>
+        
+        <div className="flex items-center justify-between mb-4">
+          {renderPrice()}
         </div>
-        <Link to={`/courses/${course.id}`}>
-          <Button size="sm" variant="outline">Ver Detalhes</Button>
-        </Link>
-      </CardFooter>
-    </Card>
+        
+        <Button className="w-full bg-purple-600 text-white font-bold py-3 rounded-lg">
+          Eu quero!
+        </Button>
+      </div>
+    </div>
   );
 };
 
