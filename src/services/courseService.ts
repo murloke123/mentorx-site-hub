@@ -1,38 +1,8 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import type { Course, CourseFormData } from "@/types/course";
 
-export interface Course {
-  id: string;
-  title: string;
-  description?: string | null;
-  mentor_id: string;
-  is_public: boolean;
-  is_paid: boolean;
-  price?: number | null;
-  discount?: number | null;
-  discounted_price?: number | null;
-  image_url?: string | null;
-  is_published?: boolean;
-  created_at?: string;
-  updated_at?: string;
-  mentor_name?: string;
-  enrollments?: { count: number }[];
-}
-
-export interface CourseFormData {
-  name: string;
-  description: string;
-  category: string;
-  image: string;
-  type: "free" | "paid";
-  price: number;
-  currency: string;
-  discount: number;
-  visibility: "public" | "private";
-  isPublished: boolean;
-}
-
-export async function getCourseById(courseId: string) {
+export async function getCourseById(courseId: string): Promise<CourseFormData> {
   try {
     const { data, error } = await supabase
       .from("cursos")
@@ -41,7 +11,6 @@ export async function getCourseById(courseId: string) {
       .single();
       
     if (error) {
-      console.error("Erro ao buscar curso:", error);
       throw error;
     }
     
@@ -59,10 +28,8 @@ export async function getCourseById(courseId: string) {
       isPublished: data.is_published || false,
     };
     
-    console.log("Dados do curso carregados:", courseFormData);
     return courseFormData;
   } catch (error) {
-    console.error("Erro ao buscar curso:", error);
     throw error;
   }
 }
@@ -85,13 +52,11 @@ export async function updateCourse(courseId: string, formData: CourseFormData) {
       .eq("id", courseId);
 
     if (error) {
-      console.error("Erro ao atualizar curso:", error);
       throw error;
     }
 
     return { success: true };
   } catch (error) {
-    console.error("Erro ao atualizar curso:", error);
     throw error;
   }
 }
@@ -115,18 +80,16 @@ export async function createCourse(formData: CourseFormData, mentorId: string) {
       .select();
 
     if (error) {
-      console.error("Erro ao criar curso:", error);
       throw error;
     }
 
     return data[0];
   } catch (error) {
-    console.error("Erro ao criar curso:", error);
     throw error;
   }
 }
 
-export async function getPublicCourses() {
+export async function getPublicCourses(): Promise<Course[]> {
   try {
     let { data, error } = await supabase
       .from('cursos')
@@ -144,13 +107,13 @@ export async function getPublicCourses() {
         is_published,
         created_at,
         updated_at,
+        category,
         profiles:mentor_id (full_name)
       `)
       .eq('is_public', true)
       .eq('is_published', true);
     
     if (error) {
-      console.error('Erro ao buscar cursos:', error);
       throw error;
     }
 
@@ -169,19 +132,19 @@ export async function getPublicCourses() {
       is_published: course.is_published,
       created_at: course.created_at,
       updated_at: course.updated_at,
+      category: course.category,
       mentor_name: course.profiles?.full_name,
     }));
 
     return formattedCourses;
   } catch (error) {
-    console.error('Erro ao buscar cursos:', error);
     throw error;
   }
 }
 
-export async function getMentorCourses(mentorId?: string) {
+export async function getMentorCourses(mentorId?: string): Promise<Course[]> {
   try {
-    // Obter usuário atual se mentorId não for fornecido
+    // Get current user if mentorId not provided
     if (!mentorId) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -206,18 +169,17 @@ export async function getMentorCourses(mentorId?: string) {
         is_published,
         created_at,
         updated_at,
+        category,
         enrollments: enrollments (count)
       `)
       .eq('mentor_id', mentorId);
 
     if (error) {
-      console.error('Erro ao buscar cursos do mentor:', error);
       throw error;
     }
 
     return data as Course[];
   } catch (error) {
-    console.error('Erro ao buscar cursos do mentor:', error);
     throw error;
   }
 }
@@ -230,13 +192,11 @@ export async function updateCoursePublicationStatus(courseId: string, isPublishe
       .eq('id', courseId);
 
     if (error) {
-      console.error('Erro ao atualizar status de publicação:', error);
       throw error;
     }
 
     return { success: true };
   } catch (error) {
-    console.error('Erro ao atualizar status de publicação:', error);
     throw error;
   }
 }

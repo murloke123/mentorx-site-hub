@@ -6,7 +6,8 @@ import { Form } from "@/components/ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
-import { formSchema, defaultValues, CourseFormData } from "./FormSchema";
+import { formSchema, defaultValues } from "./FormSchema";
+import type { CourseFormData } from "@/types/course";
 import BasicInfoFields from "./BasicInfoFields";
 import VisibilityField from "./VisibilityField";
 import ImageField from "./ImageField";

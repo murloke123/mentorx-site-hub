@@ -15,8 +15,8 @@ export const formSchema = z.object({
   isPublished: z.boolean().default(false),
 });
 
-// Define the type for the form data
-export type CourseFormData = z.infer<typeof formSchema>;
+// Re-export the type from the centralized location
+export type { CourseFormData } from "@/types/course";
 
 // Default values for the form
 export const defaultValues: CourseFormData = {
@@ -24,11 +24,11 @@ export const defaultValues: CourseFormData = {
   description: "",
   category: "",
   image: "",
-  type: "free", // "free" ou "paid"
+  type: "free",
   price: 0,
   currency: "BRL",
   discount: 0,
-  visibility: "public", // "public" ou "private"
+  visibility: "public",
   isPublished: false,
 };
 

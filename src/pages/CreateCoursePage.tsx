@@ -6,6 +6,7 @@ import CourseForm from "@/components/mentor/course-form";
 import MentorSidebar from "@/components/mentor/MentorSidebar";
 import { useToast } from "@/hooks/use-toast";
 import { createCourse, CourseFormData } from "@/services/courseService";
+import { supabase } from "@/integrations/supabase/client";
 
 const CreateCoursePage = () => {
   const navigate = useNavigate();
@@ -14,23 +15,29 @@ const CreateCoursePage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const initialValues: CourseFormData = {
+    name: "",
     description: "",
-    image_url: "",
+    image: "",
     category: "",
-    is_public: true,
-    is_paid: false,
+    type: "free",
     price: 0,
+    currency: "BRL",
     discount: 0,
-    discounted_price: 0,
-    is_published: false,
+    visibility: "public",
+    isPublished: false,
   };
 
   const handleSubmit = async (formData: CourseFormData) => {
     setIsSubmitting(true);
-    console.log("Enviando formulário:", formData);
     
     try {
-      const newCourse = await createCourse(formData);
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error("Usuário não autenticado");
+      }
+
+      const newCourse = await createCourse(formData, user.id);
       
       // Invalidate relevant queries
       queryClient.invalidateQueries({ queryKey: ['publicCourses'] });
