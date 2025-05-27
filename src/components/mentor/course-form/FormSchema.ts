@@ -1,5 +1,6 @@
 
 import * as z from "zod";
+import type { CourseFormData } from "@/types/course";
 
 // Define the schema for the form validation
 export const formSchema = z.object({
