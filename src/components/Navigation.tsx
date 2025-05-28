@@ -242,16 +242,16 @@ const Navigation = () => {
                   </DropdownMenuLabel>
                   
                   <div className="py-1">
-                    <Link to={getProfileRoute()}>
+                  <Link to={getProfileRoute()}>
                       <DropdownMenuItem className="cursor-pointer px-4 py-2 hover:bg-gray-50">
                         <UserCircle className="h-4 w-4 mr-3 text-gray-500" />
-                        Meu Perfil
-                      </DropdownMenuItem>
-                    </Link>
+                      Meu Perfil
+                    </DropdownMenuItem>
+                  </Link>
                     <DropdownMenuItem className="cursor-pointer px-4 py-2 hover:bg-gray-50" onClick={handleDashboardAccess}>
                       <LayoutDashboard className="h-4 w-4 mr-3 text-gray-500" />
-                      Meu Dashboard
-                    </DropdownMenuItem>
+                    Meu Dashboard
+                  </DropdownMenuItem>
                     <Link to={getConfigRoute()}>
                       <DropdownMenuItem className="cursor-pointer px-4 py-2 hover:bg-gray-50">
                         <Settings className="h-4 w-4 mr-3 text-gray-500" />
@@ -268,8 +268,8 @@ const Navigation = () => {
                       onClick={handleLogout}
                     >
                       <LogOut className="h-4 w-4 mr-3 text-red-500" />
-                      Sair
-                    </DropdownMenuItem>
+                    Sair
+                  </DropdownMenuItem>
                   </div>
                 </DropdownMenuContent>
               </DropdownMenu>

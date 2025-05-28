@@ -65,30 +65,30 @@ const MentoradoSidebar = () => {
           <nav className="space-y-1">
             {menuItems.map((item) => (
               <Link key={item.href} to={item.href}>
-                <Button
-                  variant="ghost"
-                  className={cn(
-                    "w-full justify-start", 
-                    location.pathname === item.href ? "bg-muted" : ""
-                  )}
-                >
-                  <item.icon className="mr-2 h-4 w-4" />
-                  {item.title}
-                </Button>
+                  <Button
+                    variant="ghost"
+                    className={cn(
+                      "w-full justify-start", 
+                      location.pathname === item.href ? "bg-muted" : ""
+                    )}
+                  >
+                    <item.icon className="mr-2 h-4 w-4" />
+                    {item.title}
+                  </Button>
               </Link>
             ))}
           </nav>
         </div>
         
         <div className="mt-auto p-4 border-t">
-          <Button
-            variant="ghost"
-            className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50"
-            onClick={handleLogout}
-          >
-            <LogOut className="mr-2 h-4 w-4" />
-            Sair
-          </Button>
+            <Button
+              variant="ghost"
+              className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50"
+              onClick={handleLogout}
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Sair
+            </Button>
         </div>
       </div>
     </div>

@@ -3,6 +3,7 @@ import { GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useCategories } from "@/hooks/useCategories";
+import { useNavigate } from "react-router-dom";
 
 interface Course {
   id: string;
@@ -14,10 +15,12 @@ interface Course {
   discount?: number;
   is_paid: boolean;
   category?: string;
+  mentor_id?: string;
   mentor_name?: string;
   mentor_avatar?: string;
   mentor?: {
     full_name?: string;
+    avatar_url?: string;
   };
 }
 
@@ -28,6 +31,7 @@ interface CourseCardProps {
 const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
   const { categories } = useCategories();
   const [categoryName, setCategoryName] = useState<string>('Categoria não definida');
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (course.category && categories.length > 0) {
@@ -86,9 +90,16 @@ const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
       .slice(0, 2);
   };
 
+  // Função para navegar ao perfil público do mentor
+  const handleMentorClick = () => {
+    if (course.mentor_id) {
+      navigate(`/mentor/publicview/${course.mentor_id}`);
+    }
+  };
+
   const renderPrice = () => {
     if (!course.is_paid) {
-      return (
+  return (
         <div className="text-center">
           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4">
             <span className="text-2xl font-bold text-green-600">
@@ -124,7 +135,7 @@ const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
                 </span>
                 <span className="text-lg text-gray-500 line-through">
                   R$ {course.price.toFixed(2)}
-                </span>
+                  </span>
               </div>
               <p className="text-xs text-red-600 font-semibold">
                 🔥 Oferta por tempo limitado!
@@ -166,7 +177,7 @@ const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
   };
 
   const mentorName = course.mentor_name || course.mentor?.full_name || 'Mentor';
-  const mentorAvatar = course.mentor_avatar;
+  const mentorAvatar = course.mentor_avatar || course.mentor?.avatar_url;
 
   const cardStyles = {
     background: '#ffffff',
@@ -218,7 +229,11 @@ const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
     color: 'white',
     fontWeight: '600',
     fontSize: '16px',
-    flexShrink: 0
+    flexShrink: 0,
+    cursor: 'pointer',
+    transition: 'all 0.3s ease',
+    position: 'relative' as const,
+    overflow: 'hidden'
   };
 
   const mentorInfoStyles = {
@@ -303,8 +318,45 @@ const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
       
       <div style={contentStyles}>
         <div style={mentorSectionStyles}>
-          <div style={mentorAvatarStyles}>
-            {getMentorInitials(mentorName)}
+          <div 
+            style={mentorAvatarStyles}
+            onClick={handleMentorClick}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'scale(1.1)';
+              e.currentTarget.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.3)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
+          >
+            {mentorAvatar ? (
+              <img 
+                src={mentorAvatar} 
+                alt={mentorName}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  borderRadius: '50%',
+                  objectFit: 'cover',
+                  transition: 'all 0.3s ease'
+                }}
+                onError={(e) => {
+                  // Fallback para iniciais se a imagem falhar ao carregar
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  const parent = target.parentElement;
+                  if (parent) {
+                    parent.innerHTML = getMentorInitials(mentorName);
+                    parent.style.display = 'flex';
+                    parent.style.alignItems = 'center';
+                    parent.style.justifyContent = 'center';
+                  }
+                }}
+              />
+            ) : (
+              getMentorInitials(mentorName)
+            )}
           </div>
           <div style={mentorInfoStyles}>
             <h4 style={mentorNameStyles}>{mentorName}</h4>

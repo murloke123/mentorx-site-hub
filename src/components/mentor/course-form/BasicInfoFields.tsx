@@ -83,7 +83,7 @@ const BasicInfoFields = ({ form }: BasicInfoFieldsProps) => {
                   categories.map((category) => (
                     <SelectItem key={category.id} value={category.id}>
                       {category.name}
-                    </SelectItem>
+                  </SelectItem>
                   ))
                 )}
               </SelectContent>

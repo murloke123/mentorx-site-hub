@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import type { Course, CourseFormData } from "@/types/course";
 
@@ -108,7 +107,14 @@ export async function getPublicCourses(): Promise<Course[]> {
         created_at,
         updated_at,
         category,
-        profiles:mentor_id (full_name)
+        category_id,
+        categories:category_id (
+          id,
+          name,
+          description,
+          color
+        ),
+        profiles:mentor_id (full_name, avatar_url)
       `)
       .eq('is_public', true)
       .eq('is_published', true);
@@ -133,7 +139,10 @@ export async function getPublicCourses(): Promise<Course[]> {
       created_at: course.created_at,
       updated_at: course.updated_at,
       category: course.category,
+      category_id: course.category_id,
+      category_info: course.categories,
       mentor_name: course.profiles?.full_name,
+      mentor_avatar: course.profiles?.avatar_url,
     }));
 
     return formattedCourses;
@@ -170,6 +179,7 @@ export async function getMentorCourses(mentorId?: string): Promise<Course[]> {
         created_at,
         updated_at,
         category,
+        profiles:mentor_id (full_name, avatar_url),
         enrollments: enrollments (count)
       `)
       .eq('mentor_id', mentorId);
@@ -178,7 +188,14 @@ export async function getMentorCourses(mentorId?: string): Promise<Course[]> {
       throw error;
     }
 
-    return data as Course[];
+    // Format the data to match the Course type
+    const formattedCourses: Course[] = data.map((course: any) => ({
+      ...course,
+      mentor_name: course.profiles?.full_name,
+      mentor_avatar: course.profiles?.avatar_url,
+    }));
+
+    return formattedCourses;
   } catch (error) {
     throw error;
   }

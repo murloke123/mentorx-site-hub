@@ -50,7 +50,8 @@ const MentorPublicProfilePage = () => {
           image_url, 
           created_at, 
           updated_at, 
-          mentor_id
+          mentor_id,
+          profiles:mentor_id (full_name, avatar_url)
         `)
         .eq("mentor_id", id)
         .eq("is_published", true)
@@ -61,7 +62,14 @@ const MentorPublicProfilePage = () => {
         return [];
       }
       
-      return data || [];
+      // Format the data to include mentor information
+      const formattedCourses = data?.map((course: any) => ({
+        ...course,
+        mentor_name: course.profiles?.full_name,
+        mentor_avatar: course.profiles?.avatar_url,
+      })) || [];
+      
+      return formattedCourses;
     },
     enabled: !!id
   });

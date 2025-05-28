@@ -3,6 +3,7 @@ import { GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useCategories } from "@/hooks/useCategories";
+import { useNavigate } from "react-router-dom";
 
 interface Course {
   id: string;
@@ -14,10 +15,12 @@ interface Course {
   discount?: number;
   is_paid: boolean;
   category?: string;
+  mentor_id?: string;
   mentor_name?: string;
   mentor_avatar?: string;
   mentor?: {
     full_name?: string;
+    avatar_url?: string;
   };
 }
 
@@ -28,6 +31,7 @@ interface CourseCardGridProps {
 const CourseCardGrid: React.FC<CourseCardGridProps> = ({ course }) => {
   const { categories } = useCategories();
   const [categoryName, setCategoryName] = useState<string>('Categoria não definida');
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (course.category && categories.length > 0) {
@@ -87,6 +91,14 @@ const CourseCardGrid: React.FC<CourseCardGridProps> = ({ course }) => {
   };
 
   const mentorName = course.mentor_name || course.mentor?.full_name || 'Mentor';
+  const mentorAvatar = course.mentor_avatar || course.mentor?.avatar_url;
+
+  // Função para navegar ao perfil público do mentor
+  const handleMentorClick = () => {
+    if (course.mentor_id) {
+      navigate(`/mentor/publicview/${course.mentor_id}`);
+    }
+  };
 
   const cardStyles = {
     background: '#ffffff',
@@ -139,7 +151,11 @@ const CourseCardGrid: React.FC<CourseCardGridProps> = ({ course }) => {
     color: 'white',
     fontWeight: '600',
     fontSize: '14px',
-    flexShrink: 0
+    flexShrink: 0,
+    cursor: 'pointer',
+    transition: 'all 0.3s ease',
+    position: 'relative' as const,
+    overflow: 'hidden'
   };
 
   const mentorInfoStyles = {
@@ -231,8 +247,45 @@ const CourseCardGrid: React.FC<CourseCardGridProps> = ({ course }) => {
       
       <div style={contentStyles}>
         <div style={mentorSectionStyles}>
-          <div style={mentorAvatarStyles}>
-            {getMentorInitials(mentorName)}
+          <div 
+            style={mentorAvatarStyles}
+            onClick={handleMentorClick}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'scale(1.1)';
+              e.currentTarget.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.3)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
+          >
+            {mentorAvatar ? (
+              <img 
+                src={mentorAvatar} 
+                alt={mentorName}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  borderRadius: '50%',
+                  objectFit: 'cover',
+                  transition: 'all 0.3s ease'
+                }}
+                onError={(e) => {
+                  // Fallback para iniciais se a imagem falhar ao carregar
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  const parent = target.parentElement;
+                  if (parent) {
+                    parent.innerHTML = getMentorInitials(mentorName);
+                    parent.style.display = 'flex';
+                    parent.style.alignItems = 'center';
+                    parent.style.justifyContent = 'center';
+                  }
+                }}
+              />
+            ) : (
+              getMentorInitials(mentorName)
+            )}
           </div>
           <div style={mentorInfoStyles}>
             <h4 style={mentorNameStyles}>{mentorName}</h4>

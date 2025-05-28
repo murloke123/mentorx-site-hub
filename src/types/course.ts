@@ -1,4 +1,3 @@
-
 export interface CourseFormData {
   name: string;
   description: string;
@@ -27,6 +26,14 @@ export interface Course {
   created_at?: string;
   updated_at?: string;
   mentor_name?: string;
+  mentor_avatar?: string | null;
   category?: string | null;
+  category_id?: string | null;
+  category_info?: {
+    id: string;
+    name: string;
+    description?: string | null;
+    color?: string | null;
+  } | null;
   enrollments?: { count: number }[];
 }
