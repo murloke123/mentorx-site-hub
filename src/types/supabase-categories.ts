@@ -47,6 +47,80 @@ export type Database = {
           },
         ]
       }
+      categories: {
+        Row: {
+          color: string | null
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      configuracoes_usuario: {
+        Row: {
+          ativo: boolean | null
+          created_at: string | null
+          id: string
+          nome_usuario: string
+          perfil_usuario: string
+          tipo_log: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          ativo?: boolean | null
+          created_at?: string | null
+          id?: string
+          nome_usuario: string
+          perfil_usuario: string
+          tipo_log: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          ativo?: boolean | null
+          created_at?: string | null
+          id?: string
+          nome_usuario?: string
+          perfil_usuario?: string
+          tipo_log?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "configuracoes_usuario_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conteudo_concluido: {
         Row: {
           conteudo_id: string
@@ -146,6 +220,7 @@ export type Database = {
       cursos: {
         Row: {
           category: string | null
+          category_id: string | null
           created_at: string
           description: string | null
           discount: number | null
@@ -162,6 +237,7 @@ export type Database = {
         }
         Insert: {
           category?: string | null
+          category_id?: string | null
           created_at?: string
           description?: string | null
           discount?: number | null
@@ -178,6 +254,7 @@ export type Database = {
         }
         Update: {
           category?: string | null
+          category_id?: string | null
           created_at?: string
           description?: string | null
           discount?: number | null
@@ -198,6 +275,13 @@ export type Database = {
             columns: ["mentor_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cursos_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
             referencedColumns: ["id"]
           },
         ]
@@ -314,95 +398,39 @@ export type Database = {
       }
       notificacoes: {
         Row: {
-          id: string
-          mentor_id: string
-          nome_mentor: string
-          mentorado_id: string
-          nome_mentorado: string
           acao: string
+          created_at: string
+          id: string
           mensagem: string
           mensagem_lida: boolean
-          created_at: string
+          mentor_id: string
+          mentorado_id: string
+          nome_mentor: string
+          nome_mentorado: string
         }
         Insert: {
-          id?: string
-          mentor_id: string
-          nome_mentor: string
-          mentorado_id: string
-          nome_mentorado: string
           acao: string
+          created_at?: string
+          id?: string
           mensagem: string
           mensagem_lida?: boolean
-          created_at?: string
+          mentor_id: string
+          mentorado_id: string
+          nome_mentor: string
+          nome_mentorado: string
         }
         Update: {
-          id?: string
-          mentor_id?: string
-          nome_mentor?: string
-          mentorado_id?: string
-          nome_mentorado?: string
           acao?: string
+          created_at?: string
+          id?: string
           mensagem?: string
           mensagem_lida?: boolean
-          created_at?: string
+          mentor_id?: string
+          mentorado_id?: string
+          nome_mentor?: string
+          nome_mentorado?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "notificacoes_mentor_id_fkey"
-            columns: ["mentor_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "notificacoes_mentorado_id_fkey"
-            columns: ["mentorado_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      configuracoes_usuario: {
-        Row: {
-          id: string
-          user_id: string
-          nome_usuario: string
-          perfil_usuario: string
-          tipo_log: string
-          ativo: boolean
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          nome_usuario: string
-          perfil_usuario: string
-          tipo_log: string
-          ativo?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          nome_usuario?: string
-          perfil_usuario?: string
-          tipo_log?: string
-          ativo?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "configuracoes_usuario_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       profiles: {
         Row: {

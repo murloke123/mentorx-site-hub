@@ -35,6 +35,14 @@ import AdminMentorsPage from "@/pages/AdminMentorsPage";
 import AdminMentoradosPage from "@/pages/AdminMentoradosPage";
 import AdminCoursesPage from "@/pages/AdminCoursesPage";
 
+// Importar as páginas de configurações
+import MentorConfiguracoesPage from "@/pages/mentor/MentorConfiguracoesPage";
+import MentoradoConfiguracoesPage from "@/pages/mentorado/MentoradoConfiguracoesPage";
+import AdminConfiguracoesPage from "@/pages/admin/AdminConfiguracoesPage";
+
+// Adicionar import
+import CategoriesManagementPage from "@/pages/admin/CategoriesManagementPage";
+
 const queryClient = new QueryClient();
 
 // Componente para controlar a exibição do Navigation
@@ -68,6 +76,7 @@ const AppContent = () => {
           <Route path="/mentor/mentorados" element={<MentorFollowersPage />} />
           <Route path="/mentor/configuracoes/rotas" element={<RoutesVisualizationPage />} />
           <Route path="/mentor/configuracoes/database-mapping" element={<DatabaseMappingPage />} />
+          <Route path="/mentor/configuracoes" element={<MentorConfiguracoesPage />} />
           
           {/* Rotas de Mentorado */}
           <Route path="/mentorado/dashboard" element={<MentoradoDashboardPage />} />
@@ -75,7 +84,7 @@ const AppContent = () => {
           <Route path="/mentorado/cursos" element={<NotFound />} />
           <Route path="/mentorado/cursos/:id" element={<NotFound />} />
           <Route path="/mentorado/calendario" element={<NotFound />} />
-          <Route path="/mentorado/configuracoes" element={<NotFound />} />
+          <Route path="/mentorado/configuracoes" element={<MentoradoConfiguracoesPage />} />
           
           {/* Rotas de Administrador */}
           <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
@@ -85,7 +94,8 @@ const AppContent = () => {
           <Route path="/admin/mentorados" element={<AdminMentoradosPage />} />
           <Route path="/admin/cursos" element={<AdminCoursesPage />} />
           <Route path="/admin/relatorios" element={<NotFound />} />
-          <Route path="/admin/configuracoes" element={<NotFound />} />
+          <Route path="/admin/configuracoes" element={<AdminConfiguracoesPage />} />
+          <Route path="/admin/categorias" element={<CategoriesManagementPage />} />
         </Routes>
       </main>
       {!isCoursePlayerPage && !isMentorPublicProfilePage && <Footer />}

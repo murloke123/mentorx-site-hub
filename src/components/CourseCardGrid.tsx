@@ -21,11 +21,11 @@ interface Course {
   };
 }
 
-interface CourseCardProps {
+interface CourseCardGridProps {
   course: Course;
 }
 
-const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
+const CourseCardGrid: React.FC<CourseCardGridProps> = ({ course }) => {
   const { categories } = useCategories();
   const [categoryName, setCategoryName] = useState<string>('Categoria não definida');
 
@@ -86,87 +86,7 @@ const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
       .slice(0, 2);
   };
 
-  const renderPrice = () => {
-    if (!course.is_paid) {
-      return (
-        <div className="text-center">
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4">
-            <span className="text-2xl font-bold text-green-600">
-              GRATUITO
-            </span>
-            <p className="text-xs text-green-600 font-medium mt-1">
-              Acesso vitalício
-            </p>
-          </div>
-        </div>
-      );
-    }
-
-    if (course.discounted_price && course.price && course.discount && course.discount > 0) {
-      return (
-        <div className="text-center relative">
-          {/* Badge de desconto chamativo */}
-          <div className="absolute -top-3 -right-2 z-10">
-            <div className="bg-gradient-to-r from-red-500 to-pink-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg animate-pulse">
-              -{course.discount}% OFF
-            </div>
-          </div>
-          
-          {/* Container de preços com destaque */}
-          <div className="bg-gradient-to-r from-orange-50 to-red-50 border-2 border-red-200 rounded-xl p-4 relative overflow-hidden">
-            {/* Efeito de brilho */}
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
-            
-            <div className="relative z-10">
-              <div className="flex items-center justify-center gap-3 mb-1">
-                <span className="text-2xl font-bold text-green-600">
-                  R$ {course.discounted_price.toFixed(2)}
-                </span>
-                <span className="text-lg text-gray-500 line-through">
-                  R$ {course.price.toFixed(2)}
-                </span>
-              </div>
-              <p className="text-xs text-red-600 font-semibold">
-                🔥 Oferta por tempo limitado!
-              </p>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    if (course.price && course.price > 0) {
-      return (
-        <div className="text-center">
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4">
-            <span className="text-2xl font-bold text-blue-600">
-              R$ {course.price.toFixed(2)}
-            </span>
-            <p className="text-xs text-blue-600 font-medium mt-1">
-              Acesso vitalício
-            </p>
-          </div>
-        </div>
-      );
-    }
-
-    // Fallback para cursos sem preço definido
-    return (
-      <div className="text-center">
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4">
-          <span className="text-2xl font-bold text-green-600">
-            GRATUITO
-          </span>
-          <p className="text-xs text-green-600 font-medium mt-1">
-            Acesso vitalício
-          </p>
-        </div>
-      </div>
-    );
-  };
-
   const mentorName = course.mentor_name || course.mentor?.full_name || 'Mentor';
-  const mentorAvatar = course.mentor_avatar;
 
   const cardStyles = {
     background: '#ffffff',
@@ -174,11 +94,12 @@ const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
     boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
     overflow: 'hidden',
     transition: 'all 0.3s ease',
-    maxWidth: '500px',
     width: '100%',
+    maxWidth: '350px',
+    margin: '0 auto',
     display: 'flex',
     flexDirection: 'column' as const,
-    height: 'auto'
+    height: '420px' // Altura reduzida de 480px para 420px
   };
 
   const cardHoverStyles = {
@@ -188,13 +109,13 @@ const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
 
   const imageStyles = {
     width: '100%',
-    height: '200px',
+    height: '180px',
     objectFit: 'cover' as const,
     display: 'block'
   };
 
   const contentStyles = {
-    padding: '20px',
+    padding: '16px',
     flex: '1',
     display: 'flex',
     flexDirection: 'column' as const
@@ -203,13 +124,13 @@ const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
   const mentorSectionStyles = {
     display: 'flex',
     alignItems: 'center',
-    gap: '12px',
-    marginBottom: '16px'
+    gap: '10px',
+    marginBottom: '12px'
   };
 
   const mentorAvatarStyles = {
-    width: '48px',
-    height: '48px',
+    width: '40px',
+    height: '40px',
     borderRadius: '50%',
     background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
     display: 'flex',
@@ -217,57 +138,64 @@ const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
     justifyContent: 'center',
     color: 'white',
     fontWeight: '600',
-    fontSize: '16px',
+    fontSize: '14px',
     flexShrink: 0
   };
 
   const mentorInfoStyles = {
-    flex: 1
+    flex: 1,
+    minWidth: 0 // Para permitir text-overflow
   };
 
   const mentorNameStyles = {
-    fontSize: '16px',
+    fontSize: '14px',
     fontWeight: '600',
     color: '#1a202c',
-    margin: '0 0 4px 0',
-    lineHeight: '1.2'
-  };
-
-  const mentorCategoryStyles = {
-    fontSize: '14px',
-    color: '#64748b',
-    margin: '0'
-  };
-
-  const titleStyles = {
-    fontSize: '18px',
-    fontWeight: '700',
-    color: '#1a202c',
-    margin: '0 0 12px 0',
-    lineHeight: '1.3',
-    display: '-webkit-box',
-    WebkitLineClamp: 2,
-    WebkitBoxOrient: 'vertical' as const,
+    margin: '0 0 2px 0',
+    lineHeight: '1.2',
+    whiteSpace: 'nowrap' as const,
     overflow: 'hidden',
     textOverflow: 'ellipsis'
   };
 
-  const descriptionStyles = {
-    fontSize: '14px',
+  const mentorCategoryStyles = {
+    fontSize: '12px',
     color: '#64748b',
-    lineHeight: '1.5',
-    margin: '0 0 auto 0',
+    margin: '0',
+    whiteSpace: 'nowrap' as const,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis'
+  };
+
+  const titleStyles = {
+    fontSize: '16px',
+    fontWeight: '700',
+    color: '#1a202c',
+    margin: '0 0 10px 0',
+    lineHeight: '1.3',
+    whiteSpace: 'nowrap' as const,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    height: '20.8px' // 1 line * 20.8px line height (16px * 1.3)
+  };
+
+  const descriptionStyles = {
+    fontSize: '13px',
+    color: '#64748b',
+    lineHeight: '1.4',
+    margin: '0',
     display: '-webkit-box',
     WebkitLineClamp: 3,
     WebkitBoxOrient: 'vertical' as const,
     overflow: 'hidden',
     textOverflow: 'ellipsis',
-    height: '63px', // 3 lines * 21px line height
-    flex: '1'
+    height: '54.6px', // 3 lines * 18.2px line height (13px * 1.4)
+    wordBreak: 'break-word' as const,
+    maxHeight: '54.6px' // Garantia adicional
   };
 
   const footerStyles = {
-    padding: '0 20px 20px 20px',
+    padding: '0 16px 16px 16px',
     marginTop: 'auto'
   };
 
@@ -276,13 +204,13 @@ const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
     background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
     color: 'white',
     border: 'none',
-    borderRadius: '12px',
-    padding: '10px 20px',
-    fontSize: '16px',
+    borderRadius: '10px',
+    padding: '8px 16px',
+    fontSize: '14px',
     fontWeight: '600',
     cursor: 'pointer',
     transition: 'all 0.2s ease',
-    height: '40px'
+    height: '36px'
   };
 
   return (
@@ -313,9 +241,11 @@ const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
         </div>
 
         <h3 style={titleStyles}>{course.title}</h3>
-        <p style={descriptionStyles}>
-          {course.description || "Aprenda com um dos melhores mentores da plataforma e transforme sua carreira profissional."}
-        </p>
+        <div style={{ flex: '1', display: 'flex', flexDirection: 'column' as const, justifyContent: 'flex-start' }}>
+          <p style={descriptionStyles}>
+            {course.description || "Aprenda com um dos melhores mentores da plataforma e transforme sua carreira profissional."}
+          </p>
+        </div>
       </div>
 
       <div style={footerStyles}>
@@ -323,7 +253,7 @@ const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
           style={buttonStyles}
           onMouseEnter={(e) => {
             e.currentTarget.style.transform = 'translateY(-2px)';
-            e.currentTarget.style.boxShadow = '0 8px 25px rgba(102, 126, 234, 0.4)';
+            e.currentTarget.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.4)';
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.transform = 'translateY(0)';
@@ -340,4 +270,4 @@ const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
   );
 };
 
-export default CourseCard;
+export default CourseCardGrid; 

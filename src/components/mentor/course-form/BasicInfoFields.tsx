@@ -1,17 +1,19 @@
-
 import React, { useEffect } from "react";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { UseFormReturn } from "react-hook-form";
-import { CourseFormData, categories } from "./FormSchema";
+import { CourseFormData } from "./FormSchema";
+import { useCategories } from "@/hooks/useCategories";
+import { Spinner } from "@/components/ui/spinner";
 
 interface BasicInfoFieldsProps {
   form: UseFormReturn<CourseFormData>;
 }
 
 const BasicInfoFields = ({ form }: BasicInfoFieldsProps) => {
+  const { categories, loading } = useCategories();
   const categoryValue = form.watch("category");
   
   useEffect(() => {
@@ -65,18 +67,25 @@ const BasicInfoFields = ({ form }: BasicInfoFieldsProps) => {
               }}
               defaultValue={field.value}
               value={field.value}
+              disabled={loading}
             >
               <FormControl>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione uma categoria" />
+                  <SelectValue placeholder={loading ? "Carregando categorias..." : "Selecione uma categoria"} />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                {categories.map((category) => (
-                  <SelectItem key={category.value} value={category.value}>
-                    {category.label}
-                  </SelectItem>
-                ))}
+                {loading ? (
+                  <div className="flex items-center justify-center p-4">
+                    <Spinner className="h-4 w-4" />
+                  </div>
+                ) : (
+                  categories.map((category) => (
+                    <SelectItem key={category.id} value={category.id}>
+                      {category.name}
+                    </SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
             <FormMessage />

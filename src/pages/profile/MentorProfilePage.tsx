@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import MentorSidebar from "@/components/mentor/MentorSidebar";
 import { Button } from "@/components/ui/button";
-import { Facebook, Instagram, Youtube, Camera, User, GraduationCap, Star, Calendar, Edit, Save, Heart, MessageCircle } from "lucide-react";
+import { Facebook, Instagram, Youtube, Camera, User, GraduationCap, Star, Calendar, Edit, Save, MessageCircle } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import ProfileForm from "@/components/profile/ProfileForm";
 import BadgesSection from "@/components/mentor/profile/BadgesSection";
@@ -36,7 +36,6 @@ const MentorProfilePage = () => {
   const [activeSection, setActiveSection] = useState('sobre');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [isFollowing, setIsFollowing] = useState(false);
   
   // Estados para edição das caixas
   const [editData, setEditData] = useState({
@@ -82,11 +81,6 @@ const MentorProfilePage = () => {
     },
     enabled: !!currentUser?.id
   });
-
-  const handleFollowToggle = async () => {
-    // Mock function for consistency with public page
-    setIsFollowing(!isFollowing);
-  };
 
   // Extract path from URL
   const extractPathFromUrl = (url: string | null): string | null => {
@@ -396,18 +390,6 @@ const MentorProfilePage = () => {
           )}
           
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-6">
-            <Button
-              onClick={handleFollowToggle}
-              className={`px-8 py-3 rounded-full transition-all flex items-center gap-2 font-semibold text-lg ${
-                isFollowing 
-                  ? 'bg-gray-500 hover:bg-gray-600 text-white shadow-md hover:shadow-lg' 
-                  : 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-md hover:shadow-lg'
-              }`}
-            >
-              <Heart className={`h-5 w-5 ${isFollowing ? 'fill-current' : ''}`} />
-              {isFollowing ? 'Seguindo' : 'Seguir Mentor'}
-            </Button>
-            
             <div className="flex gap-3">
               <a href="#" className="p-3 rounded-full bg-white shadow-lg hover:shadow-xl transition-all hover:scale-110 border">
                 <Instagram className="h-6 w-6 text-pink-600" />

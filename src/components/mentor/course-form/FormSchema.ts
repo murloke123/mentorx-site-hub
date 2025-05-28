@@ -1,4 +1,3 @@
-
 import * as z from "zod";
 
 // Define the schema for the form validation
@@ -31,16 +30,6 @@ export const defaultValues: CourseFormData = {
   visibility: "public",
   isPublished: false,
 };
-
-// Categories available for selection
-export const categories = [
-  { value: "personal-development", label: "Desenvolvimento Pessoal" },
-  { value: "programming", label: "Programação" },
-  { value: "finance", label: "Finanças" },
-  { value: "leadership", label: "Liderança" },
-  { value: "digital-marketing", label: "Marketing Digital" },
-  { value: "sales", label: "Vendas" },
-];
 
 // Currencies available for selection
 export const currencies = [

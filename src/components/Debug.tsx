@@ -1,6 +1,6 @@
-
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useUserSettings } from "@/hooks/useUserSettings";
 
 const Debug = () => {
   const [debugInfo, setDebugInfo] = useState({
@@ -8,6 +8,8 @@ const Debug = () => {
     userId: "",
     userRole: "",
   });
+
+  const { isSettingActive } = useUserSettings(debugInfo.userId);
 
   useEffect(() => {
     console.info("Debug: Checking user session");
@@ -67,6 +69,11 @@ const Debug = () => {
       subscription.unsubscribe();
     };
   }, []);
+
+  // Só exibe o debug se o usuário ativou a configuração
+  if (!debugInfo.isLoggedIn || !isSettingActive('log de cabecalho')) {
+    return null;
+  }
 
   return (
     <div className="bg-yellow-100 p-2 text-xs font-mono border-b border-yellow-300">

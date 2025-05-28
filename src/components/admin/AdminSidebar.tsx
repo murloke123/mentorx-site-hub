@@ -1,4 +1,3 @@
-
 import { Link, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
@@ -8,7 +7,8 @@ import {
   BarChart2,
   Settings, 
   LogOut,
-  User
+  User,
+  Tags
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
@@ -42,10 +42,6 @@ const AdminSidebar = () => {
 
   return (
     <div className="w-64 h-screen bg-gray-50 border-r flex flex-col">
-      <div className="p-4 border-b">
-        <h2 className="text-xl font-bold text-primary">Painel Admin</h2>
-      </div>
-      
       <div className="flex-1 py-6 px-3 space-y-1">
         <Link to="/admin/dashboard">
           <Button 
@@ -114,6 +110,16 @@ const AdminSidebar = () => {
           >
             <Settings className="mr-2 h-4 w-4" />
             Configurações
+          </Button>
+        </Link>
+        
+        <Link to="/admin/categorias">
+          <Button 
+            variant={isActive("/admin/categorias") ? "default" : "ghost"} 
+            className="w-full justify-start"
+          >
+            <Tags className="mr-2 h-4 w-4" />
+            Categorias
           </Button>
         </Link>
       </div>
