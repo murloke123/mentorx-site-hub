@@ -8,6 +8,7 @@ import Footer from "@/components/Footer";
 import HomePage from "@/pages/HomePage";
 import AboutPage from "@/pages/AboutPage";
 import CoursesPage from "./pages/CoursesPage";
+import MentorsPage from "./pages/MentorsPage";
 import LoginPage from "@/pages/LoginPage";
 import MentorDashboardPage from "@/pages/MentorDashboardPage";
 import MentoradoDashboardPage from "@/pages/MentoradoDashboardPage";
@@ -60,6 +61,7 @@ const AppContent = () => {
           <Route path="/" element={<HomePage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/courses" element={<CoursesPage />} />
+          <Route path="/mentors" element={<MentorsPage />} />
           <Route path="/login" element={<LoginPage />} />
           
           {/* Rotas de Mentor */}
