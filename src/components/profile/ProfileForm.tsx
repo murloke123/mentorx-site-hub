@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -6,8 +5,10 @@ import * as z from "zod";
 import { User } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useCategories } from "@/hooks/useCategories";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Form,
   FormControl,
@@ -39,12 +40,15 @@ interface ProfileData {
   email?: string | null;
   role?: string;
   highlight_message?: string | null;
+  category?: string | null;
+  category_id?: string | null;
 }
 
 const profileSchema = z.object({
   full_name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
   bio: z.string().optional().nullable(),
   highlight_message: z.string().optional().nullable(),
+  category_id: z.string().optional().nullable(),
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
@@ -57,6 +61,7 @@ interface ProfileFormProps {
 
 const ProfileForm = ({ user, profileData, onProfileUpdate }: ProfileFormProps) => {
   const { toast } = useToast();
+  const { categories, loading: categoriesLoading } = useCategories();
   const [isLoading, setIsLoading] = useState(false);
   const [isHighlightModalOpen, setIsHighlightModalOpen] = useState(false);
   const [isBioModalOpen, setIsBioModalOpen] = useState(false);
@@ -68,6 +73,7 @@ const ProfileForm = ({ user, profileData, onProfileUpdate }: ProfileFormProps) =
       full_name: profileData?.full_name || "",
       bio: profileData?.bio || "",
       highlight_message: profileData?.highlight_message || "",
+      category_id: profileData?.category_id || "",
     },
   });
 
@@ -80,12 +86,21 @@ const ProfileForm = ({ user, profileData, onProfileUpdate }: ProfileFormProps) =
     setIsLoading(true);
 
     try {
+      // Buscar o nome da categoria selecionada
+      let categoryName = null;
+      if (data.category_id) {
+        const selectedCategory = categories.find(cat => cat.id === data.category_id);
+        categoryName = selectedCategory?.name || null;
+      }
+
       const { error } = await supabase
         .from("profiles")
         .update({
           full_name: data.full_name,
           bio: bioContent,
           highlight_message: data.highlight_message,
+          category: categoryName,
+          category_id: data.category_id,
         })
         .eq("id", user.id);
 
@@ -128,6 +143,38 @@ const ProfileForm = ({ user, profileData, onProfileUpdate }: ProfileFormProps) =
               </FormItem>
             )}
           />
+
+          {/* Campo de Categoria - visível apenas para mentores */}
+          {profileData?.role === 'mentor' && (
+            <FormField
+              control={form.control}
+              name="category_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Categoria do Mentor</FormLabel>
+                  <Select 
+                    onValueChange={field.onChange} 
+                    value={field.value || ""}
+                    disabled={isLoading || categoriesLoading}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder={categoriesLoading ? "Carregando categorias..." : "Selecione uma categoria"} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {categories.map((category) => (
+                        <SelectItem key={category.id} value={category.id}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
 
           <FormField
             control={form.control}

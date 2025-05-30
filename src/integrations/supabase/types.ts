@@ -217,6 +217,68 @@ export type Database = {
           },
         ]
       }
+      course_landing_pages: {
+        Row: {
+          about_mentor: string | null
+          benefits: string[] | null
+          bonus_content: string | null
+          course_id: string | null
+          created_at: string | null
+          cta_text: string | null
+          description: string | null
+          headline: string | null
+          id: string
+          is_active: boolean | null
+          pricing_text: string | null
+          subheadline: string | null
+          template_type: string
+          testimonials: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          about_mentor?: string | null
+          benefits?: string[] | null
+          bonus_content?: string | null
+          course_id?: string | null
+          created_at?: string | null
+          cta_text?: string | null
+          description?: string | null
+          headline?: string | null
+          id?: string
+          is_active?: boolean | null
+          pricing_text?: string | null
+          subheadline?: string | null
+          template_type: string
+          testimonials?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          about_mentor?: string | null
+          benefits?: string[] | null
+          bonus_content?: string | null
+          course_id?: string | null
+          created_at?: string | null
+          cta_text?: string | null
+          description?: string | null
+          headline?: string | null
+          id?: string
+          is_active?: boolean | null
+          pricing_text?: string | null
+          subheadline?: string | null
+          template_type?: string
+          testimonials?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_landing_pages_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "cursos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cursos: {
         Row: {
           category: string | null
@@ -230,6 +292,7 @@ export type Database = {
           is_paid: boolean
           is_public: boolean
           is_published: boolean | null
+          landing_page_id: string | null
           mentor_id: string
           price: number | null
           title: string
@@ -247,6 +310,7 @@ export type Database = {
           is_paid?: boolean
           is_public?: boolean
           is_published?: boolean | null
+          landing_page_id?: string | null
           mentor_id: string
           price?: number | null
           title: string
@@ -264,6 +328,7 @@ export type Database = {
           is_paid?: boolean
           is_public?: boolean
           is_published?: boolean | null
+          landing_page_id?: string | null
           mentor_id?: string
           price?: number | null
           title?: string
@@ -282,6 +347,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cursos_landing_page_id_fkey"
+            columns: ["landing_page_id"]
+            isOneToOne: false
+            referencedRelation: "course_landing_pages"
             referencedColumns: ["id"]
           },
         ]
@@ -436,6 +508,8 @@ export type Database = {
         Row: {
           avatar_url: string | null
           bio: string | null
+          category: string | null
+          category_id: string | null
           full_name: string | null
           highlight_message: string | null
           id: string
@@ -452,6 +526,8 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           bio?: string | null
+          category?: string | null
+          category_id?: string | null
           full_name?: string | null
           highlight_message?: string | null
           id: string
@@ -468,6 +544,8 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           bio?: string | null
+          category?: string | null
+          category_id?: string | null
           full_name?: string | null
           highlight_message?: string | null
           id?: string
@@ -481,13 +559,25 @@ export type Database = {
           sm_tit3?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      cleanup_orphaned_profiles: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       obter_detalhes_cursos_do_mentor: {
         Args: { p_mentor_id: string }
         Returns: {

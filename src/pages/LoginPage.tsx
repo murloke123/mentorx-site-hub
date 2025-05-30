@@ -6,16 +6,20 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from '@/hooks/use-toast';
+import { useCategories } from '@/hooks/useCategories';
 
 const LoginPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { categories, loading: categoriesLoading } = useCategories();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [role, setRole] = useState<'mentor' | 'mentorado'>('mentorado');
+  const [categoryId, setCategoryId] = useState('');
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
 
@@ -41,56 +45,93 @@ const LoginPage = () => {
         return;
       }
       
+      // Validação obrigatória da categoria para mentores
+      if (role === 'mentor' && !categoryId) {
+        toast({
+          title: "Categoria obrigatória",
+          description: "Por favor, selecione a categoria que você mais se identifica.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+      
       try {
-        console.log(`Signup attempt with email: ${email}, role: ${role}`);
+        console.log(`Signup attempt with email: ${email}, role: ${role}, categoryId: ${categoryId}`);
         
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: {
-            data: {
-              full_name: fullName,
-              role: role, 
-            }
+        });
+        
+        if (error) {
+          // Se o erro for de usuário já existente, tentar fazer login
+          if (error.message?.includes('already registered') || error.message?.includes('already exists')) {
+            console.log("User already exists, switching to login mode");
+            toast({
+              title: "Usuário já existe",
+              description: "Este email já está cadastrado. Redirecionando para login...",
+              variant: "destructive",
+            });
+            setIsSignUp(false);
+            return;
           }
-        });
-        
-        if (error) throw error;
-        
-        console.log("Signup successful:", data);
-        
-        toast({ title: "Cadastro realizado!", description: "Verifique seu email para confirmação, se aplicável. Agora você pode fazer login." });
-        
-        // Automatically log the user in after signup
-        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        
-        if (signInError) {
-          console.error("Error signing in after signup:", signInError);
-          setIsSignUp(false); // Return to login screen
-          setLoading(false);
-          return;
+          throw error;
         }
         
-        console.log("Auto login after signup successful");
-        
-        // Check user role and redirect accordingly
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', signInData.user?.id)
-          .single();
-        
-        console.log("User profile after signup:", profileData);
-        
-        if (profileData?.role === 'mentor') {
-          navigate('/mentor/dashboard');
-        } else if (profileData?.role === 'mentorado') {
-          navigate('/mentorado/dashboard');
-        } else {
-          navigate('/');
+        if (data.user) {
+          console.log("User created successfully:", data.user.id);
+          
+          // Buscar o nome da categoria selecionada
+          let categoryName = null;
+          if (role === 'mentor' && categoryId) {
+            const selectedCategory = categories.find(cat => cat.id === categoryId);
+            categoryName = selectedCategory?.name || null;
+            console.log("Selected category:", categoryName, "with ID:", categoryId);
+          }
+
+          // Create profile with category information using UPSERT to avoid duplicate key errors
+          console.log("Creating profile with data:", {
+            id: data.user.id,
+            full_name: fullName,
+            role: role,
+            category: categoryName,
+            category_id: role === 'mentor' ? categoryId : null,
+          });
+          
+          const { data: profileData, error: profileError } = await supabase
+            .from("profiles")
+            .upsert({
+              id: data.user.id,
+              full_name: fullName,
+              role: role,
+              category: categoryName,
+              category_id: role === 'mentor' ? categoryId : null,
+            }, {
+              onConflict: 'id'
+            })
+            .select()
+            .single();
+          
+          if (profileError) {
+            console.error("Profile creation error:", profileError);
+            throw profileError;
+          }
+          
+          console.log("User profile after signup:", profileData);
+          
+          toast({
+            title: "Cadastro realizado com sucesso!",
+            description: "Bem-vindo à plataforma!",
+          });
+          
+          if (profileData?.role === 'mentor') {
+            navigate('/mentor/dashboard');
+          } else if (profileData?.role === 'mentorado') {
+            navigate('/mentorado/dashboard');
+          } else {
+            navigate('/');
+          }
         }
       } catch (error: any) {
         console.error("Signup error:", error);
@@ -205,6 +246,30 @@ const LoginPage = () => {
                 </div>
               </>
             )}
+            
+            {/* Campo de Categoria - visível apenas para mentores no cadastro */}
+            {isSignUp && role === 'mentor' && (
+              <div className="space-y-2">
+                <Label htmlFor="category">Qual a categoria que você mais se identifica? *</Label>
+                <Select 
+                  value={categoryId} 
+                  onValueChange={setCategoryId}
+                  disabled={loading || categoriesLoading}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={categoriesLoading ? "Carregando categorias..." : "Selecione uma categoria"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -256,6 +321,7 @@ const LoginPage = () => {
                 setIsSignUp(!isSignUp);
                 // Limpar campos ao alternar
                 setFullName('');
+                setCategoryId('');
                 // Manter email se já digitado ou limpar: setEmail('');
                 setPassword('');
                 setConfirmPassword('');

@@ -11,6 +11,8 @@ export interface Mentor {
   sm_desc2?: string | null;
   sm_tit3?: string | null;
   sm_desc3?: string | null;
+  category?: string | null;
+  category_id?: string | null;
   courses_count?: number;
   followers_count?: number;
 }

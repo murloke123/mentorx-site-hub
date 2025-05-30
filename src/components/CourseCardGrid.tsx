@@ -100,6 +100,11 @@ const CourseCardGrid: React.FC<CourseCardGridProps> = ({ course }) => {
     }
   };
 
+  const handleCourseDetailsClick = () => {
+    // Redirecionar para a landing page do curso
+    navigate(`/course-page/${course.id}`);
+  };
+
   const cardStyles = {
     background: '#ffffff',
     borderRadius: '16px',
@@ -304,9 +309,10 @@ const CourseCardGrid: React.FC<CourseCardGridProps> = ({ course }) => {
       <div style={footerStyles}>
         <button 
           style={buttonStyles}
+          onClick={handleCourseDetailsClick}
           onMouseEnter={(e) => {
             e.currentTarget.style.transform = 'translateY(-2px)';
-            e.currentTarget.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.4)';
+            e.currentTarget.style.boxShadow = '0 8px 25px rgba(102, 126, 234, 0.4)';
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.transform = 'translateY(0)';

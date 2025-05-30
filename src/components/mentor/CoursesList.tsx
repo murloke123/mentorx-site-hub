@@ -251,6 +251,13 @@ const CoursesList = ({ courses, isLoading, totalEnrollments }: CoursesListProps)
                 >
                   Gerenciar Módulos e Conteúdos
                 </Button>
+                <Button
+                  variant="outline"
+                  className="w-full mt-2"
+                  onClick={() => navigate(`/mentor/cursos/${course.id}/landing-page`)}
+                >
+                  Página de Venda
+                </Button>
               </CardFooter>
             </Card>
           );

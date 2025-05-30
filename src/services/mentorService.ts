@@ -248,6 +248,8 @@ export interface Mentor {
   sm_desc3?: string | null;
   courses_count: number;
   followers_count?: number;
+  category: string | null;
+  category_id: string | null;
 }
 
 export async function getFeaturedMentors(): Promise<Mentor[]> {
@@ -260,7 +262,8 @@ export async function getFeaturedMentors(): Promise<Mentor[]> {
         avatar_url,
         bio,
         highlight_message,
-        courses:cursos(count)
+        category,
+        category_id
       `)
       .eq("role", "mentor")
       .order("updated_at", { ascending: false })
@@ -274,7 +277,9 @@ export async function getFeaturedMentors(): Promise<Mentor[]> {
       avatar_url: mentor.avatar_url,
       bio: mentor.bio,
       highlight_message: mentor.highlight_message,
-      courses_count: mentor.courses?.[0]?.count || 0
+      category: mentor.category,
+      category_id: mentor.category_id,
+      courses_count: 0
     }));
   } catch (error) {
     console.error("Error fetching featured mentors:", error);
@@ -291,7 +296,9 @@ export async function getAllPublicMentors(): Promise<Mentor[]> {
         full_name,
         avatar_url,
         bio,
-        highlight_message
+        highlight_message,
+        category,
+        category_id
       `)
       .eq("role", "mentor")
       .order("updated_at", { ascending: false });
@@ -304,7 +311,10 @@ export async function getAllPublicMentors(): Promise<Mentor[]> {
       avatar_url: mentor.avatar_url,
       bio: mentor.bio,
       highlight_message: mentor.highlight_message,
-      courses_count: 0
+      category: mentor.category,
+      category_id: mentor.category_id,
+      courses_count: 0,
+      followers_count: 0
     }));
   } catch (error) {
     console.error("Error fetching all public mentors:", error);

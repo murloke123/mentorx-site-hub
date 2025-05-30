@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Star, MessageCircle, User, Mail, Phone } from "lucide-react";
+import { Star, MessageCircle, User, Mail, Phone, Crown, BarChart3, Code, Handshake, Grid3X3 } from "lucide-react";
 import { Mentor } from "@/types/mentor";
 import { useNavigate } from "react-router-dom";
 
@@ -11,6 +11,39 @@ interface MentorCardProps {
   mentor: Mentor;
   index?: number;
 }
+
+// Função para mapear categoria ao ícone e cor correspondente
+const getCategoryIcon = (category: string | null) => {
+  if (!category) return null;
+  
+  const categoryLower = category.toLowerCase().trim();
+  
+  // Mapeamento de categorias para ícones e cores
+  const categoryMap = {
+    'desenvolvimento pessoal': { icon: User, color: '#8B5CF6' },
+    'personal development': { icon: User, color: '#8B5CF6' },
+    'liderança': { icon: Crown, color: '#3B82F6' },
+    'leadership': { icon: Crown, color: '#3B82F6' },
+    'marketing': { icon: BarChart3, color: '#F59E0B' },
+    'digital marketing': { icon: BarChart3, color: '#F59E0B' },
+    'tecnologia': { icon: Code, color: '#10B981' },
+    'technology': { icon: Code, color: '#10B981' },
+    'programação': { icon: Code, color: '#10B981' },
+    'programming': { icon: Code, color: '#10B981' },
+    'vendas': { icon: Handshake, color: '#EF4444' },
+    'sales': { icon: Handshake, color: '#EF4444' }
+  };
+  
+  // Procurar correspondência exata ou parcial
+  for (const [key, value] of Object.entries(categoryMap)) {
+    if (categoryLower.includes(key) || key.includes(categoryLower)) {
+      return value;
+    }
+  }
+  
+  // Fallback para categoria não mapeada
+  return { icon: Grid3X3, color: '#6B7280' };
+};
 
 // Função para remover tags HTML e renderizar texto limpo
 const stripHtmlTags = (html: string) => {
@@ -43,6 +76,9 @@ export const MentorCard: React.FC<MentorCardProps> = ({ mentor, index = 0 }) => 
     }
   };
 
+  // Obter ícone e cor da categoria
+  const categoryInfo = getCategoryIcon(mentor.category);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 50 }}
@@ -65,11 +101,39 @@ export const MentorCard: React.FC<MentorCardProps> = ({ mentor, index = 0 }) => 
         >
           {/* Frente do Card */}
           <div className="absolute inset-0 w-full h-full [backface-visibility:hidden] bg-white rounded-xl shadow-xl border overflow-hidden">
-            {/* Header com gradiente */}
-            <div className="relative bg-gradient-to-br from-purple-500 via-blue-500 to-indigo-600 overflow-hidden" style={{ height: '110px' }}>
-              <div className="absolute inset-0 bg-black/10" style={{ height: '110px' }}></div>
-              <div className="absolute -top-4 -right-4 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
-              <div className="absolute -bottom-2 -left-2 w-16 h-16 bg-white/5 rounded-full blur-lg"></div>
+            {/* Header com Efeito de Nuvens Roxas */}
+            <div className="relative overflow-hidden" style={{ height: '110px' }}>
+              {/* Efeito de Nuvens Roxas */}
+              <div className="absolute inset-0 overflow-hidden">
+                {/* Base Gradient for Sky */}
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-500 via-purple-600 to-indigo-700"></div>
+
+                {/* Cloud 1 - Lighter, larger, more blurred */}
+                <div
+                  className="absolute -top-10 -left-20 w-72 h-72 bg-purple-300/30 rounded-full blur-3xl opacity-80 animate-pulse"
+                  style={{ animationDuration: '10s' }}
+                ></div>
+
+                {/* Cloud 2 - Slightly darker, medium size, less blurred */}
+                <div
+                  className="absolute -bottom-10 -right-10 w-60 h-60 bg-purple-400/40 rounded-full blur-2xl opacity-70 animate-pulse"
+                  style={{ animationDuration: '12s', animationDelay: '2s' }}
+                ></div>
+                
+                {/* Cloud 3 - Different shade, smaller, more defined */}
+                <div
+                  className="absolute top-5 left-1/3 w-48 h-48 bg-indigo-300/30 rounded-full blur-xl opacity-90 animate-pulse"
+                  style={{ animationDuration: '11s', animationDelay: '1s' }}
+                ></div>
+              </div>
+              
+              {/* Tag Mentor Verificado à Esquerda (onde era a categoria) */}
+              <div className="absolute top-4 left-4 z-20">
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-purple-100/90 text-purple-700 text-xs font-semibold shadow-lg backdrop-blur-sm border border-purple-200/50">
+                  <Star className="w-3 h-3" />
+                  <span>Mentor Verificado</span>
+                </div>
+              </div>
             </div>
 
             {/* Avatar */}
@@ -91,15 +155,24 @@ export const MentorCard: React.FC<MentorCardProps> = ({ mentor, index = 0 }) => 
 
             {/* Conteúdo da Frente */}
             <div className="p-6 pt-4 text-center">
-              {/* Nome e Badge */}
+              {/* Nome e Tag de Categoria (onde era o mentor verificado) */}
               <div className="mb-4">
                 <h3 className="text-xl font-bold text-gray-800 mb-2">
                   {mentor.full_name || "Mentor"}
                 </h3>
-                <Badge variant="secondary" className="bg-purple-100 text-purple-700 hover:bg-purple-200">
-                  <Star className="w-3 h-3 mr-1" />
-                  Mentor Verificado
-                </Badge>
+                
+                {/* Categoria do Mentor (agora no centro, onde era o mentor verificado) */}
+                {mentor.category && categoryInfo && (
+                  <div className="mb-2">
+                    <div 
+                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-white text-xs font-semibold shadow-lg backdrop-blur-sm border border-white/20"
+                      style={{ backgroundColor: `${categoryInfo.color}E6` }}
+                    >
+                      {React.createElement(categoryInfo.icon, { className: "w-3 h-3" })}
+                      <span>{mentor.category}</span>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Highlight Message */}
@@ -217,6 +290,12 @@ export const MentorCard: React.FC<MentorCardProps> = ({ mentor, index = 0 }) => 
           </div>
         </motion.div>
       </div>
+      
+      {/* Estilos CSS para o efeito Aurora e Grid Pattern da MagicUI */}
+      <style>{`
+        /* Estilos remanescentes podem ser colocados aqui, se houver. */
+        /* Os estilos de .grid-pattern, .aurora-bg, .aurora-layer-* e .bg-gradient-radial foram removidos. */
+      `}</style>
     </motion.div>
   );
 };

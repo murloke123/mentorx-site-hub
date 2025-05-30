@@ -97,6 +97,11 @@ const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
     }
   };
 
+  const handleCourseDetailsClick = () => {
+    // Redirecionar para a landing page do curso
+    navigate(`/course-page/${course.id}`);
+  };
+
   const renderPrice = () => {
     if (!course.is_paid) {
   return (
@@ -373,6 +378,7 @@ const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
       <div style={footerStyles}>
         <button 
           style={buttonStyles}
+          onClick={handleCourseDetailsClick}
           onMouseEnter={(e) => {
             e.currentTarget.style.transform = 'translateY(-2px)';
             e.currentTarget.style.boxShadow = '0 8px 25px rgba(102, 126, 234, 0.4)';
