@@ -291,38 +291,20 @@ export async function getAllPublicMentors(): Promise<Mentor[]> {
         full_name,
         avatar_url,
         bio,
-        highlight_message,
-        phone,
-        sm_tit1,
-        sm_desc1,
-        sm_tit2,
-        sm_desc2,
-        sm_tit3,
-        sm_desc3,
-        courses:cursos(count),
-        followers:mentor_followers(count)
+        highlight_message
       `)
       .eq("role", "mentor")
-      .not("full_name", "is", null)
       .order("updated_at", { ascending: false });
 
     if (error) throw error;
 
     return (data || []).map(mentor => ({
       id: mentor.id,
-      full_name: mentor.full_name || "Mentor",
+      full_name: mentor.full_name,
       avatar_url: mentor.avatar_url,
       bio: mentor.bio,
       highlight_message: mentor.highlight_message,
-      phone: mentor.phone,
-      sm_tit1: mentor.sm_tit1,
-      sm_desc1: mentor.sm_desc1,
-      sm_tit2: mentor.sm_tit2,
-      sm_desc2: mentor.sm_desc2,
-      sm_tit3: mentor.sm_tit3,
-      sm_desc3: mentor.sm_desc3,
-      courses_count: mentor.courses?.[0]?.count || 0,
-      followers_count: mentor.followers?.[0]?.count || 0
+      courses_count: 0
     }));
   } catch (error) {
     console.error("Error fetching all public mentors:", error);

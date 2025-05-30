@@ -219,7 +219,7 @@ const CoursesPage = () => {
       console.log(`Cursos filtrados: ${filteredCourses.length}`);
       filteredCourses.forEach(course => {
         console.log(`- ${course.title} (categoria: ${course.category})`);
-      });
+  });
     }
   }, [selectedCategory, filteredCourses]);
 
@@ -242,8 +242,8 @@ const CoursesPage = () => {
               <div className="aurora aurora-2"></div>
               <div className="aurora aurora-3"></div>
             </div>
-          </div>
-          
+      </div>
+
           {/* Content */}
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center max-w-6xl mx-auto px-4">
@@ -270,11 +270,11 @@ const CoursesPage = () => {
                 {/* Search Input */}
                 <div className="relative flex-1 max-w-2xl w-full">
                   <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6 text-gray-400" />
-                  <Input 
-                    type="text" 
+          <Input 
+            type="text" 
                     placeholder="O que você quer aprender hoje?" 
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-12 pr-4 py-6 text-lg rounded-2xl border-0 shadow-xl bg-white transition-all duration-300 focus:outline-none focus:ring-0 focus:shadow-2xl focus:shadow-white/20"
                     style={{
                       boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
@@ -285,8 +285,8 @@ const CoursesPage = () => {
                     onBlur={(e) => {
                       e.target.style.boxShadow = '0 10px 25px rgba(0, 0, 0, 0.1)';
                     }}
-                  />
-                </div>
+          />
+        </div>
                 
                 {/* Filter Pills */}
                 <div className="flex gap-4">
@@ -323,8 +323,8 @@ const CoursesPage = () => {
                   >
                     Premium
                   </Button>
-                </div>
-              </div>
+        </div>
+      </div>
 
               {/* Categories Grid */}
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 max-w-4xl mx-auto">
@@ -444,7 +444,7 @@ const CoursesPage = () => {
                 <p className="text-gray-600 mb-6 max-w-md mx-auto">
                   Não encontramos cursos que correspondam aos seus critérios de busca. 
                   Tente ajustar os filtros ou buscar por outros termos.
-                </p>
+          </p>
               </>
             )}
             <Button 

@@ -6,7 +6,8 @@ import MentorCard from "@/components/MentorCard";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { getPublicCourses } from "@/services/courseService";
-import { getFeaturedMentors, type Mentor } from "@/services/mentorService";
+import { getFeaturedMentors } from "@/services/mentorService";
+import { Mentor } from "@/types/mentor";
 
 const HomePage: React.FC = () => {
   const { toast } = useToast();
@@ -23,7 +24,8 @@ const HomePage: React.FC = () => {
           getFeaturedMentors()
         ]);
         
-        setLiveCourses(courses.slice(0, 3));
+        // Exibir até 8 cursos em destaque
+        setLiveCourses(courses.slice(0, 8));
         setFeaturedMentors(mentors);
       } catch (error) {
         console.error("Error loading homepage data:", error);
@@ -54,15 +56,16 @@ const HomePage: React.FC = () => {
             </Link>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {/* Grid responsivo: 1 coluna no mobile, 2 no tablet, 4 no desktop */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {!isLoading && liveCourses.map((course) => (
               <CourseCard key={course.id} course={course} />
             ))}
             {isLoading && (
               <>
-                <div className="h-48 bg-gray-100 rounded-lg animate-pulse" />
-                <div className="h-48 bg-gray-100 rounded-lg animate-pulse" />
-                <div className="h-48 bg-gray-100 rounded-lg animate-pulse" />
+                {Array.from({ length: 8 }).map((_, index) => (
+                  <div key={index} className="h-48 bg-gray-100 rounded-lg animate-pulse" />
+                ))}
               </>
             )}
           </div>

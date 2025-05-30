@@ -5,7 +5,7 @@ export async function getCourseById(courseId: string): Promise<CourseFormData> {
   try {
     const { data, error } = await supabase
       .from("cursos")
-      .select("id, title, description, is_paid, price, discount, discounted_price, image_url, is_public, is_published, category") 
+      .select("id, title, description, is_paid, price, discount, discounted_price, image_url, is_public, is_published, category, category_id") 
       .eq("id", courseId)
       .single();
       
@@ -17,7 +17,8 @@ export async function getCourseById(courseId: string): Promise<CourseFormData> {
     const courseFormData: CourseFormData = {
       name: data.title,
       description: data.description || "",
-      category: data.category || "",
+      // Use category_id if available, otherwise fallback to category field
+      category: data.category_id || data.category || "",
       image: data.image_url || "",
       type: data.is_paid ? "paid" : "free",
       price: data.price || 0,
@@ -35,12 +36,25 @@ export async function getCourseById(courseId: string): Promise<CourseFormData> {
 
 export async function updateCourse(courseId: string, formData: CourseFormData) {
   try {
+    // First, get the category name if we have a category_id
+    let categoryName = null;
+    if (formData.category) {
+      const { data: categoryData } = await supabase
+        .from("categories")
+        .select("name")
+        .eq("id", formData.category)
+        .single();
+      
+      categoryName = categoryData?.name || null;
+    }
+
     const { error } = await supabase
       .from("cursos")
       .update({
         title: formData.name,
         description: formData.description,
-        category: formData.category,
+        category_id: formData.category, // Save the category ID
+        category: categoryName, // Save the category name for legacy compatibility
         image_url: formData.image,
         is_paid: formData.type === "paid",
         price: formData.type === "paid" ? formData.price : null,
@@ -62,12 +76,25 @@ export async function updateCourse(courseId: string, formData: CourseFormData) {
 
 export async function createCourse(formData: CourseFormData, mentorId: string) {
   try {
+    // First, get the category name if we have a category_id
+    let categoryName = null;
+    if (formData.category) {
+      const { data: categoryData } = await supabase
+        .from("categories")
+        .select("name")
+        .eq("id", formData.category)
+        .single();
+      
+      categoryName = categoryData?.name || null;
+    }
+
     const { data, error } = await supabase
       .from("cursos")
       .insert({
         title: formData.name,
         description: formData.description,
-        category: formData.category,
+        category_id: formData.category, // Save the category ID
+        category: categoryName, // Save the category name for legacy compatibility
         image_url: formData.image,
         is_paid: formData.type === "paid",
         price: formData.type === "paid" ? formData.price : null,
