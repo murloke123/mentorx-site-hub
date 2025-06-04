@@ -8,19 +8,19 @@
   
   <!-- Inline Editing Styles -->
   <style>
-    /* Inline Editing Styles */
-    [data-field] {
+    /* Inline Editing Styles - APENAS para modo de edição */
+    body:not(.public-view) [data-field] {
       position: relative;
       cursor: pointer;
       transition: all 0.3s ease;
     }
     
-    [data-field]:hover {
+    body:not(.public-view) [data-field]:hover {
       outline: 2px dashed rgba(52, 211, 153, 0.5);
       outline-offset: 4px;
     }
     
-    [data-field].editing {
+    body:not(.public-view) [data-field].editing {
       outline: 2px solid #10b981;
       outline-offset: 4px;
       background: rgba(16, 185, 129, 0.1);
@@ -28,56 +28,95 @@
       padding: 4px;
     }
     
-    [data-field].editing:focus {
+    body:not(.public-view) [data-field].editing:focus {
       outline: 2px solid #059669;
+    }
+    
+    /* Cursor normal para visualização pública */
+    body.public-view [data-field] {
+      cursor: default !important;
+    }
+    
+    body.public-view h1,
+    body.public-view h2, 
+    body.public-view h3,
+    body.public-view p,
+    body.public-view span,
+    body.public-view div:not(.btn-primary):not(.btn-secondary) {
+      cursor: default !important;
+    }
+    
+    /* Manter cursor pointer para botões */
+    body.public-view button,
+    body.public-view .btn-primary,
+    body.public-view .btn-secondary,
+    body.public-view a {
+      cursor: pointer !important;
     }
     
     /* Edit Controls */
     .edit-controls {
-      position: absolute;
-      top: -40px;
-      right: 0;
-      display: flex;
-      gap: 8px;
-      background: rgba(0, 0, 0, 0.9);
-      padding: 8px;
-      border-radius: 8px;
-      backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      z-index: 1000;
+      position: absolute !important;
+      top: -40px !important;
+      right: 0 !important;
+      display: flex !important;
+      gap: 8px !important;
+      background: rgba(0, 0, 0, 0.9) !important;
+      padding: 8px !important;
+      border-radius: 8px !important;
+      backdrop-filter: blur(16px) !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      z-index: 1000 !important;
+      pointer-events: auto !important;
+      user-select: none !important; /* Impede seleção de texto */
+      -webkit-user-select: none !important;
+      -moz-user-select: none !important;
+      -ms-user-select: none !important;
     }
     
     .edit-btn {
-      background: #10b981;
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 4px;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      gap: 4px;
+      background: #10b981 !important;
+      color: white !important;
+      border: none !important;
+      padding: 6px 12px !important;
+      border-radius: 4px !important;
+      font-size: 12px !important;
+      font-weight: 600 !important;
+      cursor: pointer !important;
+      transition: all 0.2s ease !important;
+      display: flex !important;
+      align-items: center !important;
+      gap: 4px !important;
+      pointer-events: auto !important;
+      user-select: none !important; /* Impede seleção de texto */
+      -webkit-user-select: none !important;
+      -moz-user-select: none !important;
+      -ms-user-select: none !important;
+      outline: none !important;
+      white-space: nowrap !important;
     }
     
     .edit-btn:hover {
-      background: #059669;
-      transform: translateY(-1px);
+      background: #059669 !important;
+      transform: translateY(-1px) !important;
+    }
+    
+    .edit-btn:focus {
+      outline: 2px solid #10b981 !important;
+      outline-offset: 2px !important;
     }
     
     .edit-btn.cancel {
-      background: #ef4444;
+      background: #ef4444 !important;
     }
     
     .edit-btn.cancel:hover {
-      background: #dc2626;
+      background: #dc2626 !important;
     }
     
     .edit-btn.loading {
-      background: #6b7280;
-      cursor: not-allowed;
+      background: #6b7280 !important;
+      cursor: not-allowed !important;
     }
     
     /* Success/Error Messages */
@@ -120,57 +159,259 @@
       to { transform: rotate(360deg); }
     }
     
-    /* Edit Mode Indicator */
-    .edit-mode-active {
+    /* Reset Layout Button */
+    .reset-layout-btn {
       position: fixed;
-      top: 20px;
-      left: 20px;
-      background: rgba(16, 185, 129, 0.9);
+      bottom: 24px;
+      right: 24px;
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
       color: white;
-      padding: 8px 16px;
-      border-radius: 8px;
+      border: none;
+      padding: 14px 20px;
+      border-radius: 50px;
       font-size: 14px;
       font-weight: 600;
       z-index: 1000;
       backdrop-filter: blur(16px);
-    }
-
-    /* Indicador do ID da Página */
-    .page-id-indicator {
-      position: fixed;
-      top: 60px;
-      left: 20px;
-      background: rgba(37, 99, 235, 0.9);
-      color: white;
-      padding: 8px 12px;
-      border-radius: 6px;
-      font-size: 12px;
-      font-family: 'Courier New', monospace;
-      font-weight: 600;
-      z-index: 1000;
-      backdrop-filter: blur(16px);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 6px 25px rgba(245, 158, 11, 0.4);
       border: 1px solid rgba(255, 255, 255, 0.2);
-      max-width: 300px;
-      word-break: break-all;
+      min-width: 160px;
+      justify-content: center;
     }
     
-    .page-id-label {
-      color: rgba(255, 255, 255, 0.8);
-      font-size: 10px;
-      margin-bottom: 2px;
+    .reset-layout-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 35px rgba(245, 158, 11, 0.5);
+      background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+      scale: 1.05;
+    }
+    
+    .reset-layout-btn:active {
+      transform: translateY(-1px);
+      scale: 1.02;
+    }
+    
+    .reset-layout-btn svg {
+      transition: transform 0.3s ease;
+    }
+    
+    .reset-layout-btn:hover svg {
+      transform: rotate(180deg);
+    }
+    
+    /* Modal Styles */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(8px);
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+    
+    .modal-overlay.show {
+      opacity: 1;
+      visibility: visible;
+    }
+    
+    .modal-content {
+      background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+      border-radius: 20px;
+      padding: 40px;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      transform: scale(0.9) translateY(20px);
+      transition: all 0.3s ease;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .modal-overlay.show .modal-content {
+      transform: scale(1) translateY(0);
+    }
+    
+    .modal-header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    
+    .modal-icon {
+      width: 64px;
+      height: 64px;
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      color: white;
+      font-size: 24px;
+    }
+    
+    .modal-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1f2937;
+      margin: 0 0 8px;
+    }
+    
+    .modal-subtitle {
+      font-size: 16px;
+      color: #6b7280;
+      margin: 0;
+    }
+    
+    .modal-body {
+      margin-bottom: 32px;
+    }
+    
+    .modal-text {
+      font-size: 16px;
+      line-height: 1.6;
+      color: #374151;
+      margin-bottom: 16px;
+    }
+    
+    .modal-warning {
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      border: 1px solid #f59e0b;
+      border-radius: 12px;
+      padding: 16px;
+      font-size: 14px;
+      color: #92400e;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+    
+    .modal-btn {
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: none;
+      min-width: 120px;
+    }
+    
+    .modal-btn-primary {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: white;
+      box-shadow: 0 4px 20px rgba(239, 68, 68, 0.3);
+    }
+    
+    .modal-btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
+      background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    }
+    
+    .modal-btn-secondary {
+      background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
+      color: #374151;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    .modal-btn-secondary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+      background: linear-gradient(135deg, #d1d5db 0%, #9ca3af 100%);
+    }
+    
+    /* Ajustar espaçamento da seção hero */
+    .hero-section {
+      padding-top: 0px !important; /* Removido completamente o padding superior */
+      margin-top: -10px !important; /* Margem negativa para aproximar ainda mais */
+      min-height: calc(100vh - 60px); /* Compensar altura do header */
+    }
+    
+    /* Responsivo: espaçamento menor em mobile */
+    @media (max-width: 768px) {
+      .hero-section {
+        padding-top: 0px !important;
+        margin-top: -5px !important;
+        min-height: calc(100vh - 50px);
+      }
     }
   </style>
 </head>
 <body>
-  <!-- Edit Mode Indicator -->
-  <div id="editModeIndicator" class="edit-mode-active" style="display: none;">
-    ✏️ Modo de Edição Ativo
-  </div>
+  <!-- Reset Layout Button -->
+  <button id="resetLayoutBtn" class="reset-layout-btn">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;">
+      <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
+      <path d="M21 3v5h-5"></path>
+      <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
+      <path d="M3 21v-5h5"></path>
+    </svg>
+    Resetar Layout
+  </button>
   
-  <!-- Indicador do ID da Página -->
-  <div id="pageIdIndicator" class="page-id-indicator">
-    <div class="page-id-label">PAGE ID:</div>
-    <div id="pageIdValue">Carregando...</div>
+  <!-- Modal de Confirmação -->
+  <div id="resetModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 28px; height: 28px;">
+            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
+            <path d="M21 3v5h-5"></path>
+            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
+            <path d="M3 21v-5h5"></path>
+          </svg>
+        </div>
+        <h3 class="modal-title">Resetar Layout</h3>
+        <p class="modal-subtitle">Confirme esta ação</p>
+      </div>
+      
+      <div class="modal-body">
+        <p class="modal-text">
+          Você está prestes a <strong>resetar o layout</strong> para o estado original. 
+          Esta ação irá:
+        </p>
+        <ul style="margin: 16px 0; padding-left: 20px; color: #374151;">
+          <li>Restaurar todos os textos para o conteúdo padrão</li>
+          <li>Reverter todas as personalizações feitas</li>
+        </ul>
+        
+        <div class="modal-warning">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+          <span><strong>Atenção:</strong> Esta ação não pode ser desfeita. Todas as personalizações serão perdidas.</span>
+        </div>
+      </div>
+      
+      <div class="modal-actions">
+        <button id="cancelReset" class="modal-btn modal-btn-secondary">
+          Cancelar
+        </button>
+        <button id="confirmReset" class="modal-btn modal-btn-primary">
+          Sim, Resetar
+        </button>
+      </div>
+    </div>
   </div>
   
   <!-- Success/Error Messages -->
@@ -308,20 +549,6 @@
     let originalContent = null;
     let editControls = null;
     
-    // Atualizar indicador visual do ID
-    function updatePageIdIndicator(pageId) {
-      const indicator = document.getElementById('pageIdValue');
-      if (indicator) {
-        if (pageId) {
-          indicator.textContent = pageId;
-          indicator.parentElement.style.background = 'rgba(16, 185, 129, 0.9)'; // Verde se tem ID
-        } else {
-          indicator.textContent = 'NÃO DETECTADO';
-          indicator.parentElement.style.background = 'rgba(239, 68, 68, 0.9)'; // Vermelho se não tem
-        }
-      }
-    }
-    
     // Função para obter ID da página (DINÂMICO)
     function getPageId() {
       // Verificar apenas URL params e variável global
@@ -330,9 +557,6 @@
       
       console.log('🔍 Detectando Page ID...');
       console.log('🆔 PageId encontrado:', pageId);
-      
-      // Atualizar indicador visual
-      updatePageIdIndicator(pageId);
       
       return pageId;
     }
@@ -401,16 +625,32 @@
       const tempDiv = document.createElement('div');
       tempDiv.innerHTML = html;
       
-      // Remover controles de edição
-      const editControls = tempDiv.querySelectorAll('.edit-controls');
+      // Remover controles de edição (múltiplas classes)
+      const editControls = tempDiv.querySelectorAll('.edit-controls, .edit-btn, [class*="edit-"]');
       editControls.forEach(control => control.remove());
       
-      // Remover outros elementos indesejados
-      const unwantedElements = tempDiv.querySelectorAll('[contenteditable], .editing, .edit-btn');
-      unwantedElements.forEach(el => el.remove());
+      // Remover elementos com atributos de edição
+      const editableElements = tempDiv.querySelectorAll('[contenteditable="true"], [contenteditable="false"]');
+      editableElements.forEach(el => {
+        el.removeAttribute('contenteditable');
+      });
+      
+      // Remover classes temporárias de edição
+      const elementsWithEditClasses = tempDiv.querySelectorAll('.editing, .editable-text, .saving');
+      elementsWithEditClasses.forEach(el => {
+        el.classList.remove('editing', 'editable-text', 'saving');
+      });
+      
+      // Remover qualquer botão que não seja parte do conteúdo original
+      const unwantedButtons = tempDiv.querySelectorAll('button:not([data-field])');
+      unwantedButtons.forEach(btn => {
+        if (btn.textContent?.includes('Salvar') || btn.classList.contains('edit-btn')) {
+          btn.remove();
+        }
+      });
       
       const cleanedHTML = tempDiv.innerHTML.trim();
-      console.log('🧹 HTML limpo:', cleanedHTML);
+      console.log('🧹 HTML limpo (sem controles de edição):', cleanedHTML);
       return cleanedHTML;
     }
     
@@ -423,21 +663,31 @@
         return '';
       }
       
-      let extractedText = '';
+      let extractedContent = '';
       
       if (selector.includes('button')) {
-        // Para botões, pegar só o texto
+        // Para botões, extrair apenas o texto mas preservar estrutura
         const textNodes = Array.from(element.childNodes).filter(node => node.nodeType === 3);
-        extractedText = textNodes.map(node => node.textContent.trim()).join(' ');
-        console.log('🔘 Texto do botão extraído:', extractedText);
+        extractedContent = textNodes.map(node => node.textContent.trim()).join(' ').trim();
+        console.log('🔘 Texto do botão extraído:', extractedContent);
       } else {
-        // Para outros elementos, extrair HTML preservando tags mas limpando lixo
-        const rawHTML = element.innerHTML.trim();
-        extractedText = cleanHTMLForSaving(rawHTML);
-        console.log('🔤 HTML extraído e limpo:', extractedText);
+        // Para outros elementos, preservar HTML completo com classes CSS importantes
+        const clonedElement = element.cloneNode(true);
+        
+        // Remover controles de edição se existirem
+        const editControls = clonedElement.querySelectorAll('.edit-controls');
+        editControls.forEach(control => control.remove());
+        
+        // Remover atributos de edição mas manter classes CSS importantes
+        clonedElement.removeAttribute('contenteditable');
+        clonedElement.classList.remove('editing', 'editable-text');
+        
+        // Preservar HTML completo com classes de estilo
+        extractedContent = clonedElement.innerHTML.trim();
+        console.log('🎨 HTML com classes CSS extraído:', extractedContent);
       }
       
-      return extractedText;
+      return extractedContent;
     }
     
     // Carregar dados salvos do banco e atualizar a tela
@@ -532,7 +782,11 @@
         }
         
         console.log('✅ === DADOS CARREGADOS COM SUCESSO ===');
-        showMessage('Dados carregados do banco!', 'success');
+        
+        // Exibir mensagem apenas se não for visualização pública
+        if (!window.isPublicView) {
+          showMessage('Dados carregados do banco!', 'success');
+        }
         
         // Adicionar marcador para indicar que dados foram carregados
         document.body.classList.add('loaded-from-db');
@@ -610,7 +864,10 @@
         console.log('✅ === SALVAMENTO COMPLETO BEM-SUCEDIDO ===');
         console.log('Resultado:', updateResult[0]);
         
-        showMessage('Modelo salvo com sucesso!', 'success');
+        // Exibir mensagem apenas se não for visualização pública
+        if (!window.isPublicView) {
+          showMessage('Modelo salvo com sucesso!', 'success');
+        }
         return updateResult[0];
         
       } catch (error) {
@@ -619,7 +876,10 @@
         console.error('Error message:', error.message);
         console.error('Error stack:', error.stack);
         
-        showMessage(`Erro ao salvar modelo: ${error.message}`, 'error');
+        // Exibir mensagem apenas se não for visualização pública
+        if (!window.isPublicView) {
+          showMessage(`Erro ao salvar modelo: ${error.message}`, 'error');
+        }
         throw error;
       }
     };
@@ -660,8 +920,6 @@
       // Mostrar controles
       showEditControls(element, field);
       
-      document.getElementById('editModeIndicator').style.display = 'block';
-      
       console.log('📝 === EDIÇÃO INICIADA ===');
       console.log('Campo:', field);
       console.log('Conteúdo original:', originalContent);
@@ -679,10 +937,30 @@
       saveBtn.innerHTML = '✓ Salvar';
       saveBtn.onclick = () => saveFieldChange(field);
       
+      // IMPORTANTE: Garantir que o botão não seja editável
+      saveBtn.contentEditable = 'false';
+      saveBtn.setAttribute('contenteditable', 'false');
+      
+      // Prevenir que o botão interfira na edição
+      saveBtn.addEventListener('mousedown', (e) => {
+        e.preventDefault(); // Evita perder foco do elemento editável
+      });
+      
+      saveBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      });
+      
+      // Garantir que o container dos controles também não seja editável
+      editControls.contentEditable = 'false';
+      editControls.setAttribute('contenteditable', 'false');
+      
       editControls.appendChild(saveBtn);
       
       element.style.position = 'relative';
       element.appendChild(editControls);
+      
+      console.log('🔧 Controles de edição criados (não-editáveis)');
     }
     
     // Salvar mudança de campo específico
@@ -752,7 +1030,11 @@
         currentEditingElement.innerHTML = cleanedContent;
         
         finishEditing();
-        showMessage('Salvo com sucesso!', 'success');
+        
+        // Exibir mensagem apenas se não for visualização pública
+        if (!window.isPublicView) {
+          showMessage('Salvo com sucesso!', 'success');
+        }
         
       } catch (error) {
         console.error('❌ === ERRO NO SALVAMENTO INDIVIDUAL ===');
@@ -760,7 +1042,10 @@
         console.error('Error message:', error.message);
         console.error('Error stack:', error.stack);
         
-        showMessage(`Erro ao salvar: ${error.message}`, 'error');
+        // Exibir mensagem apenas se não for visualização pública
+        if (!window.isPublicView) {
+          showMessage(`Erro ao salvar: ${error.message}`, 'error');
+        }
       }
     }
     
@@ -825,43 +1110,222 @@
         editControls.remove();
         editControls = null;
       }
+    }
+    
+    // NOVO: Funções do Modal de Reset Layout
+    function showResetModal() {
+      const modal = document.getElementById('resetModal');
+      modal.classList.add('show');
+      console.log('📋 Modal de reset exibido');
+    }
+    
+    function hideResetModal() {
+      const modal = document.getElementById('resetModal');
+      modal.classList.remove('show');
+      console.log('📋 Modal de reset ocultado');
+    }
+    
+    // Dados originais padrão do layout (conforme o HTML original)
+    function getOriginalLayoutData() {
+      return {
+        element_1: {
+          tagname: `<div class="badge-content">
+              <div class="badge-dot"></div>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="badge-icon">
+                <path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"></path>
+              </svg>
+              <span>⚡ <span class="description-highlight">Elite Performance</span> garantido</span>
+            </div>
+            <div class="badge-content">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="badge-icon">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+              <small>método exclusivo</small>
+            </div>`,
+          title: `Domine 
+              <span class="hero-title-gradient">Marketing Digital</span> 
+              <span class="hero-title-secondary">em 30 Dias</span>`,
+          description: `Transforme sua carreira e conquiste a 
+              <span class="description-highlight">liberdade financeira</span> 
+              com estratégias comprovadas que geraram mais de 
+              <span class="description-highlight-cyan">R$10 milhões</span> em vendas.`,
+          button1: `GARANTIR MINHA VAGA`,
+          button2: `Ver Prévia Gratuita`,
+          review: `4.9/5 • Baseado em 
+              <span class="social-highlight">1.2k</span> avaliações`
+        }
+      };
+    }
+    
+    // Resetar layout para o estado original
+    async function resetLayoutToOriginal() {
+      console.log('🔄 === RESET DE LAYOUT INICIADO ===');
       
-      document.getElementById('editModeIndicator').style.display = 'none';
+      try {
+        // Verificar ID da página
+        if (!currentPageId) {
+          currentPageId = getPageId();
+          if (!currentPageId) {
+            throw new Error('ID da página não encontrado');
+          }
+        }
+        
+        console.log('🎯 Resetando layout para pageId:', currentPageId);
+        
+        // Obter dados originais
+        const originalData = getOriginalLayoutData();
+        console.log('📦 Dados originais:', originalData);
+        
+        // Atualizar elementos na tela com dados originais
+        Object.entries(originalData.element_1).forEach(([field, content]) => {
+          const element = document.querySelector(`[data-field="${field}"]`);
+          if (element) {
+            if (field.includes('button')) {
+              // Para botões, atualizar apenas o texto, mantendo ícones SVG
+              const textNodes = Array.from(element.childNodes).filter(node => node.nodeType === 3);
+              if (textNodes.length > 0) {
+                textNodes[textNodes.length - 1].textContent = content;
+              } else {
+                element.appendChild(document.createTextNode(content));
+              }
+            } else {
+              // Para outros elementos, aplicar HTML completo
+              element.innerHTML = content;
+            }
+            console.log(`✅ ${field} resetado para valor original`);
+          }
+        });
+        
+        // Salvar dados originais no banco
+        console.log('💾 Salvando dados originais no banco...');
+        const updateResult = await supabaseRequest('PATCH', `course_landing_pages?id=eq.${currentPageId}`, {
+          sec_hero: originalData
+        });
+        
+        if (!updateResult || updateResult.length === 0) {
+          throw new Error('Nenhum registro foi atualizado no banco');
+        }
+        
+        console.log('✅ === RESET DE LAYOUT CONCLUÍDO ===');
+        console.log('Resultado:', updateResult[0]);
+        
+        // Remover marcador de dados carregados para permitir nova sincronização
+        document.body.classList.remove('loaded-from-db');
+        
+        // Exibir mensagem apenas se não for visualização pública
+        if (!window.isPublicView) {
+          showMessage('Layout resetado com sucesso!', 'success');
+        }
+        hideResetModal();
+        
+      } catch (error) {
+        console.error('❌ === ERRO NO RESET DE LAYOUT ===');
+        console.error('Error object:', error);
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+        
+        // Exibir mensagem apenas se não for visualização pública
+        if (!window.isPublicView) {
+          showMessage(`Erro ao resetar layout: ${error.message}`, 'error');
+        }
+      }
     }
     
     // Event listeners
     document.addEventListener('DOMContentLoaded', function() {
       console.log('🚀 === SISTEMA INICIADO ===');
       
+      // Verificar se é visualização pública através da URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const isPublicFromURL = urlParams.get('public') === 'true';
+      
+      if (isPublicFromURL) {
+        console.log('👁️ Modo público detectado via URL');
+        window.isPublicView = true;
+        
+        // Adicionar classe ao body para desabilitar estilos de hover
+        document.body.classList.add('public-view');
+        
+        // Esconder botão de reset imediatamente
+        const resetBtn = document.getElementById('resetLayoutBtn');
+        if (resetBtn) {
+          resetBtn.style.display = 'none';
+          console.log('🔒 Botão Reset Layout ocultado (URL pública)');
+        }
+      }
+      
       // Definir ID da página
       currentPageId = getPageId();
       console.log('🆔 Página detectada:', currentPageId);
-      
-      if (!currentPageId) {
-        console.warn('⚠️ Nenhum ID de página detectado! Sistema pode não funcionar corretamente.');
-        showMessage('Aviso: ID da página não detectado. Defina o ID corretamente.', 'error');
-      }
       
       // Carregar dados salvos do banco de dados
       if (currentPageId) {
         loadSavedData();
       }
       
-      // Adicionar listeners para edição
-      const editableElements = document.querySelectorAll('[data-field]');
-      console.log('📝 Elementos editáveis encontrados:', editableElements.length);
+      // Adicionar listeners para edição (APENAS se não for visualização pública)
+      if (!window.isPublicView) {
+        const editableElements = document.querySelectorAll('[data-field]');
+        console.log('📝 Elementos editáveis encontrados:', editableElements.length);
+        
+        editableElements.forEach(element => {
+          element.addEventListener('click', startEditing);
+          console.log('✅ Listener adicionado para:', element.getAttribute('data-field'));
+        });
+        
+        // Clique fora cancela edição
+        document.addEventListener('click', (e) => {
+          if (!e.target.closest('[data-field]') && !e.target.closest('.edit-controls')) {
+            cancelEditing();
+          }
+        });
+        
+        console.log('✅ Funcionalidades de edição habilitadas');
+      } else {
+        console.log('🔒 Funcionalidades de edição desabilitadas (visualização pública)');
+      }
       
-      editableElements.forEach(element => {
-        element.addEventListener('click', startEditing);
-        console.log('✅ Listener adicionado para:', element.getAttribute('data-field'));
-      });
-      
-      // Clique fora cancela edição
-      document.addEventListener('click', (e) => {
-        if (!e.target.closest('[data-field]') && !e.target.closest('.edit-controls')) {
-          cancelEditing();
-        }
-      });
+      // NOVO: Event listeners para Reset Layout (APENAS se não for visualização pública)
+      if (!window.isPublicView) {
+        const resetBtn = document.getElementById('resetLayoutBtn');
+        const resetModal = document.getElementById('resetModal');
+        const cancelResetBtn = document.getElementById('cancelReset');
+        const confirmResetBtn = document.getElementById('confirmReset');
+        
+        // Abrir modal ao clicar no botão Reset
+        resetBtn.addEventListener('click', () => {
+          showResetModal();
+        });
+        
+        // Fechar modal ao clicar em Cancelar
+        cancelResetBtn.addEventListener('click', () => {
+          hideResetModal();
+        });
+        
+        // Confirmar reset
+        confirmResetBtn.addEventListener('click', () => {
+          resetLayoutToOriginal();
+        });
+        
+        // Fechar modal ao clicar fora do conteúdo
+        resetModal.addEventListener('click', (e) => {
+          if (e.target === resetModal) {
+            hideResetModal();
+          }
+        });
+        
+        // Fechar modal com tecla ESC
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && resetModal.classList.contains('show')) {
+            hideResetModal();
+          }
+        });
+        
+        console.log('✅ Event listeners do modal de reset configurados');
+      }
       
       console.log('✅ === SISTEMA PRONTO ===');
     });
@@ -870,15 +1334,36 @@
     window.addEventListener('message', function(event) {
       if (event.data && event.data.type === 'SET_LANDING_PAGE_ID') {
         const pageId = event.data.pageId;
+        const isPublicView = event.data.isPublicView || false;
+        
         console.log('📨 Page ID recebido via postMessage:', pageId);
+        console.log('👁️ Visualização pública:', isPublicView);
         
         // Atualizar Page ID atual
         currentPageId = pageId;
         window.landingPageId = pageId;
-        updatePageIdIndicator(pageId);
+        window.isPublicView = isPublicView;
+        
+        // Adicionar classe ao body se for visualização pública
+        if (isPublicView) {
+          document.body.classList.add('public-view');
+          console.log('👁️ Classe public-view adicionada ao body');
+        }
+        
+        // Esconder botão de reset se for visualização pública
+        const resetBtn = document.getElementById('resetLayoutBtn');
+        if (resetBtn) {
+          if (isPublicView) {
+            resetBtn.style.display = 'none';
+            console.log('🔒 Botão Reset Layout ocultado (visualização pública)');
+          } else {
+            resetBtn.style.display = 'flex';
+            console.log('🔧 Botão Reset Layout exibido (modo edição)');
+          }
+        }
         
         // Carregar dados salvos se ainda não foi carregado
-        if (pageId && !document.querySelector('.loaded-from-db')) {
+        if (pageId && !document.body.classList.contains('loaded-from-db')) {
           console.log('🔄 Carregando dados salvos após receber Page ID...');
           loadSavedData();
         }
@@ -891,7 +1376,6 @@
     window.setLandingPageId = function(id) {
       currentPageId = id;
       window.landingPageId = id;
-      updatePageIdIndicator(id);
       console.log('🆔 ID definido externamente:', id);
       showMessage(`ID atualizado: ${id.substring(0, 8)}...`, 'success');
     };

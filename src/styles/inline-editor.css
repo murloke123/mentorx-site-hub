@@ -1,27 +1,30 @@
-/* Estilos para edição inline */
+/* Inline Editor - Estilos simplificados para edição de texto */
 .inline-editor {
-  @apply relative;
+  position: relative;
 }
 
 .ProseMirror {
-  @apply focus:outline-none;
+  outline: none;
 }
 
 .ProseMirror p.is-editor-empty:first-child::before {
-  @apply text-gray-400 float-left h-0;
   content: attr(data-placeholder);
+  float: left;
+  color: #adb5bd;
   pointer-events: none;
+  height: 0;
 }
 
-/* Overlay de edição para iframe */
+/* Overlay de edição */
 .edit-overlay {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  pointer-events: none;
+  background: rgba(0, 0, 0, 0.1);
   z-index: 1000;
+  pointer-events: none;
 }
 
 .edit-overlay.active {
@@ -136,11 +139,6 @@
 }
 
 /* Diferentes tipos de indicadores */
-.saving-indicator.analyzing {
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
-}
-
 .saving-indicator.success {
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   box-shadow: 0 4px 20px rgba(16, 185, 129, 0.3);
@@ -154,22 +152,6 @@
 .saving-indicator.warning {
   background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
   box-shadow: 0 4px 20px rgba(245, 158, 11, 0.3);
-}
-
-/* Animação de análise */
-@keyframes analyze-pulse {
-  0%, 100% { 
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% { 
-    opacity: 0.7;
-    transform: scale(1.05);
-  }
-}
-
-.saving-indicator.analyzing {
-  animation: analyze-pulse 2s infinite ease-in-out;
 }
 
 .saving-indicator::before {

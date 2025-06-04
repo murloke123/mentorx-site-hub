@@ -98,8 +98,8 @@ const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
   };
 
   const handleCourseDetailsClick = () => {
-    // Redirecionar para a landing page do curso
-    navigate(`/course-page/${course.id}`);
+    // Redirecionar para a nova página de visualização pública da landing page
+    navigate(`/curso/${course.id}`);
   };
 
   const renderPrice = () => {

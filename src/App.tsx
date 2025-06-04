@@ -47,6 +47,7 @@ import CategoriesManagementPage from "@/pages/admin/CategoriesManagementPage";
 // Adicionar import da página de landing
 import CourseLandingPage from "@/pages/mentor/CourseLandingPage";
 import CourseLandingPublicPage from "@/pages/CourseLandingPublicPage";
+import CoursePublicView from "@/pages/CoursePublicView";
 
 const queryClient = new QueryClient();
 
@@ -69,6 +70,7 @@ const AppContent = () => {
           <Route path="/mentors" element={<MentorsPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/course-page/:courseId" element={<CourseLandingPublicPage />} />
+          <Route path="/curso/:courseId" element={<CoursePublicView />} />
           
           {/* Rotas de Mentor */}
           <Route path="/mentor/dashboard" element={<MentorDashboardPage />} />

@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Save, Edit, Eye, EyeOff, X, Bot, Scan } from "lucide-react";
+import { Save, Edit, Eye, EyeOff, X } from "lucide-react";
 import '../../styles/inline-editor.css';
 
 interface TemplateOption {
@@ -16,96 +16,6 @@ interface TemplateOption {
 interface EditableContent {
   [key: string]: any;
 }
-
-interface SectionMapping {
-  selector: string[];
-  keywords: string[];
-  fallbackSelectors: string[];
-}
-
-// Mapeamento inteligente das seções
-const SECTION_MAPPINGS: { [key: string]: SectionMapping } = {
-  sec_hero: {
-    selector: [
-      '.hero', '.banner', '.jumbotron', '[id*="hero"]', '[class*="hero"]',
-      'section:first-of-type', '.main-banner', '.top-section'
-    ],
-    keywords: ['curso', 'aprenda', 'domine', 'transforme', 'descubra'],
-    fallbackSelectors: ['h1', '.title:first-of-type', '.main-title']
-  },
-  sec_about_course: {
-    selector: [
-      '[id*="about"]', '[class*="about"]', '[id*="course"]', '[class*="course"]',
-      '.course-info', '.about-course', '.course-description'
-    ],
-    keywords: ['sobre o curso', 'conteúdo', 'metodologia', 'o que você vai aprender'],
-    fallbackSelectors: ['section:nth-of-type(2)', '.description']
-  },
-  sec_about_mentor: {
-    selector: [
-      '[id*="mentor"]', '[class*="mentor"]', '[id*="instrutor"]', '[class*="instrutor"]',
-      '.teacher', '.instructor', '.about-mentor'
-    ],
-    keywords: ['mentor', 'instrutor', 'professor', 'especialista', 'quem sou'],
-    fallbackSelectors: ['.profile', '.bio']
-  },
-  sec_results: {
-    selector: [
-      '[id*="result"]', '[class*="result"]', '[id*="sucesso"]', '[class*="sucesso"]',
-      '.results', '.success', '.achievements'
-    ],
-    keywords: ['resultados', 'sucesso', 'conquistas', 'transformação', 'antes e depois'],
-    fallbackSelectors: ['.stats', '.numbers']
-  },
-  sec_testimonials: {
-    selector: [
-      '[id*="testimonial"]', '[class*="testimonial"]', '[id*="depoimento"]', '[id*="depoimento"]',
-      '.reviews', '.feedback', '.testimonials'
-    ],
-    keywords: ['depoimento', 'testemunho', 'avaliação', 'feedback', 'alunos'],
-    fallbackSelectors: ['.review', '.quote']
-  },
-  sec_curriculum: {
-    selector: [
-      '[id*="curriculum"]', '[class*="curriculum"]', '[id*="modulo"]', '[id*="modulo"]',
-      '.modules', '.curriculum', '.course-content', '.syllabus'
-    ],
-    keywords: ['módulos', 'currículo', 'conteúdo programático', 'grade', 'aulas'],
-    fallbackSelectors: ['.content-list', '.modules-list']
-  },
-  sec_bonus: {
-    selector: [
-      '[id*="bonus"]', '[class*="bonus"]', '[id*="extra"]', '[class*="extra"]',
-      '.bonuses', '.extras', '.additional'
-    ],
-    keywords: ['bônus', 'extras', 'brinde', 'adicional', 'grátis'],
-    fallbackSelectors: ['.gifts', '.freebies']
-  },
-  sec_pricing: {
-    selector: [
-      '[id*="pricing"]', '[class*="pricing"]', '[id*="preco"]', '[id*="preco"]',
-      '.price', '.investment', '.payment', '.plans'
-    ],
-    keywords: ['preço', 'investimento', 'valor', 'R$', 'pagamento'],
-    fallbackSelectors: ['.price-box', '.cost']
-  },
-  sec_faq: {
-    selector: [
-      '[id*="faq"]', '[class*="faq"]', '[id*="duvida"]', '[id*="duvida"]',
-      '.questions', '.doubts', '.help'
-    ],
-    keywords: ['faq', 'perguntas', 'dúvidas', 'ajuda', 'questões'],
-    fallbackSelectors: ['.accordion', '.qa']
-  },
-  sec_final_cta: {
-    selector: [
-      '[id*="cta"]', '[class*="cta"]', '[id*="action"]', '[id*="action"]',
-      '.call-to-action', '.final-cta', '.subscribe', '.buy-now'
-    ],
-    keywords: ['inscreva-se', 'comprar', 'adquirir', 'começar', 'garanta'],
-    fallbackSelectors: ['button:last-of-type', '.btn-primary:last-of-type']
-  }
-};
 
 // Mapeamento de data-field para campos do banco
 const HERO_FIELD_MAP = {
@@ -155,7 +65,6 @@ const CourseLandingPage: React.FC = () => {
   const [editableContent, setEditableContent] = useState<EditableContent>({});
   const [originalContent, setOriginalContent] = useState<EditableContent>({});
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [modalAction, setModalAction] = useState<'exit' | 'close'>('exit');
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -209,31 +118,50 @@ const CourseLandingPage: React.FC = () => {
             sec_faq: (existingPage as any).sec_faq || {},
             sec_final_cta: (existingPage as any).sec_final_cta || {}
           };
+          
           setEditableContent(content);
           setOriginalContent(content);
           
-          setIsPageLoading(false);
-          console.log(`✅ Template "${templateType}" carregado em paralelo!`);
-          } else {
-          // Se não existe, criar um novo
-          await initializeLandingPage(courseId, course.mentor_id);
+          console.log('📦 Conteúdo carregado:', Object.keys(content).length, 'seções');
+        } else {
+          // Não existe landing page, criar uma nova
+          console.log('🆕 Criando nova landing page...');
+          const mentorId = course.mentor_id;
+          if (mentorId) {
+            await initializeLandingPage(courseId, mentorId);
+          }
         }
-
       } catch (error) {
         console.error('❌ Erro ao carregar dados:', error);
-        // Fallback para modelo1 em caso de erro
-        setSelectedTemplate('modelo1');
-        setActiveTemplate('modelo1');
-        setIsPageLoading(false);
+      } finally {
+        // Delay para evitar flash de template errado
+        setTimeout(() => {
+          setIsPageLoading(false);
+        }, 300);
       }
     };
 
     loadData();
   }, [courseId]);
 
+  // Efeito para mudança de template
+  useEffect(() => {
+    if (selectedTemplate && selectedTemplate !== activeTemplate) {
+      console.log(`🔄 Template mudou de ${activeTemplate} para ${selectedTemplate}`);
+      setIsPageLoading(true);
+      
+      // Delay para garantir carregamento suave
+      setTimeout(() => {
+        setIsPageLoading(false);
+      }, 500);
+    }
+  }, [selectedTemplate]);
+
   const initializeLandingPage = async (courseId: string, mentorId: string) => {
     try {
-      // Verificar se já existe landing page para este curso
+      console.log('🚀 Inicializando landing page...');
+      
+      // Primeiro, verificar se já existe uma landing page
       const { data: existingPage } = await supabase
         .from('course_landing_pages')
         .select('*')
@@ -241,254 +169,89 @@ const CourseLandingPage: React.FC = () => {
         .single();
 
       if (existingPage) {
-        // Landing page já existe - carregar dados
-        console.log('✅ Landing page encontrada:', existingPage.template_type);
-        
-        // Definir templates de forma atômica para evitar flash
-        const templateType = existingPage.template_type;
-        setSelectedTemplate(templateType);
-        setActiveTemplate(templateType);
+        console.log('✅ Landing page já existe, usando existente');
         setLandingPageId(existingPage.id);
-        
-        // Carregar conteúdo editável
-        const content = {
-          sec_hero: (existingPage as any).sec_hero || {},
-          sec_about_course: (existingPage as any).sec_about_course || {},
-          sec_about_mentor: (existingPage as any).sec_about_mentor || {},
-          sec_results: (existingPage as any).sec_results || {},
-          sec_testimonials: (existingPage as any).sec_testimonials || {},
-          sec_curriculum: (existingPage as any).sec_curriculum || {},
-          sec_bonus: (existingPage as any).sec_bonus || {},
-          sec_pricing: (existingPage as any).sec_pricing || {},
-          sec_faq: (existingPage as any).sec_faq || {},
-          sec_final_cta: (existingPage as any).sec_final_cta || {}
-        };
-        setEditableContent(content);
-        setOriginalContent(content);
-        
-        console.log(`✅ Template "${templateType}" carregado sem flash`);
-      } else {
-        // Landing page não existe - criar com modelo1 padrão
-        console.log('⚠️ Landing page não encontrada. Criando com modelo1 padrão...');
-        
-        const { data: newPage, error } = await supabase
-          .from('course_landing_pages')
-          .insert({
+        setSelectedTemplate(existingPage.template_type);
+        setActiveTemplate(existingPage.template_type);
+        return;
+      }
+
+      // Criar nova landing page com template modelo1 como padrão
+      const { data: newPage, error } = await supabase
+        .from('course_landing_pages')
+        .insert([
+          {
             course_id: courseId,
             mentor_id: mentorId,
             template_type: 'modelo1',
-            is_active: true
-          })
-          .select()
-          .single();
+            is_active: true,
+            sec_hero: {},
+            sec_about_course: {},
+            sec_about_mentor: {},
+            sec_results: {},
+            sec_testimonials: {},
+            sec_curriculum: {},
+            sec_bonus: {},
+            sec_pricing: {},
+            sec_faq: {},
+            sec_final_cta: {}
+          }
+        ])
+        .select()
+        .single();
 
-        if (error) {
-          console.error('❌ Erro ao criar landing page:', error);
-          return;
-        }
+      if (error) throw error;
 
-        console.log('✅ Landing page criada com modelo1');
-        setSelectedTemplate('modelo1');
-        setActiveTemplate('modelo1');
-        setLandingPageId(newPage.id);
-        setEditableContent({
-          sec_hero: {},
-          sec_about_course: {},
-          sec_about_mentor: {},
-          sec_results: {},
-          sec_testimonials: {},
-          sec_curriculum: {},
-          sec_bonus: {},
-          sec_pricing: {},
-          sec_faq: {},
-          sec_final_cta: {}
-        });
-        setOriginalContent({
-          sec_hero: {},
-          sec_about_course: {},
-          sec_about_mentor: {},
-          sec_results: {},
-          sec_testimonials: {},
-          sec_curriculum: {},
-          sec_bonus: {},
-          sec_pricing: {},
-          sec_faq: {},
-          sec_final_cta: {}
-        });
-      }
-      
-      // Finalizar loading após definir TODOS os estados
-      setTimeout(() => {
-        setIsPageLoading(false);
-      }, 50); // Reduzir delay para ser mais rápido
-      
-    } catch (error) {
-      console.error('❌ Erro ao inicializar landing page:', error);
-      // Em caso de erro, usar modelo1 como fallback
+      console.log('✅ Nova landing page criada com ID:', newPage.id);
+      setLandingPageId(newPage.id);
       setSelectedTemplate('modelo1');
       setActiveTemplate('modelo1');
-      setIsPageLoading(false);
+      
+      // Inicializar conteúdo vazio
+      const emptyContent = {
+        sec_hero: {},
+        sec_about_course: {},
+        sec_about_mentor: {},
+        sec_results: {},
+        sec_testimonials: {},
+        sec_curriculum: {},
+        sec_bonus: {},
+        sec_pricing: {},
+        sec_faq: {},
+        sec_final_cta: {}
+      };
+      
+      setEditableContent(emptyContent);
+      setOriginalContent(emptyContent);
+
+    } catch (error) {
+      console.error('❌ Erro ao inicializar landing page:', error);
     }
   };
 
   const handleSaveTemplate = async () => {
-    if (!courseId || !landingPageId || !selectedTemplate) return;
+    if (!landingPageId || !selectedTemplate) return;
 
     setIsLoading(true);
-    setIsPageLoading(true);
-    
     try {
-      console.log(`🔄 Atualizando template de ${activeTemplate} para ${selectedTemplate}`);
-
-      // Fazer UPDATE apenas no template_type
       const { error } = await supabase
         .from('course_landing_pages')
         .update({ 
           template_type: selectedTemplate,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString() 
         })
         .eq('id', landingPageId);
 
       if (error) throw error;
 
       setActiveTemplate(selectedTemplate);
-      console.log('✅ Template atualizado com sucesso!');
-      
-      // Pequeno delay para evitar flash
-      setTimeout(() => {
-        setIsPageLoading(false);
-        alert('Template salvo com sucesso!');
-      }, 300);
+      console.log('✅ Template salvo:', selectedTemplate);
       
     } catch (error) {
       console.error('❌ Erro ao salvar template:', error);
-      setIsPageLoading(false);
-      alert('Erro ao salvar template');
     } finally {
       setIsLoading(false);
     }
-  };
-
-  // 🤖 ROBÔ ANALISADOR INTELIGENTE (ATUALIZADO para usar seletores específicos)
-  const analyzePageContent = async () => {
-    const iframe = iframeRef.current;
-    if (!iframe || !iframe.contentDocument) {
-      console.error('❌ Iframe não disponível para análise');
-      const indicator = document.createElement('div');
-      indicator.className = 'saving-indicator error show';
-      indicator.innerHTML = '❌ Página não carregada';
-      document.body.appendChild(indicator);
-      setTimeout(() => indicator.remove(), 3000);
-      return;
-    }
-
-    setIsAnalyzing(true);
-    const analyzingIndicator = showAnalyzingIndicator();
-    
-    try {
-      console.log('🤖 Analisando seção hero com seletores específicos...');
-      
-      // Extrair conteúdo usando seletores específicos
-      const extractedContent = extractContentFromPage();
-      
-      if (!extractedContent) {
-        throw new Error('Não foi possível extrair conteúdo da página');
-      }
-      
-      // Contar elementos encontrados
-      const heroContent = extractedContent.sec_hero.element_1;
-      const fieldsFound = Object.keys(heroContent).filter(key => 
-        key !== 'position' && key !== 'className' && key !== 'extractedAt' && heroContent[key]
-      );
-      
-      if (fieldsFound.length === 0) {
-        throw new Error('Nenhum campo válido foi encontrado na seção hero');
-      }
-      
-      // Remover indicador de análise
-      analyzingIndicator.remove();
-      
-      // Salvar conteúdo analisado
-      await saveExtractedContent(extractedContent);
-      
-      console.log(`🎉 Análise concluída! ${fieldsFound.length} campos extraídos da hero`);
-      showAnalysisCompleteIndicator();
-      
-      // Mostrar resumo da análise
-      const summary = fieldsFound.map(field => `${field}: "${heroContent[field]}"`).join('\n');
-      
-      setTimeout(() => {
-        alert(`🤖 Análise da Hero Concluída!\n\nCampos extraídos: ${fieldsFound.length}\n\nConteúdo encontrado:\n${summary}`);
-      }, 1000);
-      
-    } catch (error) {
-      console.error('❌ Erro durante análise:', error);
-      analyzingIndicator.remove();
-      
-      const errorIndicator = document.createElement('div');
-      errorIndicator.className = 'saving-indicator error show';
-      errorIndicator.innerHTML = `❌ Erro: ${error instanceof Error ? error.message : 'Erro desconhecido'}`;
-      document.body.appendChild(errorIndicator);
-      setTimeout(() => errorIndicator.remove(), 5000);
-      
-    } finally {
-      setIsAnalyzing(false);
-    }
-  };
-
-  // Extrair conteúdo estruturado de um elemento
-  const extractElementContent = (element: Element) => {
-    const text = element.textContent?.trim() || '';
-    const tagName = element.tagName.toLowerCase();
-    const className = element.className || '';
-    
-    // Filtrar textos muito curtos ou vazios
-    if (!text || text.length < 5) {
-      return null;
-    }
-    
-    // Detectar tipo de conteúdo
-    let contentType = 'text';
-    if (tagName === 'button' || className.includes('btn')) contentType = 'button';
-    else if (tagName.startsWith('h')) contentType = 'heading';
-    else if (className.includes('price') || text.includes('R$')) contentType = 'price';
-    
-    return {
-      text: text,
-      type: contentType,
-      tagName: tagName
-    };
-  };
-
-  // Salvar conteúdo analisado no banco
-  const saveAnalyzedContent = async (content: EditableContent) => {
-    if (!landingPageId) return;
-
-    try {
-      console.log('💾 Salvando conteúdo analisado...');
-      
-      const { error } = await supabase
-        .from('course_landing_pages')
-        .update({
-          ...content,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', landingPageId);
-
-      if (error) throw error;
-
-      console.log('✅ Conteúdo analisado salvo com sucesso!');
-      setHasUnsavedChanges(false);
-      
-    } catch (error) {
-      console.error('❌ Erro ao salvar conteúdo analisado:', error);
-      throw error;
-    }
-  };
-
-  // Aplicar conteúdo salvo de volta à página
-  const applyContentToPage = () => {
-    console.log('📝 Conteúdo salvo no banco de dados. Página original mantida intacta.');
   };
 
   // Modo de edição inline funcional
@@ -571,153 +334,41 @@ const CourseLandingPage: React.FC = () => {
           }
           .editable-text:hover .section-badge {
             opacity: 1 !important;
-            transform: translateY(-2px) !important;
-          }
-          @keyframes saving-pulse {
-            0%, 100% { 
-              background-color: rgba(16, 185, 129, 0.05) !important; 
-              outline-color: #10b981 !important;
-            }
-            50% { 
-              background-color: rgba(16, 185, 129, 0.15) !important;
-              outline-color: #059669 !important;
-            }
-          }
-          .editable-text.saving {
-            animation: saving-pulse 1.5s infinite !important;
-          }
-          /* Garantir que elementos com outline sejam visíveis */
-          * {
-            outline-style: dashed !important;
-          }
-          .editable-text[contenteditable="true"] {
-            outline: 3px dashed #3b82f6 !important;
-            outline-offset: 3px !important;
           }
         `;
         doc.head.appendChild(style);
-        
-        // Adicionar indicador visual melhorado no topo
-        const indicator = doc.createElement('div');
-        indicator.className = 'edit-indicator';
-        indicator.innerHTML = '✏️ MODO EDIÇÃO ATIVO<br><small style="font-size: 11px; opacity: 0.8;">Duplo clique para editar</small>';
-        doc.body.appendChild(indicator);
-        
-        console.log('🎨 Estilos de edição aplicados!');
       }
 
-      // Encontrar e tornar elementos editáveis
-      console.log('🔍 Iniciando processo de tornar elementos editáveis...');
+      // Tornar elementos editáveis
       makeElementsEditable(doc);
       
-    } else {
-      // Remover modo de edição
-      const style = doc.querySelector('#edit-mode-styles');
-      const indicator = doc.querySelector('.edit-indicator');
-      if (style) style.remove();
-      if (indicator) indicator.remove();
-      
-      // Remover edição de todos os elementos
-      const editables = doc.querySelectorAll('.editable-text');
-      console.log(`🧹 Removendo edição de ${editables.length} elementos`);
-      editables.forEach((element: any) => {
-        element.classList.remove('editable-text', 'editing', 'saving');
-        element.contentEditable = 'false';
-        element.removeAttribute('data-section');
-        element.removeAttribute('data-original-text');
-        element.removeAttribute('data-edit-id');
-        element.removeAttribute('data-field-type');
-        
-        // Limpar estilos inline forçados
-        element.style.outline = '';
-        element.style.outlineOffset = '';
-        element.style.backgroundColor = '';
-        element.style.cursor = '';
-        element.style.transition = '';
-        element.style.borderRadius = '';
-        element.style.minHeight = '';
-        element.style.boxShadow = '';
-        element.style.transform = '';
-        
-        // Remover badges
-        const badge = element.querySelector('.section-badge');
-        if (badge) badge.remove();
-      });
-    }
-  };
-
-  // NOVO: Extrair conteúdo automaticamente da página usando data-field attributes
-  const extractContentFromPage = () => {
-    const iframe = iframeRef.current;
-    if (!iframe || !iframe.contentDocument) return null;
-
-    const doc = iframe.contentDocument;
-    const heroContent: any = {
-      position: 0,
-      className: '',
-      extractedAt: new Date().toISOString()
-    };
-
-    // Extrair cada campo usando seu data-field attribute
-    Object.keys(HERO_FIELD_MAP).forEach((fieldType) => {
-      try {
-        const element = doc.querySelector(`[data-field="${fieldType}"]`);
-        if (element) {
-          heroContent[fieldType] = element.textContent?.trim() || '';
-          console.log(`✅ Extraído ${fieldType}:`, heroContent[fieldType]);
-        } else {
-          console.warn(`⚠️ Elemento não encontrado para ${fieldType}`);
-        }
-      } catch (error) {
-        console.error(`❌ Erro ao extrair ${fieldType}:`, error);
+      // Adicionar indicador de modo de edição
+      let indicator = doc.querySelector('.edit-indicator');
+      if (!indicator) {
+        indicator = doc.createElement('div');
+        indicator.className = 'edit-indicator';
+        indicator.textContent = '✏️ Modo de Edição Ativo';
+        doc.body.appendChild(indicator);
       }
-    });
-
-    return heroContent;
-  };
-
-  // NOVO: Salvar conteúdo extraído automaticamente no banco
-  const saveExtractedContent = async (content: any) => {
-    if (!landingPageId) return;
-
-    try {
-      console.log('💾 Salvando conteúdo extraído...', content);
       
-      // CORRIGIDO: Salvar no formato JSONB dentro de sec_hero
-      const heroData = {
-        element_1: {
-          ...content,
-          extractedAt: new Date().toISOString(),
-          position: 0,
-          className: ''
-        }
-      };
-      
-      const { error } = await supabase
-        .from('course_landing_pages')
-        .update({
-          sec_hero: heroData,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', landingPageId);
+    } else {
+      // Remover estilos de edição
+      const style = doc.querySelector('#edit-mode-styles');
+      if (style) style.remove();
 
-      if (error) throw error;
+      // Remover classes de edição
+      const editableElements = doc.querySelectorAll('.editable-text');
+      editableElements.forEach(el => {
+        el.classList.remove('editable-text', 'editing');
+        el.removeAttribute('contenteditable');
+        el.removeEventListener('input', handleTextInput);
+        el.removeEventListener('blur', handleTextBlur);
+        el.removeEventListener('keydown', handleKeyDown);
+      });
 
-      // Atualizar estado local no formato correto
-      setEditableContent(prev => ({
-        ...prev,
-        sec_hero: heroData
-      }));
-      
-      setOriginalContent(prev => ({
-        ...prev,
-        sec_hero: heroData
-      }));
-      
-      console.log('✅ Conteúdo extraído salvo no banco!');
-      
-    } catch (error) {
-      console.error('❌ Erro ao salvar conteúdo extraído:', error);
+      // Remover indicador
+      const indicator = doc.querySelector('.edit-indicator');
+      if (indicator) indicator.remove();
     }
   };
 
@@ -750,316 +401,199 @@ const CourseLandingPage: React.FC = () => {
     console.log(`✅ ${editableCount} elementos da hero tornados editáveis!`);
   };
 
-  // Detectar seção do elemento (CORRIGIDO: priorizar posição visual)
-  const detectSectionForElement = (element: Element): string => {
-    // 1. PRIMEIRO: Detectar por estrutura/posição visual na página
-    const rect = element.getBoundingClientRect();
-    const scrollTop = element.ownerDocument?.documentElement.scrollTop || 0;
-    const absoluteTop = rect.top + scrollTop;
-    const windowHeight = element.ownerDocument?.defaultView?.innerHeight || 1000;
-    
-    // 2. Detectar por containers pais específicos (mais confiável)
-    const heroContainer = element.closest('[class*="hero"], section:first-of-type, .hero-section, #hero');
-    if (heroContainer) return 'sec_hero';
-    
-    const aboutContainer = element.closest('[class*="about"], [id*="about"], .about-section');
-    if (aboutContainer && !heroContainer) return 'sec_about_course';
-    
-    const mentorContainer = element.closest('[class*="mentor"], [id*="mentor"], .mentor-section');
-    if (mentorContainer) return 'sec_about_mentor';
-    
-    const resultsContainer = element.closest('[class*="result"], [id*="result"], .results-section');
-    if (resultsContainer) return 'sec_results';
-    
-    const testimonialsContainer = element.closest('[class*="testimonial"], [id*="testimonial"], .testimonials-section');
-    if (testimonialsContainer) return 'sec_testimonials';
-    
-    const curriculumContainer = element.closest('[class*="curriculum"], [id*="curriculum"], [class*="module"], .curriculum-section');
-    if (curriculumContainer) return 'sec_curriculum';
-    
-    const bonusContainer = element.closest('[class*="bonus"], [id*="bonus"], .bonus-section');
-    if (bonusContainer) return 'sec_bonus';
-    
-    const pricingContainer = element.closest('[class*="pricing"], [id*="pricing"], [class*="price"], .pricing-section');
-    if (pricingContainer) return 'sec_pricing';
-    
-    const faqContainer = element.closest('[class*="faq"], [id*="faq"], .faq-section');
-    if (faqContainer) return 'sec_faq';
-    
-    const ctaContainer = element.closest('[class*="cta"], [id*="cta"], .cta-section');
-    if (ctaContainer) return 'sec_final_cta';
-    
-    // 3. Detectar por posição vertical na página (fallback confiável)
-    if (absoluteTop < windowHeight * 1.2) return 'sec_hero';           // Primeira tela = hero
-    if (absoluteTop < windowHeight * 2.0) return 'sec_about_course';   // Segunda tela = about course  
-    if (absoluteTop < windowHeight * 3.0) return 'sec_about_mentor';   // Terceira tela = mentor
-    if (absoluteTop < windowHeight * 4.0) return 'sec_results';        // Quarta tela = resultados
-    if (absoluteTop < windowHeight * 5.0) return 'sec_testimonials';   // Quinta tela = depoimentos
-    if (absoluteTop < windowHeight * 6.0) return 'sec_curriculum';     // Sexta tela = currículo
-    if (absoluteTop < windowHeight * 7.0) return 'sec_bonus';          // Sétima tela = bônus
-    if (absoluteTop < windowHeight * 8.0) return 'sec_pricing';        // Oitava tela = preços
-    if (absoluteTop < windowHeight * 9.0) return 'sec_faq';            // Nona tela = FAQ
-    
-    // 4. ÚLTIMO RECURSO: Detectar por conteúdo (apenas como fallback)
-    const text = element.textContent?.toLowerCase() || '';
-    const classes = element.className?.toLowerCase() || '';
-    
-    if (text.includes('mentor') || text.includes('instrutor') || classes.includes('mentor')) return 'sec_about_mentor';
-    if (text.includes('depoimento') || text.includes('testemunho') || classes.includes('testimonial')) return 'sec_testimonials';
-    if (text.includes('módulo') || text.includes('currículo') || text.includes('conteúdo') || classes.includes('curriculum')) return 'sec_curriculum';
-    if (text.includes('bônus') || text.includes('extra') || classes.includes('bonus')) return 'sec_bonus';
-    if (text.includes('preço') || text.includes('r$') || text.includes('investimento') || classes.includes('price')) return 'sec_pricing';
-    if (text.includes('faq') || text.includes('pergunta') || text.includes('dúvida')) return 'sec_faq';
-    if (element.tagName === 'BUTTON' || classes.includes('cta') || text.includes('inscreva')) return 'sec_final_cta';
-    
-    // Default: CTA final se chegou até aqui
-    return 'sec_final_cta';
-  };
-
   // Handler para duplo clique
   const handleDoubleClick = (event: Event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    
-    const element = event.target as HTMLElement;
-    element.classList.add('editing');
-    element.focus();
-    
-    // Selecionar todo o texto
-    const selection = element.ownerDocument?.defaultView?.getSelection();
-    const range = element.ownerDocument?.createRange();
-    if (selection && range) {
-      range.selectNodeContents(element);
-      selection.removeAllRanges();
-      selection.addRange(range);
+    const target = event.target as HTMLElement;
+    if (target.classList.contains('editable-text')) {
+      target.classList.add('editing');
+      target.focus();
     }
-    
-    console.log('✏️ Iniciando edição:', element.textContent);
   };
 
-  // Handler para input de texto (ATUALIZADO para preservar formatação)
+  // Handler para entrada de texto
   const handleTextInput = (event: Event) => {
-    const element = event.target as HTMLElement;
-    const section = element.getAttribute('data-section') || 'sec_hero';
-    const fieldType = element.getAttribute('data-field-type') || 'description';
-    
-    // IMPORTANTE: Preservar apenas o texto, não HTML
-    const newText = element.textContent || '';
-    
-    // Atualizar campo específico na estrutura
-    setEditableContent(prev => {
-      const sectionContent = prev[section] || {};
-      const element1 = sectionContent['element_1'] || {};
-      
-      return {
-        ...prev,
-        [section]: {
-          ...sectionContent,
-          element_1: {
-            ...element1,
-            [fieldType]: newText,
-            extractedAt: element1.extractedAt || new Date().toISOString(),
-            position: element1.position || 0,
-            className: element1.className || ''
-          }
-        }
-      };
-    });
-    
+    const target = event.target as HTMLElement;
     setHasUnsavedChanges(true);
-    element.classList.add('saving');
     
-    // Limpar timeout anterior se existir
+    // Auto-save com debounce
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current);
     }
+    
+    saveTimeoutRef.current = setTimeout(() => {
+      console.log('💾 Auto-salvando mudanças...');
+      saveEditedContent();
+    }, 2000); // 2 segundos de debounce
   };
 
-  // Handler para blur (sair do foco) - SEM SALVAR AUTOMATICAMENTE
+  // Handler para sair do foco (blur)
   const handleTextBlur = (event: Event) => {
-    const element = event.target as HTMLElement;
-    element.classList.remove('editing', 'saving');
+    const target = event.target as HTMLElement;
+    target.classList.remove('editing');
+    
+    // Salvar imediatamente ao sair do campo
+    if (hasUnsavedChanges) {
+      console.log('💾 Salvando ao sair do campo...');
+      saveEditedContent();
+    }
   };
 
   // Handler para teclas
   const handleKeyDown = (event: KeyboardEvent) => {
-    // Enter = sair da edição
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
       (event.target as HTMLElement).blur();
     }
     
-    // Escape = cancelar edição
     if (event.key === 'Escape') {
-      event.preventDefault();
-      const element = event.target as HTMLElement;
-      const originalText = element.getAttribute('data-original-text') || '';
-      element.textContent = originalText;
-      element.blur();
-    }
-  };
-
-  // Handler para salvar edições (chamado pelo botão)
-  const handleSaveEditedContent = async () => {
-    try {
-      await saveEditedContent();
-      console.log('✅ Edições salvas pelo botão!');
-      alert('Edições salvas com sucesso!');
-    } catch (error) {
-      console.error('❌ Erro ao salvar edições:', error);
-      alert('Erro ao salvar edições. Tente novamente.');
-    }
-  };
-
-  // Handler para toggle do modo de edição (com modal)
-  const handleToggleEditMode = () => {
-    if (isEditMode && hasUnsavedChanges) {
-      // Mostrar modal de confirmação
-      setModalAction('exit');
-      setShowSaveModal(true);
-    } else {
-      // Alternar modo sem confirmação
-      toggleEditMode();
-    }
-  };
-
-  // Toggle modo de edição com confirmação
-  const toggleEditMode = async () => {
-    if (isEditMode) {
-      // Sair do modo de edição
-      setIsEditMode(false);
-      setHasUnsavedChanges(false);
-    } else {
-      // Entrando no modo de edição
-      setIsEditMode(true);
-      setHasUnsavedChanges(false);
-      // Salvar estado atual como original
-      setOriginalContent({ ...editableContent });
+      (event.target as HTMLElement).blur();
     }
   };
 
   // Salvar conteúdo editado
+  const handleSaveEditedContent = async () => {
+    try {
+      await saveEditedContent();
+      showSuccessIndicator();
+    } catch (error) {
+      console.error('❌ Erro ao salvar:', error);
+      showErrorIndicator();
+    }
+  };
+
+  // Toggle do modo de edição
+  const handleToggleEditMode = () => {
+    if (isEditMode && hasUnsavedChanges) {
+      setShowSaveModal(true);
+      setModalAction('exit');
+    } else {
+      toggleEditMode();
+    }
+  };
+
+  const toggleEditMode = async () => {
+    setIsEditMode(!isEditMode);
+    console.log(`🎯 Modo de edição: ${!isEditMode ? 'ATIVADO' : 'DESATIVADO'}`);
+    
+    // Se saindo do modo de edição, garantir que mudanças sejam aplicadas
+    if (isEditMode) {
+      setTimeout(() => {
+        applyChangesToPage();
+      }, 100);
+    }
+  };
+
+  // Salvar mudanças editadas
   const saveEditedContent = async () => {
-    if (!landingPageId || Object.keys(editableContent).length === 0) return;
+    if (!landingPageId || !hasUnsavedChanges) return;
 
     try {
-      console.log('💾 Salvando edições inline...', editableContent);
+      console.log('💾 Salvando conteúdo editado...');
       
-      const { error } = await supabase
-        .from('course_landing_pages')
-        .update({
-          ...editableContent,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', landingPageId);
+      // Extrair conteúdo dos elementos editáveis no iframe
+      const iframe = iframeRef.current;
+      if (iframe && iframe.contentDocument) {
+        const updatedContent = { ...editableContent };
+        
+        // Extrair apenas conteúdo da hero por enquanto
+        Object.keys(HERO_FIELD_MAP).forEach((fieldType) => {
+          const element = iframe.contentDocument!.querySelector(`[data-field="${fieldType}"]`);
+          if (element) {
+            const content = element.innerHTML.trim();
+            if (!updatedContent.sec_hero) updatedContent.sec_hero = {};
+            if (!updatedContent.sec_hero.element_1) updatedContent.sec_hero.element_1 = {};
+            updatedContent.sec_hero.element_1[fieldType] = content;
+          }
+        });
 
-      if (error) throw error;
+        // Salvar no banco
+        const { error } = await supabase
+          .from('course_landing_pages')
+          .update({
+            ...updatedContent,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', landingPageId);
 
-      // Atualizar conteúdo original após salvar com sucesso
-      setOriginalContent({ ...editableContent });
-      setHasUnsavedChanges(false);
-      
-      // Aplicar mudanças de volta à página
-      applyChangesToPage();
-      
-      console.log('✅ Edições salvas e aplicadas à página!');
-      
+        if (error) throw error;
+
+        setEditableContent(updatedContent);
+        setOriginalContent(updatedContent);
+        setHasUnsavedChanges(false);
+        
+        console.log('✅ Conteúdo salvo com sucesso!');
+      }
     } catch (error) {
-      console.error('❌ Erro ao salvar edições:', error);
+      console.error('❌ Erro ao salvar conteúdo:', error);
       throw error;
     }
   };
 
-  // NOVO: Aplicar mudanças preservando formatação CSS
+  // Aplicar mudanças à página
   const applyChangesToPage = () => {
     const iframe = iframeRef.current;
     if (!iframe || !iframe.contentDocument) return;
 
-    const doc = iframe.contentDocument;
+    console.log('📝 Aplicando mudanças à página...');
     
-    // Aplicar apenas para campos da hero
-    Object.entries(HERO_FIELD_MAP).forEach(([fieldType, selector]) => {
-      try {
-        const element = doc.querySelector(selector) as HTMLElement;
-        if (element && editableContent.sec_hero?.element_1?.[fieldType]) {
-          const newText = editableContent.sec_hero.element_1[fieldType];
-          
-          // PRESERVAR formatação: atualizar apenas textContent
-          element.textContent = newText;
-          element.setAttribute('data-original-text', newText);
-          element.classList.remove('editing', 'saving');
-          
-          console.log(`✅ Aplicado ${fieldType}: "${newText}"`);
-        }
-      } catch (error) {
-        console.error(`❌ Erro ao aplicar ${fieldType}:`, error);
+    // Aplicar conteúdo salvo aos elementos
+    Object.keys(HERO_FIELD_MAP).forEach((fieldType) => {
+      const element = iframe.contentDocument!.querySelector(`[data-field="${fieldType}"]`);
+      const savedContent = editableContent.sec_hero?.element_1?.[fieldType];
+      
+      if (element && savedContent) {
+        element.innerHTML = savedContent;
+        console.log(`✅ Aplicado ${fieldType}:`, savedContent.substring(0, 50) + '...');
       }
     });
-    
-    console.log('🔄 Mudanças aplicadas preservando CSS');
   };
 
-  // NOVO: Restaurar texto original preservando formatação
+  // Restaurar conteúdo original
   const restoreOriginalTextInPage = () => {
     const iframe = iframeRef.current;
     if (!iframe || !iframe.contentDocument) return;
 
-    const doc = iframe.contentDocument;
+    console.log('🔄 Restaurando texto original...');
     
-    Object.entries(HERO_FIELD_MAP).forEach(([fieldType, selector]) => {
-      try {
-        const element = doc.querySelector(selector) as HTMLElement;
-        if (element) {
-          // Restaurar do conteúdo original ou fallback
-          const originalText = originalContent.sec_hero?.element_1?.[fieldType] || 
-                             element.getAttribute('data-original-text') || '';
-          
-          element.textContent = originalText;
-          element.setAttribute('data-original-text', originalText);
-          element.classList.remove('editing', 'saving');
-        }
-      } catch (error) {
-        console.error(`❌ Erro ao restaurar ${fieldType}:`, error);
+    // Restaurar texto original dos elementos editáveis
+    const editableElements = iframe.contentDocument.querySelectorAll('.editable-text');
+    editableElements.forEach((element) => {
+      const originalText = element.getAttribute('data-original-text');
+      if (originalText) {
+        element.textContent = originalText;
       }
     });
-    
-    console.log('🔄 Texto original restaurado preservando CSS');
   };
 
-  // NOVO: Carregar e aplicar conteúdo salvo preservando formatação
+  // Carregar conteúdo salvo para a página
   const loadSavedContentToPage = () => {
     const iframe = iframeRef.current;
     if (!iframe || !iframe.contentDocument) return;
 
-    const doc = iframe.contentDocument;
+    console.log('📥 Carregando conteúdo salvo para a página...');
     
-    Object.entries(HERO_FIELD_MAP).forEach(([fieldType, selector]) => {
-      try {
-        const element = doc.querySelector(selector) as HTMLElement;
-        if (element && editableContent.sec_hero?.element_1?.[fieldType]) {
-          const savedText = editableContent.sec_hero.element_1[fieldType];
-          element.textContent = savedText;
-          element.setAttribute('data-original-text', savedText);
-          console.log(`📝 Carregado ${fieldType}: "${savedText}"`);
+    // Aplicar conteúdo salvo da hero
+    if (editableContent.sec_hero?.element_1) {
+      Object.keys(HERO_FIELD_MAP).forEach((fieldType) => {
+        const element = iframe.contentDocument!.querySelector(`[data-field="${fieldType}"]`);
+        const savedContent = editableContent.sec_hero.element_1[fieldType];
+        
+        if (element && savedContent) {
+          element.innerHTML = savedContent;
+          console.log(`✅ Carregado ${fieldType}:`, savedContent.substring(0, 50) + '...');
         }
-      } catch (error) {
-        console.error(`❌ Erro ao carregar ${fieldType}:`, error);
-      }
-    });
-    
-    console.log('📄 Conteúdo salvo carregado preservando CSS');
+      });
+    }
   };
 
-  // Função para fechar a página
+  // Handler para fechar página
   const handleClosePage = async () => {
-    // Se estiver no modo de edição com alterações, mostrar modal
-    if (isEditMode && hasUnsavedChanges) {
-      setModalAction('close');
+    if (hasUnsavedChanges) {
       setShowSaveModal(true);
-      return;
+      setModalAction('close');
+    } else {
+      navigate('/mentor/cursos');
     }
-    
-    navigate('/mentor/cursos');
   };
 
   // Indicadores visuais
@@ -1077,18 +611,7 @@ const CourseLandingPage: React.FC = () => {
   const showSuccessIndicator = () => {
     const indicator = document.createElement('div');
     indicator.className = 'saving-indicator success show';
-    indicator.innerHTML = '✅ Salvo!';
-    document.body.appendChild(indicator);
-    
-    setTimeout(() => {
-      indicator.remove();
-    }, 2000);
-  };
-
-  const showErrorIndicator = () => {
-    const indicator = document.createElement('div');
-    indicator.className = 'saving-indicator error show';
-    indicator.innerHTML = '❌ Erro ao salvar';
+    indicator.innerHTML = '✅ Salvo com sucesso!';
     document.body.appendChild(indicator);
     
     setTimeout(() => {
@@ -1096,19 +619,10 @@ const CourseLandingPage: React.FC = () => {
     }, 3000);
   };
 
-  const showAnalyzingIndicator = () => {
+  const showErrorIndicator = () => {
     const indicator = document.createElement('div');
-    indicator.className = 'saving-indicator analyzing show';
-    indicator.innerHTML = '🤖 Analisando página...';
-    document.body.appendChild(indicator);
-    
-    return indicator; // Retorna para poder remover depois
-  };
-
-  const showAnalysisCompleteIndicator = () => {
-    const indicator = document.createElement('div');
-    indicator.className = 'saving-indicator success show';
-    indicator.innerHTML = '🎉 Análise concluída!';
+    indicator.className = 'saving-indicator error show';
+    indicator.innerHTML = '❌ Erro ao salvar';
     document.body.appendChild(indicator);
     
     setTimeout(() => {
@@ -1163,7 +677,7 @@ const CourseLandingPage: React.FC = () => {
   // Handler quando iframe carrega
   const handleIframeLoad = () => {
     setTimeout(async () => {
-      console.log('🎯 Iframe carregado - iniciando extração automática...');
+      console.log('🎯 Iframe carregado...');
       
       // CORRIGIDO: Passar Page ID para o iframe
       const iframe = iframeRef.current;
@@ -1172,7 +686,8 @@ const CourseLandingPage: React.FC = () => {
           // Método 1: Definir variável global no iframe
           iframe.contentWindow.postMessage({
             type: 'SET_LANDING_PAGE_ID',
-            pageId: landingPageId
+            pageId: landingPageId,
+            isPublicView: false // Sempre false no modo de edição
           }, '*');
           
           // Método 2: Definir diretamente se a função existir
@@ -1189,31 +704,6 @@ const CourseLandingPage: React.FC = () => {
           console.log(`🆔 Page ID enviado para iframe: ${landingPageId}`);
         } catch (error) {
           console.error('❌ Erro ao definir Page ID no iframe:', error);
-        }
-      }
-      
-      // Extrair conteúdo da página
-      const extractedContent = extractContentFromPage();
-      
-      if (extractedContent) {
-        // Verificar se já tem conteúdo salvo no banco
-        const hasExistingContent = editableContent.sec_hero && 
-                                 Object.keys(editableContent.sec_hero).length > 0 &&
-                                 editableContent.sec_hero.element_1 &&
-                                 Object.keys(editableContent.sec_hero.element_1).some(key => 
-                                   key !== 'position' && key !== 'className' && key !== 'extractedAt'
-                                 );
-        
-        if (!hasExistingContent) {
-          // Primeira vez carregando - salvar conteúdo extraído
-          console.log('📊 Primeira extração - salvando no banco...');
-          await saveExtractedContent(extractedContent);
-        } else {
-          // Já tem conteúdo - apenas aplicar o salvo à página
-          console.log('📄 Conteúdo já existe - aplicando salvo...');
-          setTimeout(() => {
-            loadSavedContentToPage();
-          }, 100);
         }
       }
       
@@ -1275,9 +765,9 @@ const CourseLandingPage: React.FC = () => {
                   {[1, 2, 3].map(i => (
                     <div key={i} className="animate-pulse">
                       <div className="h-10 w-24 bg-gray-200 rounded"></div>
-          </div>
+                    </div>
                   ))}
-        </div>
+                </div>
               ) : (
                 templates.map((template) => (
                   <Button
@@ -1285,7 +775,7 @@ const CourseLandingPage: React.FC = () => {
                     variant={selectedTemplate === template.id ? "default" : "outline"}
                     onClick={() => setSelectedTemplate(template.id)}
                     className="relative"
-                    disabled={isEditMode || isAnalyzing}
+                    disabled={isEditMode}
                   >
                     {template.name}
                     {activeTemplate === template.id && (
@@ -1299,20 +789,32 @@ const CourseLandingPage: React.FC = () => {
                   </Button>
                 ))
               )}
-              
-              {/* Botão Salvar Template */}
+
+              {/* Botão Aplicar Modelo */}
               <Button
                 onClick={handleSaveTemplate}
-                disabled={isLoading || selectedTemplate === activeTemplate || isEditMode || isAnalyzing || selectedTemplate === null}
-                className="bg-purple-600 hover:bg-purple-700"
+                disabled={isLoading || selectedTemplate === activeTemplate || isEditMode || selectedTemplate === null}
+                className="bg-blue-600 hover:bg-blue-700"
               >
-                <Save className="w-4 h-4 mr-2" />
-                {isLoading ? 'Salvando...' : 'Salvar'}
+                {isLoading ? 'Aplicando...' : 'Aplicar Modelo'}
+              </Button>
+            </div>
+
+            {/* Botões de Ação */}
+            <div className="flex items-center gap-3">
+              {/* Botão Toggle Modo Edição */}
+              <Button
+                onClick={handleToggleEditMode}
+                variant={isEditMode ? "default" : "outline"}
+                className={isEditMode ? "bg-orange-600 hover:bg-orange-700" : ""}
+              >
+                {isEditMode ? <EyeOff className="w-4 h-4 mr-2" /> : <Edit className="w-4 h-4 mr-2" />}
+                {isEditMode ? 'Sair da Edição' : 'Editar Textos'}
               </Button>
 
-              {/* Botão Salvar Edições (NOVO) */}
+              {/* Botão Salvar Edições */}
               {isEditMode && (
-                <Button 
+                <Button
                   onClick={handleSaveEditedContent}
                   disabled={!hasUnsavedChanges || isLoading}
                   className="bg-green-600 hover:bg-green-700"
@@ -1322,40 +824,9 @@ const CourseLandingPage: React.FC = () => {
                 </Button>
               )}
 
-              {/* Botão Analisar Página (Robozinho) */}
-                    <Button
-                onClick={analyzePageContent}
-                disabled={isAnalyzing || isEditMode || selectedTemplate === null}
-                className="bg-green-600 hover:bg-green-700"
-                title="Analisar página e extrair conteúdo automaticamente"
-              >
-                {isAnalyzing ? (
-                  <>
-                    <Scan className="w-4 h-4 mr-2 animate-spin" />
-                    Analisando...
-                  </>
-                ) : (
-                  <>
-                    <Bot className="w-4 h-4 mr-2" />
-                    🤖 Extrair Textos
-                  </>
-                      )}
-                    </Button>
-
-              {/* Botão Modo de Edição */}
-                <Button
-                onClick={handleToggleEditMode}
-                variant={isEditMode ? "destructive" : "outline"}
-                className={isEditMode ? "bg-orange-600 hover:bg-orange-700" : ""}
-                disabled={isAnalyzing || selectedTemplate === null}
-              >
-                {isEditMode ? <EyeOff className="w-4 h-4 mr-2" /> : <Edit className="w-4 h-4 mr-2" />}
-                {isEditMode ? 'Sair da Edição' : 'Modo Edição'}
-              </Button>
-
               {/* Botão Debug (Temporário) */}
               {isEditMode && (
-                <Button 
+                <Button
                   onClick={() => {
                     const iframe = iframeRef.current;
                     if (iframe && iframe.contentDocument) {
@@ -1400,46 +871,27 @@ const CourseLandingPage: React.FC = () => {
                 </Button>
               )}
 
-              {/* Indicador de análise */}
-              {isAnalyzing && (
-                <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                  🤖 Analisando...
-                </Badge>
-              )}
-
               {/* Botão Fechar */}
-                <Button
+              <Button
                 onClick={handleClosePage}
                 variant="ghost"
-                  size="sm"
+                size="sm"
                 className="text-gray-500 hover:text-gray-700 hover:bg-gray-100"
                 title="Fechar e voltar aos cursos"
-                >
+              >
                 <X className="w-4 h-4" />
-                </Button>
-              </div>
+              </Button>
             </div>
           </div>
         </div>
+      </div>
 
       {/* Banner de modo de edição */}
       {isEditMode && (
         <div className="bg-orange-100 border-b border-orange-200 px-4 py-2">
           <div className="container mx-auto">
             <p className="text-orange-800 text-sm">
-              🎯 <strong>Modo de Edição Ativo!</strong> Visualize a página em modo de edição.
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Banner de análise */}
-      {isAnalyzing && (
-        <div className="bg-blue-100 border-b border-blue-200 px-4 py-2">
-          <div className="container mx-auto">
-            <p className="text-blue-800 text-sm">
-              🤖 <strong>Robô Analisando!</strong> Extraindo e organizando o conteúdo da página nas 10 seções... 
-              <span className="animate-pulse">●●●</span>
+              🎯 <strong>Modo de Edição Ativo!</strong> Clique nos textos para editá-los diretamente.
             </p>
           </div>
         </div>
@@ -1464,7 +916,7 @@ const CourseLandingPage: React.FC = () => {
             </div>
           </div>
         ) : (
-            <iframe
+          <iframe
             ref={iframeRef}
             src={selectedTemplate === 'modelo3' 
               ? `/components/landing-modelo3/sections/model3_sec_hero.html`
@@ -1476,9 +928,9 @@ const CourseLandingPage: React.FC = () => {
             sandbox="allow-scripts allow-same-origin allow-forms"
             onLoad={handleIframeLoad}
             key={`iframe-${selectedTemplate}`} // Força re-render quando template muda
-            />
-          )}
-        </div>
+          />
+        )}
+      </div>
 
       {/* Modal de Confirmação Bonito */}
       {showSaveModal && (
@@ -1487,7 +939,7 @@ const CourseLandingPage: React.FC = () => {
             <div className="text-center">
               <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100 mb-4">
                 <Save className="h-6 w-6 text-yellow-600" />
-      </div>
+              </div>
 
               <h3 className="text-lg font-medium text-gray-900 mb-2">
                 Deseja salvar suas alterações?
