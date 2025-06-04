@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="page-id" content="2fcb3d96-5135-4b2f-be06-fb7881df6451">
+  <title>Hero Section - Model 3</title>
+  <link rel="stylesheet" href="/components/landing-modelo3/styles/model3_sec_hero.css">
+  
+  <!-- Inline Editing Styles -->
+  <style>
+    /* Inline Editing Styles */
+    [data-field] {
+      position: relative;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    [data-field]:hover {
+      outline: 2px dashed rgba(52, 211, 153, 0.5);
+      outline-offset: 4px;
+    }
+    
+    [data-field].editing {
+      outline: 2px solid #10b981;
+      outline-offset: 4px;
+      background: rgba(16, 185, 129, 0.1);
+      border-radius: 4px;
+      padding: 4px;
+    }
+    
+    [data-field].editing:focus {
+      outline: 2px solid #059669;
+    }
+    
+    /* Edit Controls */
+    .edit-controls {
+      position: absolute;
+      top: -40px;
+      right: 0;
+      display: flex;
+      gap: 8px;
+      background: rgba(0, 0, 0, 0.9);
+      padding: 8px;
+      border-radius: 8px;
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      z-index: 1000;
+    }
+    
+    .edit-btn {
+      background: #10b981;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .edit-btn:hover {
+      background: #059669;
+      transform: translateY(-1px);
+    }
+    
+    .edit-btn.cancel {
+      background: #ef4444;
+    }
+    
+    .edit-btn.cancel:hover {
+      background: #dc2626;
+    }
+    
+    .edit-btn.loading {
+      background: #6b7280;
+      cursor: not-allowed;
+    }
+    
+    /* Success/Error Messages */
+    .edit-message {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 20px;
+      border-radius: 8px;
+      color: white;
+      font-weight: 600;
+      z-index: 1001;
+      transition: all 0.3s ease;
+      transform: translateX(100%);
+    }
+    
+    .edit-message.show {
+      transform: translateX(0);
+    }
+    
+    .edit-message.success {
+      background: #10b981;
+    }
+    
+    .edit-message.error {
+      background: #ef4444;
+    }
+    
+    /* Loading Spinner */
+    .loading-spinner {
+      width: 12px;
+      height: 12px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s ease-in-out infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Edit Mode Indicator */
+    .edit-mode-active {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: rgba(16, 185, 129, 0.9);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      z-index: 1000;
+      backdrop-filter: blur(16px);
+    }
+  </style>
+</head>
+<body>
+  <!-- Edit Mode Indicator -->
+  <div id="editModeIndicator" class="edit-mode-active" style="display: none;">
+    ✏️ Modo de Edição Ativo
+  </div>
+  
+  <!-- Success/Error Messages -->
+  <div id="editMessage" class="edit-message"></div>
+
+  <!-- SEÇÃO 1: HERO -->
+  <section class="hero-section">
+    
+    <!-- Background Effects -->
+    <div class="bg-effects">
+      <!-- Animated Blobs -->
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+      <div class="blob blob-3"></div>
+    </div>
+
+    <!-- Grid Pattern -->
+    <div class="grid-pattern"></div>
+
+    <!-- Floating Elements -->
+    <div class="floating-elements">
+      <div class="floating-dot dot-1"></div>
+      <div class="floating-dot dot-2"></div>
+      <div class="floating-dot dot-3"></div>
+      <div class="floating-dot mini-dot-1"></div>
+      <div class="floating-dot mini-dot-2"></div>
+      <div class="floating-dot mini-dot-3"></div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+      <div class="hero-grid">
+        
+        <!-- Left Column: Text Content -->
+        <div class="hero-content">
+          
+          <!-- Badge -->
+          <div class="hero-badge" data-field="tagname">
+            <div class="badge-content">
+              <div class="badge-dot"></div>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="badge-icon">
+                <path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"></path>
+              </svg>
+              <span>⚡ <span class="description-highlight">Elite Performance</span> garantido</span>
+            </div>
+            <div class="badge-content">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="badge-icon">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+              <small>método exclusivo</small>
+            </div>
+          </div>
+
+          <!-- Main Title -->
+          <div>
+            <h1 class="hero-title" data-field="title">
+              Domine 
+              <span class="hero-title-gradient">Marketing Digital</span> 
+              <span class="hero-title-secondary">em 30 Dias</span>
+            </h1>
+            
+            <p class="hero-description" data-field="description">
+              Transforme sua carreira e conquiste a 
+              <span class="description-highlight">liberdade financeira</span> 
+              com estratégias comprovadas que geraram mais de 
+              <span class="description-highlight-cyan">R$10 milhões</span> em vendas.
+            </p>
+          </div>
+
+          <!-- CTA Buttons -->
+          <div class="hero-cta">
+            <button class="btn-primary" data-field="button1">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-icon">
+                <path d="m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526"></path>
+                <circle cx="12" cy="8" r="6"></circle>
+              </svg>
+              GARANTIR MINHA VAGA
+            </button>
+            
+            <button class="btn-secondary" data-field="button2">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-icon">
+                <polygon points="6 3 20 12 6 21 6 3"></polygon>
+              </svg>
+              Ver Prévia Gratuita
+            </button>
+          </div>
+
+          <!-- Social Proof -->
+          <div class="hero-social-proof">
+            <div class="stars">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="star">
+                <path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"></path>
+              </svg>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="star">
+                <path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"></path>
+              </svg>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="star">
+                <path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"></path>
+              </svg>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="star">
+                <path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"></path>
+              </svg>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="star">
+                <path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"></path>
+              </svg>
+            </div>
+            <span class="social-text" data-field="review">
+              4.9/5 • Baseado em 
+              <span class="social-highlight">1.2k</span> avaliações
+            </span>
+          </div>
+        </div>
+
+        <!-- Right Column: Content Area -->
+        <div class="hero-image-container">
+          <div class="hero-image-wrapper">
+            <!-- Área reservada para conteúdo visual futuro -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- JavaScript Simples e Robusto -->
+  <script>
+    // Configuração do Supabase
+    const SUPABASE_URL = "https://erfuinkfouijxgfkxhhn.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVyZnVpbmtmb3VpanhnZmt4aGhuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMzU2NTAsImV4cCI6MjA2MjgxMTY1MH0.9cxdr4AC0HY3t64n3dJ939wVNwlp9Prpzlx-sxfCOnU";
+    
+    let currentPageId = null;
+    let currentEditingElement = null;
+    let originalContent = null;
+    let editControls = null;
+    
+    // Função para obter ID da página (DINÂMICO)
+    function getPageId() {
+      // Verificar URL, variáveis globais, localStorage, etc.
+      const urlParams = new URLSearchParams(window.location.search);
+      const pageId = urlParams.get('pageId') || 
+                     window.landingPageId || 
+                     localStorage.getItem('currentLandingPageId') ||
+                     document.querySelector('meta[name="page-id"]')?.content;
+      
+      console.log('🔍 === DETECÇÃO DE PAGE ID ===');
+      console.log('URL pageId:', urlParams.get('pageId'));
+      console.log('window.landingPageId:', window.landingPageId);
+      console.log('localStorage:', localStorage.getItem('currentLandingPageId'));
+      console.log('meta tag:', document.querySelector('meta[name="page-id"]')?.content);
+      console.log('🆔 PageId final detectado:', pageId);
+      
+      return pageId;
+    }
+    
+    // Função para fazer requisições ao Supabase
+    async function supabaseRequest(method, endpoint, data = null) {
+      const url = `${SUPABASE_URL}/rest/v1/${endpoint}`;
+      const headers = {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+      };
+      
+      const config = { method, headers };
+      if (data) config.body = JSON.stringify(data);
+      
+      console.log('📡 === REQUISIÇÃO SUPABASE ===');
+      console.log('Method:', method);
+      console.log('URL:', url);
+      console.log('Headers:', headers);
+      console.log('Data:', data);
+      
+      try {
+        const response = await fetch(url, config);
+        const result = await response.json();
+        
+        console.log('📨 === RESPOSTA SUPABASE ===');
+        console.log('Status:', response.status);
+        console.log('Ok:', response.ok);
+        console.log('Result:', result);
+        
+        if (!response.ok) {
+          console.error('❌ === ERRO DETALHADO ===');
+          console.error('Status:', response.status);
+          console.error('StatusText:', response.statusText);
+          console.error('Error details:', result);
+          
+          // Tratar erros específicos
+          if (response.status === 401) {
+            throw new Error('Não autorizado - verificar autenticação');
+          } else if (response.status === 403) {
+            throw new Error('Acesso negado - verificar políticas RLS');
+          } else if (response.status === 404) {
+            throw new Error('Registro não encontrado');
+          } else if (response.status === 409) {
+            throw new Error('Conflito - verificar dados duplicados');
+          } else {
+            throw new Error(result.message || `Erro HTTP ${response.status}`);
+          }
+        }
+        
+        console.log('✅ Requisição bem-sucedida');
+        return result;
+        
+      } catch (fetchError) {
+        console.error('❌ === ERRO DE REDE ===');
+        console.error('Fetch error:', fetchError);
+        throw fetchError;
+      }
+    }
+    
+    // Limpar HTML inválido antes de salvar
+    function cleanHTMLForSaving(html) {
+      // Remover controles de edição e outros elementos indesejados
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = html;
+      
+      // Remover controles de edição
+      const editControls = tempDiv.querySelectorAll('.edit-controls');
+      editControls.forEach(control => control.remove());
+      
+      // Remover outros elementos indesejados
+      const unwantedElements = tempDiv.querySelectorAll('[contenteditable], .editing, .edit-btn');
+      unwantedElements.forEach(el => el.remove());
+      
+      const cleanedHTML = tempDiv.innerHTML.trim();
+      console.log('🧹 HTML limpo:', cleanedHTML);
+      return cleanedHTML;
+    }
+    
+    // Extrair texto de um elemento
+    function extractTextFromElement(selector) {
+      console.log('🔍 Extraindo de:', selector);
+      const element = document.querySelector(selector);
+      if (!element) {
+        console.warn('⚠️ Elemento não encontrado:', selector);
+        return '';
+      }
+      
+      let extractedText = '';
+      
+      if (selector.includes('button')) {
+        // Para botões, pegar só o texto
+        const textNodes = Array.from(element.childNodes).filter(node => node.nodeType === 3);
+        extractedText = textNodes.map(node => node.textContent.trim()).join(' ');
+        console.log('🔘 Texto do botão extraído:', extractedText);
+      } else {
+        // Para outros elementos, extrair HTML preservando tags mas limpando lixo
+        const rawHTML = element.innerHTML.trim();
+        extractedText = cleanHTMLForSaving(rawHTML);
+        console.log('🔤 HTML extraído e limpo:', extractedText);
+      }
+      
+      return extractedText;
+    }
+    
+    // Carregar dados salvos do banco e atualizar a tela
+    async function loadSavedData() {
+      console.log('📥 === CARREGANDO DADOS SALVOS ===');
+      
+      try {
+        if (!currentPageId) {
+          console.log('⚠️ Nenhum ID de página - usando dados padrão do HTML');
+          return;
+        }
+        
+        console.log('🔍 Buscando dados salvos para:', currentPageId);
+        
+        // Buscar dados do banco
+        const result = await supabaseRequest('GET', `course_landing_pages?id=eq.${currentPageId}&select=sec_hero`);
+        
+        if (!result || result.length === 0) {
+          console.log('⚠️ Nenhum dado encontrado - usando dados padrão do HTML');
+          return;
+        }
+        
+        const savedData = result[0].sec_hero;
+        console.log('📦 Dados encontrados:', savedData);
+        
+        if (!savedData || !savedData.element_1) {
+          console.log('⚠️ Estrutura de dados inválida - usando dados padrão do HTML');
+          return;
+        }
+        
+        // Atualizar elementos na tela com dados salvos
+        const element1 = savedData.element_1;
+        
+        if (element1.tagname) {
+          const tagnameEl = document.querySelector('[data-field="tagname"]');
+          if (tagnameEl) {
+            tagnameEl.innerHTML = element1.tagname;
+            console.log('✅ Tagname atualizado:', element1.tagname);
+          }
+        }
+        
+        if (element1.title) {
+          const titleEl = document.querySelector('[data-field="title"]');
+          if (titleEl) {
+            titleEl.innerHTML = element1.title;
+            console.log('✅ Title atualizado:', element1.title);
+          }
+        }
+        
+        if (element1.description) {
+          const descriptionEl = document.querySelector('[data-field="description"]');
+          if (descriptionEl) {
+            descriptionEl.innerHTML = element1.description;
+            console.log('✅ Description atualizado:', element1.description);
+          }
+        }
+        
+        if (element1.button1) {
+          const button1El = document.querySelector('[data-field="button1"]');
+          if (button1El) {
+            // Para botões, atualizar apenas o texto, mantendo ícones
+            const textNodes = Array.from(button1El.childNodes).filter(node => node.nodeType === 3);
+            if (textNodes.length > 0) {
+              textNodes[textNodes.length - 1].textContent = element1.button1;
+            } else {
+              // Se não tem nós de texto, adicionar no final
+              button1El.appendChild(document.createTextNode(element1.button1));
+            }
+            console.log('✅ Button1 atualizado:', element1.button1);
+          }
+        }
+        
+        if (element1.button2) {
+          const button2El = document.querySelector('[data-field="button2"]');
+          if (button2El) {
+            const textNodes = Array.from(button2El.childNodes).filter(node => node.nodeType === 3);
+            if (textNodes.length > 0) {
+              textNodes[textNodes.length - 1].textContent = element1.button2;
+            } else {
+              button2El.appendChild(document.createTextNode(element1.button2));
+            }
+            console.log('✅ Button2 atualizado:', element1.button2);
+          }
+        }
+        
+        if (element1.review) {
+          const reviewEl = document.querySelector('[data-field="review"]');
+          if (reviewEl) {
+            reviewEl.innerHTML = element1.review;
+            console.log('✅ Review atualizado:', element1.review);
+          }
+        }
+        
+        console.log('✅ === DADOS CARREGADOS COM SUCESSO ===');
+        showMessage('Dados carregados do banco!', 'success');
+        
+      } catch (error) {
+        console.error('❌ Erro ao carregar dados salvos:', error);
+        console.log('📄 Usando dados padrão do HTML');
+      }
+    }
+    
+    // FUNÇÃO GLOBAL: Salvar todos os dados (chamada pelo botão do cabeçalho)
+    window.saveHeroModel = async function() {
+      console.log('🌍 === SALVAMENTO COMPLETO INICIADO ===');
+      
+      try {
+        // Verificar se temos ID da página
+        currentPageId = getPageId();
+        if (!currentPageId) {
+          throw new Error('ID da página não encontrado. Verifique se a página foi criada corretamente.');
+        }
+        
+        console.log('🎯 Usando pageId:', currentPageId);
+        
+        // Verificar se a página existe
+        console.log('🔍 Verificando se a página existe...');
+        const pageCheck = await supabaseRequest('GET', `course_landing_pages?id=eq.${currentPageId}&select=id,is_active`);
+        
+        if (!pageCheck || pageCheck.length === 0) {
+          throw new Error(`Página com ID ${currentPageId} não encontrada no banco de dados.`);
+        }
+        
+        if (!pageCheck[0].is_active) {
+          throw new Error('Página não está ativa. Apenas páginas ativas podem ser editadas.');
+        }
+        
+        console.log('✅ Página encontrada e ativa');
+        
+        // Extrair todos os dados
+        console.log('📤 Extraindo dados de todas as tags...');
+        const heroData = {
+          element_1: {
+            tagname: extractTextFromElement('[data-field="tagname"]'),
+            title: extractTextFromElement('[data-field="title"]'),
+            description: extractTextFromElement('[data-field="description"]'),
+            button1: extractTextFromElement('[data-field="button1"]'),
+            button2: extractTextFromElement('[data-field="button2"]'),
+            review: extractTextFromElement('[data-field="review"]')
+          }
+        };
+        
+        console.log('📦 Dados extraídos completos:', heroData);
+        
+        // Validar se extraiu dados
+        const extractedValues = Object.values(heroData.element_1);
+        const validValues = extractedValues.filter(v => v && v.trim().length > 0);
+        
+        console.log('📊 Validação dos dados:');
+        console.log('Total de campos:', extractedValues.length);
+        console.log('Campos com dados válidos:', validValues.length);
+        
+        if (validValues.length === 0) {
+          throw new Error('Nenhum dado válido foi extraído das tags HTML. Verifique se os elementos com data-field existem.');
+        }
+        
+        // Salvar no banco
+        console.log('💾 Salvando no banco de dados...');
+        const updateResult = await supabaseRequest('PATCH', `course_landing_pages?id=eq.${currentPageId}`, {
+          sec_hero: heroData
+        });
+        
+        if (!updateResult || updateResult.length === 0) {
+          throw new Error('Nenhum registro foi atualizado. Verifique as políticas de segurança.');
+        }
+        
+        console.log('✅ === SALVAMENTO COMPLETO BEM-SUCEDIDO ===');
+        console.log('Resultado:', updateResult[0]);
+        
+        showMessage('Modelo salvo com sucesso!', 'success');
+        return updateResult[0];
+        
+      } catch (error) {
+        console.error('❌ === ERRO NO SALVAMENTO COMPLETO ===');
+        console.error('Error object:', error);
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+        
+        showMessage(`Erro ao salvar modelo: ${error.message}`, 'error');
+        throw error;
+      }
+    };
+    
+    // Função para mostrar mensagens
+    function showMessage(text, type) {
+      const messageEl = document.getElementById('editMessage');
+      messageEl.textContent = text;
+      messageEl.className = `edit-message ${type}`;
+      messageEl.classList.add('show');
+      
+      setTimeout(() => {
+        messageEl.classList.remove('show');
+      }, 3000);
+    }
+    
+    // Função para iniciar edição inline
+    function startEditing(event) {
+      event.preventDefault();
+      event.stopPropagation();
+      
+      if (currentEditingElement === event.currentTarget) return;
+      
+      // Cancelar edição anterior
+      if (currentEditingElement) cancelEditing();
+      
+      const element = event.currentTarget;
+      const field = element.getAttribute('data-field');
+      
+      currentEditingElement = element;
+      originalContent = extractTextFromElement(`[data-field="${field}"]`);
+      
+      // Ativar modo de edição
+      element.classList.add('editing');
+      element.contentEditable = 'true';
+      element.focus();
+      
+      // Mostrar controles
+      showEditControls(element, field);
+      
+      document.getElementById('editModeIndicator').style.display = 'block';
+      
+      console.log('📝 === EDIÇÃO INICIADA ===');
+      console.log('Campo:', field);
+      console.log('Conteúdo original:', originalContent);
+    }
+    
+    // Mostrar controles de edição
+    function showEditControls(element, field) {
+      if (editControls) editControls.remove();
+      
+      editControls = document.createElement('div');
+      editControls.className = 'edit-controls';
+      
+      const saveBtn = document.createElement('button');
+      saveBtn.className = 'edit-btn save';
+      saveBtn.innerHTML = '✓ Salvar';
+      saveBtn.onclick = () => saveFieldChange(field);
+      
+      editControls.appendChild(saveBtn);
+      
+      element.style.position = 'relative';
+      element.appendChild(editControls);
+    }
+    
+    // Salvar mudança de campo específico
+    async function saveFieldChange(field) {
+      console.log('📝 === SALVAMENTO INDIVIDUAL INICIADO ===');
+      console.log('Campo:', field);
+      
+      try {
+        // Verificar ID da página
+        if (!currentPageId) {
+          currentPageId = getPageId();
+          if (!currentPageId) {
+            throw new Error('ID da página não encontrado');
+          }
+        }
+        
+        console.log('🎯 Usando pageId:', currentPageId);
+        
+        const newContent = currentEditingElement.innerHTML.trim();
+        const cleanedContent = cleanHTMLForSaving(newContent);
+        console.log('📝 Novo conteúdo bruto:', newContent);
+        console.log('📝 Conteúdo limpo para salvar:', cleanedContent);
+        console.log('📝 Conteúdo original:', originalContent);
+        
+        if (!cleanedContent) {
+          showMessage('Conteúdo não pode estar vazio!', 'error');
+          return;
+        }
+        
+        // Buscar dados atuais
+        console.log('🔍 Buscando dados atuais...');
+        const current = await supabaseRequest('GET', `course_landing_pages?id=eq.${currentPageId}&select=sec_hero,is_active`);
+        
+        if (!current || current.length === 0) {
+          throw new Error('Página não encontrada');
+        }
+        
+        if (!current[0].is_active) {
+          throw new Error('Página não está ativa');
+        }
+        
+        const currentData = current[0].sec_hero || { element_1: {} };
+        console.log('📊 Dados atuais:', currentData);
+        
+        // Atualizar campo específico
+        if (!currentData.element_1) {
+          currentData.element_1 = {};
+        }
+        currentData.element_1[field] = cleanedContent;
+        
+        console.log('📦 Dados que serão salvos:', currentData);
+        
+        // Salvar no banco
+        console.log('💾 Salvando campo no banco...');
+        const updateResult = await supabaseRequest('PATCH', `course_landing_pages?id=eq.${currentPageId}`, {
+          sec_hero: currentData
+        });
+        
+        if (!updateResult || updateResult.length === 0) {
+          throw new Error('Nenhum registro foi atualizado');
+        }
+        
+        console.log('✅ === SALVAMENTO INDIVIDUAL BEM-SUCEDIDO ===');
+        console.log('Resultado:', updateResult[0]);
+        
+        // Atualizar o elemento na tela com o conteúdo limpo salvo
+        currentEditingElement.innerHTML = cleanedContent;
+        
+        finishEditing();
+        showMessage('Salvo com sucesso!', 'success');
+        
+      } catch (error) {
+        console.error('❌ === ERRO NO SALVAMENTO INDIVIDUAL ===');
+        console.error('Error object:', error);
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+        
+        showMessage(`Erro ao salvar: ${error.message}`, 'error');
+      }
+    }
+    
+    // Restaurar cores originais
+    function restoreOriginalColors(field) {
+      // NÃO sobrescrever o texto editado, apenas aplicar classes CSS se necessário
+      const currentText = currentEditingElement.innerHTML.trim();
+      
+      if (field === 'title') {
+        // Aplicar classes gradiente apenas se o texto contém as palavras-chave
+        if (currentText.includes('Marketing Digital') && !currentText.includes('hero-title-gradient')) {
+          currentEditingElement.innerHTML = currentText
+            .replace('Marketing Digital', '<span class="hero-title-gradient">Marketing Digital</span>')
+            .replace(/(\d+\s*Dias?)/, '<span class="hero-title-secondary">$1</span>');
+        }
+      } else if (field === 'description') {
+        // Aplicar classes de destaque apenas se o texto contém as palavras-chave
+        let updatedText = currentText;
+        if (currentText.includes('liberdade financeira') && !currentText.includes('description-highlight')) {
+          updatedText = updatedText.replace('liberdade financeira', '<span class="description-highlight">liberdade financeira</span>');
+        }
+        if (currentText.includes('R$') && !currentText.includes('description-highlight-cyan')) {
+          updatedText = updatedText.replace(/(R\$[0-9\s,]+milhões?)/gi, '<span class="description-highlight-cyan">$1</span>');
+        }
+        if (updatedText !== currentText) {
+          currentEditingElement.innerHTML = updatedText;
+        }
+      } else if (field === 'review') {
+        // Aplicar destaque nos números apenas se contém números e não tem classe
+        if (currentText.match(/\d+[kK]/) && !currentText.includes('social-highlight')) {
+          currentEditingElement.innerHTML = currentText.replace(/(\d+[kK])/g, '<span class="social-highlight">$1</span>');
+        }
+      }
+      
+      console.log('🎨 Cores aplicadas ao texto:', field, currentEditingElement.innerHTML);
+    }
+    
+    // Cancelar edição (chamada quando clica fora)
+    function cancelEditing() {
+      if (!currentEditingElement) return;
+      
+      const field = currentEditingElement.getAttribute('data-field');
+      
+      // Restaurar conteúdo original que estava antes da edição
+      if (originalContent) {
+        currentEditingElement.innerHTML = originalContent;
+      }
+      
+      finishEditing();
+      console.log('❌ Edição cancelada (clique fora) - conteúdo restaurado');
+    }
+    
+    // Finalizar edição
+    function finishEditing() {
+      if (currentEditingElement) {
+        currentEditingElement.contentEditable = 'false';
+        currentEditingElement.classList.remove('editing');
+        currentEditingElement = null;
+      }
+      
+      if (editControls) {
+        editControls.remove();
+        editControls = null;
+      }
+      
+      document.getElementById('editModeIndicator').style.display = 'none';
+    }
+    
+    // Event listeners
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('🚀 === SISTEMA INICIADO ===');
+      
+      // Definir ID da página
+      currentPageId = getPageId();
+      console.log('🆔 Página detectada:', currentPageId);
+      
+      if (!currentPageId) {
+        console.warn('⚠️ Nenhum ID de página detectado! Sistema pode não funcionar corretamente.');
+        showMessage('Aviso: ID da página não detectado. Defina o ID corretamente.', 'error');
+      }
+      
+      // Carregar dados salvos do banco de dados
+      if (currentPageId) {
+        loadSavedData();
+      }
+      
+      // Adicionar listeners para edição
+      const editableElements = document.querySelectorAll('[data-field]');
+      console.log('📝 Elementos editáveis encontrados:', editableElements.length);
+      
+      editableElements.forEach(element => {
+        element.addEventListener('click', startEditing);
+        console.log('✅ Listener adicionado para:', element.getAttribute('data-field'));
+      });
+      
+      // Clique fora cancela edição
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('[data-field]') && !e.target.closest('.edit-controls')) {
+          cancelEditing();
+        }
+      });
+      
+      console.log('✅ === SISTEMA PRONTO ===');
+    });
+    
+    // Função para definir ID externamente
+    window.setLandingPageId = function(id) {
+      currentPageId = id;
+      localStorage.setItem('currentLandingPageId', id);
+      console.log('🆔 ID definido externamente:', id);
+      showMessage(`ID da página definido: ${id}`, 'success');
+    };
+    
+    // Função para testar o sistema
+    window.testSystem = function() {
+      console.log('🧪 === TESTE DO SISTEMA ===');
+      console.log('Page ID atual:', currentPageId);
+      console.log('Elementos editáveis:', document.querySelectorAll('[data-field]').length);
+      console.log('Supabase URL:', SUPABASE_URL);
+      console.log('Chave definida:', !!SUPABASE_KEY);
+      
+      if (currentPageId) {
+        console.log('✅ Sistema configurado corretamente');
+        showMessage('Sistema funcionando!', 'success');
+      } else {
+        console.log('❌ ID da página não definido');
+        showMessage('Configure o ID da página primeiro', 'error');
+      }
+    };
+  </script>
+</body>
+</html> 

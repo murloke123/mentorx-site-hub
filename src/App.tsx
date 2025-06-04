@@ -55,11 +55,12 @@ const AppContent = () => {
   const location = useLocation();
   const isCoursePlayerPage = location.pathname.includes('/mentor/cursos/view/');
   const isMentorPublicProfilePage = location.pathname.includes('/mentor/publicview/');
+  const isLandingPageEditPage = location.pathname.includes('/landing-page');
 
   return (
     <div className="flex flex-col min-h-screen">
       <Debug />
-      {!isCoursePlayerPage && !isMentorPublicProfilePage && <Navigation />}
+      {!isCoursePlayerPage && !isMentorPublicProfilePage && !isLandingPageEditPage && <Navigation />}
       <main className="flex-grow">
         <Routes>
           <Route path="/" element={<HomePage />} />
@@ -106,7 +107,7 @@ const AppContent = () => {
           <Route path="/admin/categorias" element={<CategoriesManagementPage />} />
         </Routes>
       </main>
-      {!isCoursePlayerPage && !isMentorPublicProfilePage && <Footer />}
+      {!isCoursePlayerPage && !isMentorPublicProfilePage && !isLandingPageEditPage && <Footer />}
     </div>
   );
 };

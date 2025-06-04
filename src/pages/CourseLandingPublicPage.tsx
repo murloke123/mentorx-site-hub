@@ -17,22 +17,20 @@ const CourseLandingPublicPage: React.FC = () => {
       }
 
       try {
-        console.log('Buscando template para curso:', courseId);
+        console.log('🔍 Buscando template para curso:', courseId);
         
-        // Busca direta no banco sem JOIN
+        // Buscar landing page para este curso (agora só existe 1 por curso)
         const { data, error } = await supabase
           .from('course_landing_pages')
           .select('template_type')
           .eq('course_id', courseId)
-          .eq('is_active', true)
           .single();
 
         if (error) {
-          console.error('Erro na consulta:', error);
+          console.error('❌ Erro na consulta:', error);
           if (error.code === 'PGRST116') {
-            // Não existe landing page, vamos criar uma padrão com modelo1
-            console.log('Landing page não encontrada, criando modelo1 padrão...');
-            await createDefaultLandingPage(courseId);
+            // Não existe landing page - usar modelo1 como padrão
+            console.log('⚠️ Landing page não encontrada, usando modelo1 como padrão');
             setTemplateType('modelo1');
           } else {
             setError('Erro ao carregar a página do curso');
@@ -41,11 +39,11 @@ const CourseLandingPublicPage: React.FC = () => {
           return;
         }
 
-        console.log('Template encontrado:', data.template_type);
+        console.log('✅ Template encontrado:', data.template_type);
         setTemplateType(data.template_type);
         setIsLoading(false);
       } catch (error) {
-        console.error('Erro inesperado:', error);
+        console.error('❌ Erro inesperado:', error);
         setError('Erro inesperado ao carregar a página');
         setIsLoading(false);
       }
@@ -53,47 +51,6 @@ const CourseLandingPublicPage: React.FC = () => {
 
     loadTemplate();
   }, [courseId]);
-
-  const createDefaultLandingPage = async (courseId: string) => {
-    try {
-      console.log('Criando landing page padrão para curso:', courseId);
-      
-      // Criar landing page padrão com modelo1
-      const { data, error } = await supabase
-        .from('course_landing_pages')
-        .insert({
-          course_id: courseId,
-          template_type: 'modelo1',
-          headline: '',
-          subheadline: '',
-          description: '',
-          benefits: [],
-          testimonials: [],
-          cta_text: '',
-          pricing_text: '',
-          bonus_content: '',
-          about_mentor: '',
-          is_active: true
-        })
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Erro ao criar landing page padrão:', error);
-        return;
-      }
-
-      // Atualizar referência na tabela cursos
-      await supabase
-        .from('cursos')
-        .update({ landing_page_id: data.id })
-        .eq('id', courseId);
-
-      console.log('Landing page padrão criada com sucesso!');
-    } catch (error) {
-      console.error('Erro ao criar landing page padrão:', error);
-    }
-  };
 
   // Loading state
   if (isLoading) {
@@ -108,7 +65,7 @@ const CourseLandingPublicPage: React.FC = () => {
   }
 
   // Error state
-  if (error || !templateType) {
+  if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center max-w-md mx-auto p-8">
@@ -127,9 +84,11 @@ const CourseLandingPublicPage: React.FC = () => {
     );
   }
 
-  // Carregar o arquivo HTML diretamente
-  const templatePath = `/landing-page-${templateType}-completa.html`;
-  console.log('Carregando template:', templatePath);
+  // Se não temos template, usar modelo1 como fallback
+  const finalTemplateType = templateType || 'modelo1';
+  const templatePath = `/landing-page-${finalTemplateType}-completa.html`;
+  
+  console.log('🚀 Carregando template:', templatePath);
   
   return (
     <div className="w-full h-screen">
