@@ -116,9 +116,9 @@ const Debug = () => {
 
         setDebugInfo(prev => ({
           ...prev,
-          isLoggedIn: true,
-          userId: session.user.id,
-          userRole: role,
+              isLoggedIn: true,
+              userId: session.user.id,
+              userRole: role,
           courseId,
           pageId,
         }));

@@ -3,8 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Save, Edit, Eye, EyeOff, X } from "lucide-react";
+import { Save, Edit, Eye, EyeOff, X, Download } from "lucide-react";
 import '../../styles/inline-editor.css';
+import { extractYogalaxContent } from '@/utils/extractYogalaxContent';
 
 interface TemplateOption {
   id: string;
@@ -15,6 +16,13 @@ interface TemplateOption {
 
 interface EditableContent {
   [key: string]: any;
+}
+
+interface LayoutOption {
+  id: string;
+  name: string;
+  description: string;
+  source: string; // Path para o arquivo HTML
 }
 
 // Mapeamento de data-field para campos do banco
@@ -30,6 +38,16 @@ const HERO_FIELD_MAP = {
   floating_card3: 'floating_card3',
   floating_card4: 'floating_card4'
 };
+
+// MAPEAMENTO COMPLETO DE CAMPOS (field1 até field97):
+// field1-18: Seções iniciais (navbar, hero, benefícios, serviços)
+// field19-32: Seção de Jornadas Espirituais (6 programas)
+// field33-64: Seção de Planos de Investimento (3 planos completos)
+// field65-81: Seção de Depoimentos (5 depoimentos completos)
+// field82-85: Seção de Estatísticas (4 contadores)
+// field86-93: Seção de Blog/Reflexões (3 artigos)
+// field94-95: Seção de Galeria
+// field96-97: Footer (logo e endereço)
 
 const templates: TemplateOption[] = [
   {
@@ -52,20 +70,31 @@ const templates: TemplateOption[] = [
   },
 ];
 
+const layouts: LayoutOption[] = [
+  {
+    id: 'desenvolvimento_pessoal',
+    name: 'Desenvolvimento Pessoal',
+    description: 'Layout ideal para cursos de yoga, mindfulness e desenvolvimento pessoal',
+    source: '/layouts/yogalax-master/index.html'
+  },
+  // Futuramente podemos adicionar mais layouts aqui
+];
+
 const CourseLandingPage: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
-  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
-  const [activeTemplate, setActiveTemplate] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isPageLoading, setIsPageLoading] = useState(true);
   const [courseData, setCourseData] = useState<any>(null);
   const [landingPageId, setLandingPageId] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [isEditingMode, setIsEditingMode] = useState(true);
   const [editableContent, setEditableContent] = useState<EditableContent>({});
   const [originalContent, setOriginalContent] = useState<EditableContent>({});
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
+  const [showLayoutModal, setShowLayoutModal] = useState(false);
+  const [selectedLayout, setSelectedLayout] = useState<string | null>(null);
   const [modalAction, setModalAction] = useState<'exit' | 'close'>('exit');
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -99,31 +128,35 @@ const CourseLandingPage: React.FC = () => {
         // Se landing page já existe, usar dados direto
         if (landingPageResult.data) {
           const existingPage = landingPageResult.data;
-          console.log('✅ Landing page encontrada (paralela):', existingPage.template_type);
+          console.log('✅ Landing page encontrada:', existingPage.id);
           
-          const templateType = existingPage.template_type;
-          setSelectedTemplate(templateType);
-          setActiveTemplate(templateType);
           setLandingPageId(existingPage.id);
           
-          const content = {
-            sec_hero: (existingPage as any).sec_hero || {},
-            sec_about_course: (existingPage as any).sec_about_course || {},
-            sec_about_mentor: (existingPage as any).sec_about_mentor || {},
-            sec_results: (existingPage as any).sec_results || {},
-            sec_testimonials: (existingPage as any).sec_testimonials || {},
-            sec_curriculum: (existingPage as any).sec_curriculum || {},
-            sec_bonus: (existingPage as any).sec_bonus || {},
-            sec_pricing: (existingPage as any).sec_pricing || {},
-            sec_faq: (existingPage as any).sec_faq || {},
-            sec_final_cta: (existingPage as any).sec_final_cta || {}
-          };
+          // Verificar se há layout personalizado
+          const layoutName = (existingPage as any).layout_name;
           
-          setEditableContent(content);
-          setOriginalContent(content);
+          if (layoutName) {
+            console.log('🎨 Layout personalizado encontrado:', layoutName);
+            
+            // Encontrar o layout correspondente
+            const matchingLayout = layouts.find(l => l.name === layoutName);
+            if (matchingLayout) {
+              setSelectedLayout(matchingLayout.id);
+              console.log('📋 Layout aplicado:', matchingLayout.id);
+              
+              // Ativar edição automaticamente
+              setIsEditMode(true);
+              console.log('✏️ Modo de edição ativado automaticamente');
+            }
+          }
           
-          console.log('📦 Conteúdo carregado:', Object.keys(content).length, 'seções');
-        } else {
+          // Usar layout_body como conteúdo editável
+          const layoutBody = (existingPage as any).layout_body || {};
+          setEditableContent(layoutBody);
+          setOriginalContent(layoutBody);
+          
+          console.log('📦 Layout body carregado:', Object.keys(layoutBody).length, 'campos');
+          } else {
           // Não existe landing page, criar uma nova
           console.log('🆕 Criando nova landing page...');
           const mentorId = course.mentor_id;
@@ -144,18 +177,7 @@ const CourseLandingPage: React.FC = () => {
     loadData();
   }, [courseId]);
 
-  // Efeito para mudança de template
-  useEffect(() => {
-    if (selectedTemplate && selectedTemplate !== activeTemplate) {
-      console.log(`🔄 Template mudou de ${activeTemplate} para ${selectedTemplate}`);
-      setIsPageLoading(true);
-      
-      // Delay para garantir carregamento suave
-      setTimeout(() => {
-        setIsPageLoading(false);
-      }, 500);
-    }
-  }, [selectedTemplate]);
+  // Efeito removido - não precisamos mais de template
 
   const initializeLandingPage = async (courseId: string, mentorId: string) => {
     try {
@@ -171,30 +193,18 @@ const CourseLandingPage: React.FC = () => {
       if (existingPage) {
         console.log('✅ Landing page já existe, usando existente');
         setLandingPageId(existingPage.id);
-        setSelectedTemplate(existingPage.template_type);
-        setActiveTemplate(existingPage.template_type);
         return;
       }
 
-      // Criar nova landing page com template modelo1 como padrão
-      const { data: newPage, error } = await supabase
+      // Criar nova landing page simples (usando any para contornar tipos antigos)
+      const { data: newPage, error } = await (supabase as any)
         .from('course_landing_pages')
         .insert([
           {
             course_id: courseId,
-            mentor_id: mentorId,
-            template_type: 'modelo1',
             is_active: true,
-            sec_hero: {},
-            sec_about_course: {},
-            sec_about_mentor: {},
-            sec_results: {},
-            sec_testimonials: {},
-            sec_curriculum: {},
-            sec_bonus: {},
-            sec_pricing: {},
-            sec_faq: {},
-            sec_final_cta: {}
+            layout_name: null,
+            layout_body: {}
           }
         ])
         .select()
@@ -204,22 +214,9 @@ const CourseLandingPage: React.FC = () => {
 
       console.log('✅ Nova landing page criada com ID:', newPage.id);
       setLandingPageId(newPage.id);
-      setSelectedTemplate('modelo1');
-      setActiveTemplate('modelo1');
       
       // Inicializar conteúdo vazio
-      const emptyContent = {
-        sec_hero: {},
-        sec_about_course: {},
-        sec_about_mentor: {},
-        sec_results: {},
-        sec_testimonials: {},
-        sec_curriculum: {},
-        sec_bonus: {},
-        sec_pricing: {},
-        sec_faq: {},
-        sec_final_cta: {}
-      };
+      const emptyContent = {};
       
       setEditableContent(emptyContent);
       setOriginalContent(emptyContent);
@@ -229,30 +226,7 @@ const CourseLandingPage: React.FC = () => {
     }
   };
 
-  const handleSaveTemplate = async () => {
-    if (!landingPageId || !selectedTemplate) return;
-
-    setIsLoading(true);
-    try {
-      const { error } = await supabase
-        .from('course_landing_pages')
-        .update({ 
-          template_type: selectedTemplate,
-          updated_at: new Date().toISOString() 
-        })
-        .eq('id', landingPageId);
-
-      if (error) throw error;
-
-      setActiveTemplate(selectedTemplate);
-      console.log('✅ Template salvo:', selectedTemplate);
-      
-    } catch (error) {
-      console.error('❌ Erro ao salvar template:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Função handleSaveTemplate removida - não precisamos mais de templates
 
   // Modo de edição inline funcional
   const initializeEditMode = () => {
@@ -261,7 +235,7 @@ const CourseLandingPage: React.FC = () => {
 
     const doc = iframe.contentDocument;
     
-    if (isEditMode) {
+    if (isEditMode && isEditingMode) { // Só permite edição se ambos estiverem ativos
       // Aplicar estilos de edição e tornar elementos editáveis
       let style = doc.querySelector('#edit-mode-styles');
       if (!style) {
@@ -287,53 +261,8 @@ const CourseLandingPage: React.FC = () => {
           .editable-text:focus {
             outline-color: #f59e0b !important;
             background-color: rgba(245, 158, 11, 0.05) !important;
-            box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.15) !important;
+            box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.2) !important;
             transform: scale(1.005) !important;
-          }
-          .editable-text.editing {
-            outline-color: #ef4444 !important;
-            background-color: rgba(239, 68, 68, 0.05) !important;
-            box-shadow: 0 0 0 6px rgba(239, 68, 68, 0.2) !important;
-            transform: scale(1.01) !important;
-          }
-          .edit-indicator { 
-            position: fixed !important; 
-            top: 10px !important; 
-            right: 10px !important; 
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important; 
-            color: white !important; 
-            padding: 12px 20px !important; 
-            border-radius: 12px !important; 
-            font-weight: bold !important;
-            z-index: 9999 !important;
-            box-shadow: 0 8px 20px rgba(245, 158, 11, 0.4) !important;
-            font-size: 14px !important;
-            animation: pulse-edit 2s infinite !important;
-          }
-          @keyframes pulse-edit {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-          }
-          .section-badge {
-            position: absolute !important;
-            top: -28px !important;
-            left: 0 !important;
-            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
-            color: white !important;
-            padding: 4px 12px !important;
-            border-radius: 16px !important;
-            font-size: 11px !important;
-            font-weight: 700 !important;
-            text-transform: uppercase !important;
-            opacity: 0 !important;
-            transition: all 0.3s ease !important;
-            z-index: 1000 !important;
-            pointer-events: none !important;
-            white-space: nowrap !important;
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3) !important;
-          }
-          .editable-text:hover .section-badge {
-            opacity: 1 !important;
           }
         `;
         doc.head.appendChild(style);
@@ -341,64 +270,41 @@ const CourseLandingPage: React.FC = () => {
 
       // Tornar elementos editáveis
       makeElementsEditable(doc);
-      
-      // Adicionar indicador de modo de edição
-      let indicator = doc.querySelector('.edit-indicator');
-      if (!indicator) {
-        indicator = doc.createElement('div');
-        indicator.className = 'edit-indicator';
-        indicator.textContent = '✏️ Modo de Edição Ativo';
-        doc.body.appendChild(indicator);
+    } else {
+      // Remover estilos e edição
+      const style = doc.querySelector('#edit-mode-styles');
+      if (style) {
+        style.remove();
       }
       
-    } else {
-      // Remover estilos de edição
-      const style = doc.querySelector('#edit-mode-styles');
-      if (style) style.remove();
-
-      // Remover classes de edição
+      // Remover classes e eventos de edição
       const editableElements = doc.querySelectorAll('.editable-text');
-      editableElements.forEach(el => {
-        el.classList.remove('editable-text', 'editing');
-        el.removeAttribute('contenteditable');
-        el.removeEventListener('input', handleTextInput);
-        el.removeEventListener('blur', handleTextBlur);
-        el.removeEventListener('keydown', handleKeyDown);
+      editableElements.forEach(element => {
+        element.classList.remove('editable-text');
+        element.removeAttribute('contenteditable');
+        // Remover listeners (será recriado quando necessário)
       });
-
-      // Remover indicador
-      const indicator = doc.querySelector('.edit-indicator');
-      if (indicator) indicator.remove();
     }
   };
 
-  // Tornar elementos editáveis (SIMPLIFICADO: apenas hero com data-field)
+  // Tornar elementos editáveis (usando apenas data-field mapeados no HTML)
   const makeElementsEditable = (doc: Document) => {
-    let editableCount = 0;
+    if (!isEditingMode) return; // Só tornar editável se estiver em modo de edição
 
-    // APENAS elementos com data-field na hero
-    Object.keys(HERO_FIELD_MAP).forEach((fieldType) => {
-      const element = doc.querySelector(`[data-field="${fieldType}"]`) as HTMLElement;
-      if (element) {
-        editableCount++;
-        const textContent = element.textContent?.trim() || '';
-        
-        // Configurar elemento editável
-        element.classList.add('editable-text');
-        element.contentEditable = 'true';
-        element.setAttribute('data-field-type', fieldType);
-        element.setAttribute('data-original-text', textContent);
-        
-        // Event listeners
-        element.addEventListener('input', handleTextInput);
-        element.addEventListener('blur', handleTextBlur);
-        element.addEventListener('keydown', handleKeyDown);
-        
-        console.log(`✅ Elemento hero editável: ${fieldType}`);
-      }
+    // Selecionar elementos com data-field (mapeamento fixo)
+    const elements = doc.querySelectorAll('[data-field]');
+    
+    console.log(`📝 Tornando ${elements.length} elementos editáveis`);
+    
+    elements.forEach(element => {
+      element.classList.add('editable-text');
+      element.setAttribute('contenteditable', 'true');
+      
+      // Event listeners para edição
+      element.addEventListener('input', handleTextInput);
+      element.addEventListener('blur', handleTextBlur);
+      element.addEventListener('keydown', handleKeyDown);
     });
-
-    console.log(`✅ ${editableCount} elementos da hero tornados editáveis!`);
   };
 
   // Handler para duplo clique
@@ -414,28 +320,14 @@ const CourseLandingPage: React.FC = () => {
   const handleTextInput = (event: Event) => {
     const target = event.target as HTMLElement;
     setHasUnsavedChanges(true);
-    
-    // Auto-save com debounce
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current);
-    }
-    
-    saveTimeoutRef.current = setTimeout(() => {
-      console.log('💾 Auto-salvando mudanças...');
-      saveEditedContent();
-    }, 2000); // 2 segundos de debounce
+    console.log('✏️ Texto alterado - aguardando salvamento manual');
   };
 
   // Handler para sair do foco (blur)
   const handleTextBlur = (event: Event) => {
     const target = event.target as HTMLElement;
     target.classList.remove('editing');
-    
-    // Salvar imediatamente ao sair do campo
-    if (hasUnsavedChanges) {
-      console.log('💾 Salvando ao sair do campo...');
-      saveEditedContent();
-    }
+    console.log('👁️ Saiu do campo - salvamento manual necessário');
   };
 
   // Handler para teclas
@@ -483,48 +375,100 @@ const CourseLandingPage: React.FC = () => {
     }
   };
 
+  // Função utilitária para extrair texto puro do HTML
+  const extractTextOnly = (htmlContent: string): string => {
+    // Criar um elemento temporário para extrair apenas o texto
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = htmlContent;
+    return tempDiv.textContent || tempDiv.innerText || '';
+  };
+
+  // Função para obter elementos editáveis de forma consistente
+  const getEditableElements = (doc: Document) => {
+    // USAR APENAS elementos com data-field (mapeados no HTML)
+    const dataFieldElements = doc.querySelectorAll('[data-field]');
+    console.log(`🎯 Elementos com data-field encontrados: ${dataFieldElements.length}`);
+    return dataFieldElements;
+  };
+
   // Salvar mudanças editadas
   const saveEditedContent = async () => {
-    if (!landingPageId || !hasUnsavedChanges) return;
+    if (!landingPageId) return;
 
     try {
       console.log('💾 Salvando conteúdo editado...');
+      showSavingIndicator();
       
       // Extrair conteúdo dos elementos editáveis no iframe
       const iframe = iframeRef.current;
       if (iframe && iframe.contentDocument) {
-        const updatedContent = { ...editableContent };
+        const textContent: any = {};
         
-        // Extrair apenas conteúdo da hero por enquanto
-        Object.keys(HERO_FIELD_MAP).forEach((fieldType) => {
-          const element = iframe.contentDocument!.querySelector(`[data-field="${fieldType}"]`);
-          if (element) {
-            const content = element.innerHTML.trim();
-            if (!updatedContent.sec_hero) updatedContent.sec_hero = {};
-            if (!updatedContent.sec_hero.element_1) updatedContent.sec_hero.element_1 = {};
-            updatedContent.sec_hero.element_1[fieldType] = content;
+        // USAR APENAS elementos com data-field (mapeados fixos no HTML)
+        const editableElements = getEditableElements(iframe.contentDocument);
+        let fieldCount = 0;
+        
+        console.log(`🎯 Elementos encontrados para salvamento: ${editableElements.length}`);
+        
+        editableElements.forEach((element) => {
+          const dataField = element.getAttribute('data-field');
+          if (!dataField) return;
+          
+          const htmlContent = element.innerHTML.trim();
+          const textOnly = extractTextOnly(htmlContent);
+          
+          if (textOnly.length > 0) {
+            // Salvar usando o data-field como chave
+            textContent[dataField] = textOnly;
+            fieldCount++;
+            
+            console.log(`📝 Salvando ${dataField}: "${textOnly}" de ${element.tagName}`);
           }
         });
 
+        console.log(`📊 Total de campos salvos: ${fieldCount}`);
+
+        // Preparar dados para salvar no banco
+        const updateData: any = {
+          layout_body: textContent,
+          updated_at: new Date().toISOString()
+        };
+
+        // Se há um layout selecionado, salvar as informações do layout
+        if (selectedLayout) {
+          const layout = layouts.find(l => l.id === selectedLayout);
+          if (layout) {
+            updateData.layout_name = layout.name;
+            console.log('💾 Salvando layout selecionado:', layout.name);
+          }
+        }
+
+        console.log('📦 Dados a serem salvos:', updateData);
+
         // Salvar no banco
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('course_landing_pages')
-          .update({
-            ...updatedContent,
-            updated_at: new Date().toISOString()
-          })
+          .update(updateData)
           .eq('id', landingPageId);
 
-        if (error) throw error;
+        if (error) {
+          console.error('❌ Erro do banco:', error);
+          throw error;
+        }
 
-        setEditableContent(updatedContent);
-        setOriginalContent(updatedContent);
+        setEditableContent(textContent);
+        setOriginalContent(textContent);
         setHasUnsavedChanges(false);
         
-        console.log('✅ Conteúdo salvo com sucesso!');
+        console.log('✅ Conteúdo salvo com sucesso no banco!');
+        console.log('📦 Texto puro salvo:', textContent);
+        
+        // Mostrar feedback visual ao usuário
+        showSuccessIndicator();
       }
     } catch (error) {
       console.error('❌ Erro ao salvar conteúdo:', error);
+      showErrorIndicator();
       throw error;
     }
   };
@@ -539,11 +483,11 @@ const CourseLandingPage: React.FC = () => {
     // Aplicar conteúdo salvo aos elementos
     Object.keys(HERO_FIELD_MAP).forEach((fieldType) => {
       const element = iframe.contentDocument!.querySelector(`[data-field="${fieldType}"]`);
-      const savedContent = editableContent.sec_hero?.element_1?.[fieldType];
+      const savedContent = editableContent[fieldType];
       
       if (element && savedContent) {
-        element.innerHTML = savedContent;
-        console.log(`✅ Aplicado ${fieldType}:`, savedContent.substring(0, 50) + '...');
+        element.textContent = savedContent; // Usar textContent para texto puro
+        console.log(`✅ Aplicado ${fieldType}:`, savedContent);
       }
     });
   };
@@ -571,17 +515,37 @@ const CourseLandingPage: React.FC = () => {
     if (!iframe || !iframe.contentDocument) return;
 
     console.log('📥 Carregando conteúdo salvo para a página...');
+    console.log('📦 Conteúdo disponível:', editableContent);
     
-    // Aplicar conteúdo salvo da hero
-    if (editableContent.sec_hero?.element_1) {
-      Object.keys(HERO_FIELD_MAP).forEach((fieldType) => {
-        const element = iframe.contentDocument!.querySelector(`[data-field="${fieldType}"]`);
-        const savedContent = editableContent.sec_hero.element_1[fieldType];
-        
-        if (element && savedContent) {
-          element.innerHTML = savedContent;
-          console.log(`✅ Carregado ${fieldType}:`, savedContent.substring(0, 50) + '...');
-        }
+    const doc = iframe.contentDocument;
+    let loadedCount = 0;
+    
+    // USAR APENAS elementos com data-field (mapeados fixos no HTML)
+    const targetElements = getEditableElements(doc);
+    console.log(`🎯 Elementos encontrados para carregamento: ${targetElements.length}`);
+    
+    // Aplicar conteúdo salvo nos elementos usando data-field
+    targetElements.forEach((element) => {
+      const dataField = element.getAttribute('data-field');
+      if (!dataField) return;
+      
+      const savedContent = editableContent[dataField];
+      
+      if (savedContent) {
+        element.textContent = savedContent;
+        loadedCount++;
+        console.log(`✅ Carregado ${dataField}: "${savedContent}" em ${element.tagName}`);
+      }
+    });
+    
+    console.log(`📊 Total de campos carregados: ${loadedCount} de ${Object.keys(editableContent).length}`);
+    
+    // Log adicional para debug
+    if (loadedCount === 0 && Object.keys(editableContent).length > 0) {
+      console.log('🔍 Debug: elementos data-field disponíveis na página:');
+      targetElements.forEach((el, i) => {
+        const field = el.getAttribute('data-field');
+        console.log(`   ${field}: ${el.tagName} - "${el.textContent?.substring(0, 50)}..."`);
       });
     }
   };
@@ -592,7 +556,7 @@ const CourseLandingPage: React.FC = () => {
       setShowSaveModal(true);
       setModalAction('close');
     } else {
-      navigate('/mentor/cursos');
+    navigate('/mentor/cursos');
     }
   };
 
@@ -674,6 +638,109 @@ const CourseLandingPage: React.FC = () => {
     }
   }, [isEditMode, editableContent]); // Adicionar editableContent como dependência
 
+  // Função para aplicar layout
+  const handleApplyLayout = async (layoutId: string) => {
+    if (!landingPageId) return;
+
+    try {
+      setIsLoading(true);
+      console.log(`🎨 Aplicando layout: ${layoutId}`);
+
+      // Buscar informações do layout
+      const layout = layouts.find(l => l.id === layoutId);
+      if (!layout) {
+        console.error('❌ Layout não encontrado:', layoutId);
+        setIsLoading(false);
+        return;
+      }
+
+      // FECHAR MODAL IMEDIATAMENTE para melhor UX
+      console.log('🔄 Fechando modal de layout...');
+      setShowLayoutModal(false);
+      
+      // Atualizar estados locais primeiro
+      console.log('🔄 Atualizando selectedLayout para:', layoutId);
+      setSelectedLayout(layoutId);
+      setIsPageLoading(true);
+      
+      console.log('✅ Modal fechado e estados atualizados!');
+
+      // NÃO salvar no banco ainda - apenas aplicar visualmente
+      // O salvamento só acontecerá quando o usuário clicar em "Salvar" após editar
+      console.log('📋 Layout aplicado apenas visualmente - não salvo no banco ainda');
+      
+      // Delay para permitir carregamento suave do iframe
+      setTimeout(() => {
+        setIsPageLoading(false);
+        // Ativar modo de edição automaticamente após carregar o layout
+        setTimeout(() => {
+          setIsEditMode(true);
+          console.log('✅ Layout aplicado e modo de edição ativado!');
+        }, 500);
+      }, 800);
+
+    } catch (error) {
+      console.error('❌ Erro inesperado ao aplicar layout:', error);
+      setIsPageLoading(false);
+      // Mostrar mensagem de erro visual
+      alert('Erro inesperado ao aplicar layout. Tente novamente.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Função para aplicar conteúdo do layout na página - MELHORADA
+  const applyLayoutContentToPage = (content: any) => {
+    const iframe = iframeRef.current;
+    if (!iframe || !iframe.contentDocument) return;
+
+    const doc = iframe.contentDocument;
+    
+    try {
+      console.log('🎨 Aplicando conteúdo do layout Yogalax na página...');
+      
+      // Substituir o body inteiro com o layout Yogalax se disponível
+      if (content.hero?.title) {
+        // Aplicar título principal se existir
+        const titleElements = doc.querySelectorAll('h1, .hero-title, [data-field="title"]');
+        titleElements.forEach(el => {
+          if (el) el.textContent = content.hero.title;
+        });
+      }
+      
+      if (content.hero?.subtitle) {
+        // Aplicar subtítulo se existir
+        const subtitleElements = doc.querySelectorAll('h2, .hero-subtitle, [data-field="description"]');
+        subtitleElements.forEach(el => {
+          if (el) el.textContent = content.hero.subtitle;
+        });
+      }
+      
+      if (content.hero?.cta_button) {
+        // Aplicar texto do botão CTA
+        const buttonElements = doc.querySelectorAll('.btn-primary, [data-field="button1"]');
+        buttonElements.forEach(el => {
+          if (el) el.textContent = content.hero.cta_button;
+        });
+      }
+      
+      // Aplicar estilo específico do layout de yoga/desenvolvimento pessoal
+      const body = doc.body;
+      if (body) {
+        body.style.fontFamily = 'Work Sans, sans-serif';
+        body.style.backgroundColor = '#f8f9fa';
+        
+        // Adicionar classes CSS específicas para o layout de desenvolvimento pessoal
+        body.classList.add('yoga-layout', 'desenvolvimento-pessoal');
+      }
+      
+      console.log('✅ Conteúdo do layout Yogalax aplicado na página');
+      
+    } catch (error) {
+      console.error('❌ Erro ao aplicar conteúdo na página:', error);
+    }
+  };
+
   // Handler quando iframe carrega
   const handleIframeLoad = () => {
     setTimeout(async () => {
@@ -705,6 +772,12 @@ const CourseLandingPage: React.FC = () => {
         } catch (error) {
           console.error('❌ Erro ao definir Page ID no iframe:', error);
         }
+      }
+      
+      // NOVO: Carregar dados salvos SEMPRE que iframe carregar (antes do modo de edição)
+      if (editableContent && Object.keys(editableContent).length > 0) {
+        console.log('📥 Carregando dados salvos automaticamente...');
+        loadSavedContentToPage();
       }
       
       // Inicializar modo de edição se ativo
@@ -745,6 +818,22 @@ const CourseLandingPage: React.FC = () => {
     }
   };
 
+  // Função para toggle do modo de edição/visualização
+  const handleToggleEditingMode = () => {
+    setIsEditingMode(!isEditingMode);
+    console.log(`🔄 Toggle modo de edição: ${!isEditingMode ? 'ATIVO' : 'INATIVO'}`);
+  };
+
+  // Efeito para atualizar modo de edição quando isEditingMode muda
+  useEffect(() => {
+    if (selectedLayout && iframeRef.current) {
+      // Aguardar um pouco para garantir que o iframe esteja carregado
+      setTimeout(() => {
+        initializeEditMode();
+      }, 100);
+    }
+  }, [isEditingMode, selectedLayout]);
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header com seleção de modelos */}
@@ -757,117 +846,53 @@ const CourseLandingPage: React.FC = () => {
               <p className="text-gray-600">{courseData?.title || 'Carregando...'}</p>
             </div>
 
-            {/* Botões de Modelo */}
-            <div className="flex items-center gap-3">
-              {selectedTemplate === null ? (
-                // Loading state para botões
-                <div className="flex gap-3">
-                  {[1, 2, 3].map(i => (
-                    <div key={i} className="animate-pulse">
-                      <div className="h-10 w-24 bg-gray-200 rounded"></div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                templates.map((template) => (
-                  <Button
-                    key={template.id}
-                    variant={selectedTemplate === template.id ? "default" : "outline"}
-                    onClick={() => setSelectedTemplate(template.id)}
-                    className="relative"
-                    disabled={isEditMode}
-                  >
-                    {template.name}
-                    {activeTemplate === template.id && (
-                      <Badge 
-                        variant="secondary" 
-                        className="ml-2 bg-green-100 text-green-800 text-xs"
-                      >
-                        ✓
-                      </Badge>
-                    )}
-                  </Button>
-                ))
-              )}
-
-              {/* Botão Aplicar Modelo */}
+            {/* Botão Selecionar Layout - No Centro */}
+            <div className="flex-1 flex justify-center gap-3">
               <Button
-                onClick={handleSaveTemplate}
-                disabled={isLoading || selectedTemplate === activeTemplate || isEditMode || selectedTemplate === null}
-                className="bg-blue-600 hover:bg-blue-700"
+                onClick={() => setShowLayoutModal(true)}
+                variant="outline"
+                className="bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100 px-6 py-2.5 font-semibold"
               >
-                {isLoading ? 'Aplicando...' : 'Aplicar Modelo'}
+                🎨 Selecionar Layout
               </Button>
+              
+              {/* Botão Toggle Visualizar/Editar Layout */}
+              {selectedLayout && (
+                <Button
+                  onClick={handleToggleEditingMode}
+                  variant="outline"
+                  className={`px-6 py-2.5 font-semibold transition-all ${
+                    isEditingMode 
+                      ? 'bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100' 
+                      : 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100'
+                  }`}
+                >
+                  {isEditingMode ? (
+                    <>
+                      <Eye className="w-4 h-4 mr-2" />
+                      Visualizar
+                    </>
+                  ) : (
+                    <>
+                      <Edit className="w-4 h-4 mr-2" />
+                      Editar Layout
+                    </>
+                  )}
+                </Button>
+              )}
             </div>
 
             {/* Botões de Ação */}
             <div className="flex items-center gap-3">
-              {/* Botão Toggle Modo Edição */}
-              <Button
-                onClick={handleToggleEditMode}
-                variant={isEditMode ? "default" : "outline"}
-                className={isEditMode ? "bg-orange-600 hover:bg-orange-700" : ""}
-              >
-                {isEditMode ? <EyeOff className="w-4 h-4 mr-2" /> : <Edit className="w-4 h-4 mr-2" />}
-                {isEditMode ? 'Sair da Edição' : 'Editar Textos'}
-              </Button>
-
-              {/* Botão Salvar Edições */}
-              {isEditMode && (
+              {/* Botão Salvar (quando há mudanças) */}
+              {hasUnsavedChanges && (
                 <Button
                   onClick={handleSaveEditedContent}
-                  disabled={!hasUnsavedChanges || isLoading}
+                  disabled={isLoading}
                   className="bg-green-600 hover:bg-green-700"
                 >
                   <Save className="w-4 h-4 mr-2" />
-                  Salvar Edições
-                </Button>
-              )}
-
-              {/* Botão Debug (Temporário) */}
-              {isEditMode && (
-                <Button
-                  onClick={() => {
-                    const iframe = iframeRef.current;
-                    if (iframe && iframe.contentDocument) {
-                      const doc = iframe.contentDocument;
-                      
-                      console.log('🔍 DEBUG MANUAL:');
-                      
-                      // Verificar elementos com data-field
-                      const dataFields = doc.querySelectorAll('[data-field]');
-                      console.log(`📋 Elementos com data-field: ${dataFields.length}`);
-                      dataFields.forEach((el, i) => {
-                        console.log(`  ${i+1}. [data-field="${el.getAttribute('data-field')}"]: "${el.textContent?.substring(0, 30)}..."`);
-                      });
-                      
-                      // Verificar elementos editáveis
-                      const editables = doc.querySelectorAll('.editable-text');
-                      console.log(`✏️ Elementos editáveis: ${editables.length}`);
-                      
-                      // Forçar criação de elementos editáveis se não houver
-                      if (editables.length === 0) {
-                        console.log('🔧 Forçando criação de elementos editáveis...');
-                        makeElementsEditable(doc);
-                      }
-                      
-                      // Verificar elementos genéricos
-                      const generic = doc.querySelectorAll('h1, h2, h3, p, button');
-                      console.log(`📄 Elementos genéricos: ${generic.length}`);
-                      generic.forEach((el, i) => {
-                        if (i < 3) {
-                          console.log(`  ${i+1}. ${el.tagName}: "${el.textContent?.substring(0, 30)}..."`);
-                        }
-                      });
-                      
-                      alert(`Debug concluído! Veja o console para detalhes.\n\nResumo:\n- Data-fields: ${dataFields.length}\n- Editáveis: ${editables.length}\n- Elementos: ${generic.length}`);
-                    }
-                  }}
-                  variant="outline"
-                  size="sm"
-                  className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
-                >
-                  🔍 Debug
+                  Salvar Alterações
                 </Button>
               )}
 
@@ -882,55 +907,187 @@ const CourseLandingPage: React.FC = () => {
                 <X className="w-4 h-4" />
               </Button>
             </div>
-          </div>
-        </div>
-      </div>
+              </div>
+              </div>
+            </div>
 
-      {/* Banner de modo de edição */}
-      {isEditMode && (
-        <div className="bg-orange-100 border-b border-orange-200 px-4 py-2">
-          <div className="container mx-auto">
-            <p className="text-orange-800 text-sm">
-              🎯 <strong>Modo de Edição Ativo!</strong> Clique nos textos para editá-los diretamente.
+      {/* Banner informativo (sempre visível quando tem layout) */}
+      {selectedLayout && (
+        <div className={`border-b px-4 py-2 ${
+          isEditingMode 
+            ? 'bg-orange-50 border-orange-200' 
+            : 'bg-blue-50 border-blue-200'
+        }`}>
+          <div className="container mx-auto flex items-center justify-between">
+            <p className={`text-sm ${
+              isEditingMode 
+                ? 'text-orange-800' 
+                : 'text-blue-800'
+            }`}>
+              ✨ <strong>Layout Ativo:</strong> {layouts.find(l => l.id === selectedLayout)?.name}
+              {isEditingMode ? ' - Clique nos textos para editá-los diretamente.' : ' - Modo de visualização ativo.'}
             </p>
+            
+            {/* Indicador "Modo de edição ativo" */}
+            {isEditingMode && (
+              <div className="bg-orange-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-sm">
+                🔥 Modo de edição ativo
+              </div>
+            )}
           </div>
         </div>
       )}
 
       {/* Conteúdo da Landing Page */}
       <div className="w-full">
-        {isPageLoading || selectedTemplate === null ? (
-          // Loading state para evitar flash de template errado
+        {isPageLoading ? (
+          // Loading state
           <div 
             className="w-full flex items-center justify-center bg-gray-100"
             style={{ height: 'calc(100vh - 120px)' }}
           >
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">
-                {selectedTemplate === null ? 'Carregando configuração...' : 'Carregando página de vendas...'}
-              </p>
-              {selectedTemplate && (
-                <p className="text-sm text-gray-500">Template: {selectedTemplate}</p>
-              )}
+              <p className="text-gray-600">Carregando página de vendas...</p>
+            </div>
+          </div>
+        ) : !selectedLayout ? (
+          // Mensagem para selecionar layout quando não há layout ativo
+          <div 
+            className="w-full flex items-center justify-center bg-gray-50"
+            style={{ height: 'calc(100vh - 120px)' }}
+          >
+            <div className="text-center max-w-md mx-auto p-8">
+              <div className="mb-6">
+                <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-purple-100 mb-4">
+                  <span className="text-3xl">🎨</span>
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  Você precisa selecionar um layout
+                </h2>
+                <p className="text-gray-600 mb-6">
+                  Para começar a personalizar sua página de vendas, escolha um layout que combine com o seu curso.
+                </p>
+                <Button
+                  onClick={() => setShowLayoutModal(true)}
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg font-semibold"
+                >
+                  🎨 Selecionar Layout Agora
+                </Button>
+              </div>
             </div>
           </div>
         ) : (
           <iframe
             ref={iframeRef}
-            src={selectedTemplate === 'modelo3' 
-              ? `/components/landing-modelo3/sections/model3_sec_hero.html`
-              : `/landing-page-${selectedTemplate}-completa.html`
+            src={selectedLayout === 'desenvolvimento_pessoal' 
+              ? `/layouts/yogalax-master/index.html`
+              : `/landing-page-modelo1-completa.html` // Fallback padrão
             }
             className="w-full border-0"
-            title={`Landing Page - ${templates.find(t => t.id === selectedTemplate)?.name}`}
+            title={selectedLayout 
+              ? `Landing Page - ${layouts.find(l => l.id === selectedLayout)?.name}`
+              : 'Landing Page'
+            }
             style={{ height: 'calc(100vh - 120px)' }}
             sandbox="allow-scripts allow-same-origin allow-forms"
             onLoad={handleIframeLoad}
-            key={`iframe-${selectedTemplate}`} // Força re-render quando template muda
+            key={`iframe-${selectedLayout || 'default'}`} // Força re-render quando layout muda
           />
         )}
       </div>
+
+      {/* Modal de Seleção de Layout */}
+      {showLayoutModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-96 mx-4">
+            <div className="text-center mb-6">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-purple-100 mb-4">
+                <span className="text-2xl">🎨</span>
+              </div>
+              
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                Selecionar Layout
+              </h3>
+              
+              <p className="text-sm text-gray-500">
+                Escolha um layout para sua página de vendas
+              </p>
+            </div>
+            
+            <div className="space-y-3 mb-6">
+              {layouts.map((layout) => (
+                <div
+                  key={layout.id}
+                  onClick={() => {
+                    console.log(`🎯 Layout selecionado no modal: ${layout.id}`);
+                    setSelectedLayout(layout.id);
+                  }}
+                  className={`p-4 border rounded-lg cursor-pointer transition-all ${
+                    selectedLayout === layout.id 
+                      ? 'border-purple-500 bg-purple-50' 
+                      : 'border-gray-200 hover:border-purple-300 hover:bg-purple-25'
+                  }`}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h4 className="font-medium text-gray-900">{layout.name}</h4>
+                      <p className="text-sm text-gray-500 mt-1">{layout.description}</p>
+                    </div>
+                    {selectedLayout === layout.id && (
+                      <div className="ml-3 flex-shrink-0">
+                        <div className="w-5 h-5 bg-purple-500 rounded-full flex items-center justify-center">
+                          <span className="text-white text-xs">✓</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <div className="flex space-x-3">
+              <Button
+                onClick={() => {
+                  console.log(`🚀 Botão Aplicar Layout clicado! Layout: ${selectedLayout}`);
+                  if (selectedLayout) {
+                    handleApplyLayout(selectedLayout);
+                  } else {
+                    console.warn('⚠️ Nenhum layout selecionado!');
+                  }
+                }}
+                disabled={!selectedLayout || isLoading}
+                className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
+              >
+                {isLoading ? (
+                  <div className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Aplicando...
+                  </div>
+                ) : (
+                  'Aplicar Layout'
+                )}
+              </Button>
+              
+              <Button
+                onClick={() => {
+                  console.log('❌ Modal cancelado pelo usuário');
+                  setShowLayoutModal(false);
+                  // Não resetar selectedLayout se já houver um layout ativo
+                  if (!selectedLayout) {
+                    setSelectedLayout(null);
+                  }
+                }}
+                variant="outline"
+                disabled={isLoading}
+                className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-50"
+              >
+                Cancelar
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal de Confirmação Bonito */}
       {showSaveModal && (
@@ -971,6 +1128,8 @@ const CourseLandingPage: React.FC = () => {
           </div>
         </div>
       )}
+
+
     </div>
   );
 };
