@@ -8,7 +8,7 @@ import {
   TextField,
   Button,
   Box,
-  Grid,
+  Grid2 as Grid,
   Alert,
   Divider,
   Switch,
@@ -111,7 +111,7 @@ const StripeConfigPage = () => {
 
       <Grid container spacing={4}>
         {/* Configurações Básicas */}
-        <Grid item xs={12}>
+        <Grid xs={12}>
           <Card className="dark:bg-gray-800">
             <CardContent>
               <Typography variant="h6" gutterBottom className="dark:text-white">
@@ -141,7 +141,7 @@ const StripeConfigPage = () => {
               </Box>
 
               <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
+                <Grid xs={12} md={6}>
                   <TextField
                     fullWidth
                     label="Chave Publicável (Publishable Key)"
@@ -158,7 +158,7 @@ const StripeConfigPage = () => {
                   />
                 </Grid>
 
-                <Grid item xs={12} md={6}>
+                <Grid xs={12} md={6}>
                   <TextField
                     fullWidth
                     label="Chave Secreta (Secret Key)"
@@ -191,7 +191,7 @@ const StripeConfigPage = () => {
         </Grid>
 
         {/* Configuração de Webhook */}
-        <Grid item xs={12}>
+        <Grid xs={12}>
           <Card className="dark:bg-gray-800">
             <CardContent>
               <Typography variant="h6" gutterBottom className="dark:text-white">
@@ -269,7 +269,7 @@ const StripeConfigPage = () => {
         </Grid>
 
         {/* Produtos e Preços */}
-        <Grid item xs={12}>
+        <Grid xs={12}>
           <Card className="dark:bg-gray-800">
             <CardContent>
               <Typography variant="h6" gutterBottom className="dark:text-white">
@@ -277,7 +277,7 @@ const StripeConfigPage = () => {
               </Typography>
 
               <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
+                <Grid xs={12} md={6}>
                   <TextField
                     fullWidth
                     label="Product ID"
@@ -289,7 +289,7 @@ const StripeConfigPage = () => {
                   />
                 </Grid>
 
-                <Grid item xs={12} md={6}>
+                <Grid xs={12} md={6}>
                   <TextField
                     fullWidth
                     label="Price ID"
@@ -306,7 +306,7 @@ const StripeConfigPage = () => {
         </Grid>
 
         {/* Links Úteis */}
-        <Grid item xs={12}>
+        <Grid xs={12}>
           <Card className="dark:bg-gray-800">
             <CardContent>
               <Typography variant="h6" gutterBottom className="dark:text-white">
@@ -314,7 +314,7 @@ const StripeConfigPage = () => {
               </Typography>
 
               <Grid container spacing={2}>
-                <Grid item xs={12} sm={6} md={3}>
+                <Grid xs={12} sm={6} md={3}>
                   <Button
                     fullWidth
                     variant="outlined"
@@ -325,7 +325,7 @@ const StripeConfigPage = () => {
                     Chaves da API
                   </Button>
                 </Grid>
-                <Grid item xs={12} sm={6} md={3}>
+                <Grid xs={12} sm={6} md={3}>
                   <Button
                     fullWidth
                     variant="outlined"
@@ -336,7 +336,7 @@ const StripeConfigPage = () => {
                     Webhooks
                   </Button>
                 </Grid>
-                <Grid item xs={12} sm={6} md={3}>
+                <Grid xs={12} sm={6} md={3}>
                   <Button
                     fullWidth
                     variant="outlined"
@@ -347,7 +347,7 @@ const StripeConfigPage = () => {
                     Produtos
                   </Button>
                 </Grid>
-                <Grid item xs={12} sm={6} md={3}>
+                <Grid xs={12} sm={6} md={3}>
                   <Button
                     fullWidth
                     variant="outlined"

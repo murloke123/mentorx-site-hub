@@ -4,7 +4,7 @@ import {
   Card,
   CardContent,
   Typography,
-  Grid,
+  Grid2 as Grid,
   Box,
   Button,
   LinearProgress
@@ -43,7 +43,7 @@ export const CourseAccess: React.FC = () => {
 
         <Grid container spacing={3}>
           {courses.map((course) => (
-            <Grid item xs={12} sm={6} md={4} key={course.id}>
+            <Grid xs={12} sm={6} md={4} key={course.id}>
               <Card className="dark:bg-gray-700 h-full">
                 <CardContent>
                   <Box className="mb-3">
