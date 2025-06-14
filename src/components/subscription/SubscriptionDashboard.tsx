@@ -1,18 +1,45 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Container,
   Typography,
-  Grid2 as Grid,
+  Grid,
   Box
 } from '@mui/material';
 import { SubscriptionCard } from './SubscriptionCard';
 import { PaymentHistory } from './PaymentHistory';
 import { CourseAccess } from './CourseAccess';
 import { useAuth } from '@/contexts/AuthContext';
+import { subscriptionService } from '@/services/subscriptionService';
+import { Subscription, Payment } from '@/types/subscription';
 
 export const SubscriptionDashboard: React.FC = () => {
   const { user } = useAuth();
+  const [subscription, setSubscription] = useState<Subscription | null>(null);
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const loadData = async () => {
+    if (!user) return;
+    
+    try {
+      const [subscriptionData, paymentsData] = await Promise.all([
+        subscriptionService.getCurrentSubscription(user.id),
+        subscriptionService.getPaymentHistory(user.id)
+      ]);
+      
+      setSubscription(subscriptionData);
+      setPayments(paymentsData);
+    } catch (error) {
+      console.error('Error loading subscription data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, [user]);
 
   if (!user) {
     return (
@@ -39,15 +66,15 @@ export const SubscriptionDashboard: React.FC = () => {
 
       <Box mb={4}>
         <Grid container spacing={4}>
-          <Grid xs={12} md={8}>
-            <SubscriptionCard />
+          <Grid item xs={12} md={8}>
+            <SubscriptionCard subscription={subscription} onUpdate={loadData} />
             <Box mt={4}>
               <CourseAccess />
             </Box>
           </Grid>
           
-          <Grid xs={12} md={4}>
-            <PaymentHistory />
+          <Grid item xs={12} md={4}>
+            <PaymentHistory payments={payments} />
           </Grid>
         </Grid>
       </Box>

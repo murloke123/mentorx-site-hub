@@ -4,12 +4,12 @@ import {
   Card,
   CardContent,
   Typography,
-  Grid2 as Grid,
+  Grid,
   Box,
   Button,
   LinearProgress
 } from '@mui/material';
-import { PlayArrow, MenuBook, CheckCircle } from '@mui/icons-material';
+import { PlayArrow, MenuBook } from '@mui/icons-material';
 
 export const CourseAccess: React.FC = () => {
   // Mock data - replace with real data from your course service
@@ -43,7 +43,7 @@ export const CourseAccess: React.FC = () => {
 
         <Grid container spacing={3}>
           {courses.map((course) => (
-            <Grid xs={12} sm={6} md={4} key={course.id}>
+            <Grid item xs={12} sm={6} md={4} key={course.id}>
               <Card className="dark:bg-gray-700 h-full">
                 <CardContent>
                   <Box className="mb-3">

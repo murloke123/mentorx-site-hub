@@ -8,7 +8,7 @@ import {
   TextField,
   Button,
   Box,
-  Grid2 as Grid,
+  Grid,
   Alert,
   Divider,
   Switch,
@@ -111,7 +111,7 @@ const StripeConfigPage = () => {
 
       <Grid container spacing={4}>
         {/* Configurações Básicas */}
-        <Grid xs={12}>
+        <Grid item xs={12}>
           <Card className="dark:bg-gray-800">
             <CardContent>
               <Typography variant="h6" gutterBottom className="dark:text-white">
@@ -141,7 +141,7 @@ const StripeConfigPage = () => {
               </Box>
 
               <Grid container spacing={3}>
-                <Grid xs={12} md={6}>
+                <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
                     label="Chave Publicável (Publishable Key)"
@@ -158,7 +158,7 @@ const StripeConfigPage = () => {
                   />
                 </Grid>
 
-                <Grid xs={12} md={6}>
+                <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
                     label="Chave Secreta (Secret Key)"
