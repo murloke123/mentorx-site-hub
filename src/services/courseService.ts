@@ -1,7 +1,5 @@
-import { supabase } from '@/integrations/supabase/client';
-
-export type { Course } from '@/types/course';
-export type { Modulo } from '@/types/index';
+import { supabase } from "@/integrations/supabase/client";
+import type { Course, CourseFormData } from "@/types/course";
 
 export async function getCourseById(courseId: string): Promise<CourseFormData> {
   try {
@@ -246,5 +244,3 @@ export async function updateCoursePublicationStatus(courseId: string, isPublishe
     throw error;
   }
 }
-
-export { Course, CourseFormData };

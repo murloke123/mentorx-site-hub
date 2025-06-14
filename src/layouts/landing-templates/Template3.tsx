@@ -1,338 +1,368 @@
-
 import React from 'react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Star, Clock, Users, CheckCircle, Quote, Crown, Award, Shield } from 'lucide-react';
 import { LandingPageData } from '@/types/landing-page';
 
 interface Template3Props {
   data: LandingPageData;
-  onDataChange?: (data: Partial<LandingPageData>) => void;
-  isEditing?: boolean;
+  courseData?: {
+    title: string;
+    description: string;
+    price: number;
+    image: string;
+    mentor: {
+      name: string;
+      avatar: string;
+      bio: string;
+    };
+  };
 }
 
-export const Template3: React.FC<Template3Props> = ({ 
-  data, 
-  onDataChange, 
-  isEditing = false 
-}) => {
-  // Use default values if data properties don't exist
-  const headline = data.sec_hero?.headline || data.layout_body?.sec_hero?.headline || 'Título Principal';
-  const subheadline = data.sec_hero?.subheadline || data.layout_body?.sec_hero?.subheadline || 'Subtítulo';
-  const description = data.sec_hero?.description || data.layout_body?.sec_hero?.description || 'Descrição do curso';
-  const benefits = data.sec_benefits?.items || data.layout_body?.sec_benefits?.items || [];
-  
-  const ctaText = data.sec_cta?.text || data.layout_body?.sec_cta?.text || 'Inscrever-se Agora';
-  const pricingText = data.sec_pricing?.price || data.layout_body?.sec_pricing?.price || 'R$ 97,00';
-  const aboutMentor = data.sec_about?.content || data.layout_body?.sec_about?.content || 'Sobre o mentor';
-
-  const handleTextChange = (section: string, field: string, value: string) => {
-    if (onDataChange) {
-      onDataChange({
-        layout_body: {
-          ...data.layout_body,
-          [section]: {
-            ...data.layout_body?.[section],
-            [field]: value
-          }
-        }
-      });
-    }
+const Template3: React.FC<Template3Props> = ({ data, courseData }) => {
+  const defaultData = {
+    headline: data.headline || 'Curso Premium para Líderes Visionários',
+    subheadline: data.subheadline || 'Uma experiência de aprendizado exclusiva e transformadora',
+    description: data.description || 'Para profissionais que buscam excelência e resultados extraordinários.',
+    benefits: data.benefits.length > 0 ? data.benefits : [
+      'Acesso vitalício ao conteúdo premium',
+      'Mentoria individual com especialista',
+      'Certificação profissional reconhecida',
+      'Comunidade exclusiva de executivos'
+    ],
+    ctaText: data.ctaText || 'Reservar Minha Vaga VIP',
+    pricingText: data.pricingText || 'R$ 1.997,00',
+    aboutMentor: data.aboutMentor || 'Líder de mercado com track record comprovado em grandes corporações.',
   };
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      {/* Header */}
-      <header className="bg-black/90 backdrop-blur-sm fixed w-full z-50 border-b border-gray-800">
-        <div className="max-w-6xl mx-auto px-4 py-4">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+      {/* Premium Header */}
+      <header className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex justify-between items-center">
-            <div className="text-2xl font-bold text-orange-500">LOGO</div>
-            <button className="bg-orange-500 hover:bg-orange-600 text-black font-bold px-6 py-2 rounded-full transition-colors">
-              {ctaText}
-            </button>
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-gradient-to-br from-amber-400 to-amber-600 rounded-lg">
+                <Crown className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">Premium Masterclass</h1>
+                <p className="text-sm text-gray-600">Experiência Exclusiva</p>
+              </div>
+            </div>
+            <Badge className="bg-gradient-to-r from-amber-400 to-amber-600 text-white border-0 px-4 py-2">
+              ✨ Acesso Limitado
+            </Badge>
           </div>
         </div>
       </header>
 
       {/* Hero Section */}
-      <section className="pt-24 pb-16 px-4 bg-gradient-to-b from-black to-gray-900">
-        <div className="max-w-4xl mx-auto text-center">
-          {isEditing ? (
-            <input
-              type="text"
-              value={headline}
-              onChange={(e) => handleTextChange('sec_hero', 'headline', e.target.value)}
-              className="text-4xl md:text-6xl font-bold mb-6 text-white bg-transparent border-2 border-orange-500/30 rounded px-4 py-2 w-full text-center"
-            />
-          ) : (
-            <h1 className="text-4xl md:text-6xl font-bold mb-6">
-              <span className="text-orange-500">{headline.split(' ')[0]}</span> {headline.split(' ').slice(1).join(' ')}
-            </h1>
-          )}
-          
-          {isEditing ? (
-            <input
-              type="text"
-              value={subheadline}
-              onChange={(e) => handleTextChange('sec_hero', 'subheadline', e.target.value)}
-              className="text-xl md:text-2xl mb-8 text-gray-300 bg-transparent border-2 border-orange-500/30 rounded px-4 py-2 w-full text-center"
-            />
-          ) : (
-            <p className="text-xl md:text-2xl mb-8 text-gray-300">{subheadline}</p>
-          )}
-          
-          {isEditing ? (
-            <textarea
-              value={description}
-              onChange={(e) => handleTextChange('sec_hero', 'description', e.target.value)}
-              className="text-lg mb-12 text-gray-400 bg-transparent border-2 border-orange-500/30 rounded px-4 py-2 w-full text-center resize-none h-24"
-            />
-          ) : (
-            <p className="text-lg mb-12 text-gray-400">{description}</p>
-          )}
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="bg-orange-500 hover:bg-orange-600 text-black font-bold py-4 px-8 rounded-full text-xl transition-all transform hover:scale-105">
-              {ctaText}
-            </button>
-            <button className="border-2 border-orange-500 hover:bg-orange-500 hover:text-black text-orange-500 font-bold py-4 px-8 rounded-full text-xl transition-all">
-              Ver Preview
-            </button>
+      <section className="relative py-24 overflow-hidden">
+        {/* Elegant Background */}
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-amber-50"></div>
+          <div className="absolute top-0 right-0 w-1/2 h-full opacity-5">
+            <svg viewBox="0 0 100 100" className="w-full h-full">
+              <defs>
+                <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
+                  <path d="M 10 0 L 0 0 0 10" fill="none" stroke="currentColor" strokeWidth="0.5"/>
+                </pattern>
+              </defs>
+              <rect width="100" height="100" fill="url(#grid)" />
+            </svg>
           </div>
         </div>
-      </section>
 
-      {/* Stats Section */}
-      <section className="py-16 bg-gray-900">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="grid md:grid-cols-4 gap-8 text-center">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div>
-              <div className="text-3xl font-bold text-orange-500 mb-2">1000+</div>
-              <div className="text-gray-400">Alunos</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-orange-500 mb-2">50+</div>
-              <div className="text-gray-400">Horas de Conteúdo</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-orange-500 mb-2">95%</div>
-              <div className="text-gray-400">Satisfação</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-orange-500 mb-2">24/7</div>
-              <div className="text-gray-400">Suporte</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Benefits Section */}
-      <section className="py-16 bg-black">
-        <div className="max-w-6xl mx-auto px-4">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
-            O que você vai <span className="text-orange-500">dominar</span>
-          </h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {benefits.length > 0 ? benefits.map((benefit: any, index: number) => (
-              <div key={index} className="bg-gray-900 p-6 rounded-lg border border-gray-800 hover:border-orange-500/50 transition-colors">
-                <div className="w-12 h-12 bg-orange-500 rounded-full mb-4 flex items-center justify-center">
-                  <span className="text-black font-bold">{index + 1}</span>
-                </div>
-                <h3 className="text-xl font-semibold mb-3 text-white">
-                  {benefit.title || `Módulo ${index + 1}`}
-                </h3>
-                <p className="text-gray-400">
-                  {benefit.description || 'Descrição do módulo'}
-                </p>
+              {/* Premium Badge */}
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-100 to-amber-200 rounded-full mb-8">
+                <Crown className="h-4 w-4 text-amber-600" />
+                <span className="text-amber-800 font-semibold text-sm">Experiência Premium</span>
               </div>
-            )) : (
-              <div className="col-span-3 text-center text-gray-500">
-                Nenhum módulo cadastrado
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
+              
+              <h1 className="text-5xl md:text-6xl font-bold mb-8 leading-tight text-gray-900">
+                {defaultData.headline}
+              </h1>
+              
+              <p className="text-xl md:text-2xl mb-8 text-gray-700 leading-relaxed">
+                {defaultData.subheadline}
+              </p>
+              
+              <p className="text-lg mb-10 text-gray-600 leading-relaxed">
+                {defaultData.description}
+              </p>
 
-      {/* About Mentor Section */}
-      <section className="py-16 bg-gradient-to-r from-gray-900 to-black">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div className="bg-gradient-to-br from-orange-500 to-yellow-500 rounded-lg h-96 flex items-center justify-center">
-              <span className="text-black text-lg font-bold">Foto do Mentor</span>
-            </div>
-            <div>
-              <h2 className="text-3xl md:text-4xl font-bold mb-6">
-                Quem é o <span className="text-orange-500">Mentor</span>
-              </h2>
-              {isEditing ? (
-                <textarea
-                  value={aboutMentor}
-                  onChange={(e) => handleTextChange('sec_about', 'content', e.target.value)}
-                  className="text-lg text-gray-300 leading-relaxed mb-8 bg-transparent border-2 border-orange-500/30 rounded px-4 py-2 w-full resize-none h-32"
-                />
-              ) : (
-                <p className="text-lg text-gray-300 leading-relaxed mb-8">{aboutMentor}</p>
-              )}
-              <div className="flex gap-4">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-orange-500">15+</div>
-                  <div className="text-gray-400 text-sm">Anos de Experiência</div>
+              {/* Premium Features */}
+              <div className="grid grid-cols-3 gap-6 mb-10">
+                <div className="text-center p-4 bg-white rounded-xl shadow-sm border">
+                  <Award className="h-8 w-8 text-amber-600 mx-auto mb-2" />
+                  <div className="text-2xl font-bold text-gray-900">100%</div>
+                  <div className="text-sm text-gray-600">Aprovação</div>
                 </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-orange-500">100+</div>
-                  <div className="text-gray-400 text-sm">Projetos</div>
+                <div className="text-center p-4 bg-white rounded-xl shadow-sm border">
+                  <Shield className="h-8 w-8 text-green-600 mx-auto mb-2" />
+                  <div className="text-2xl font-bold text-gray-900">VIP</div>
+                  <div className="text-sm text-gray-600">Suporte</div>
                 </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-orange-500">50+</div>
-                  <div className="text-gray-400 text-sm">Empresas</div>
+                <div className="text-center p-4 bg-white rounded-xl shadow-sm border">
+                  <Star className="h-8 w-8 text-yellow-500 mx-auto mb-2" />
+                  <div className="text-2xl font-bold text-gray-900">5.0</div>
+                  <div className="text-sm text-gray-600">Avaliação</div>
+                </div>
+              </div>
+              
+              {/* Premium CTA */}
+              <div className="flex flex-col sm:flex-row gap-6 items-start">
+                <Button 
+                  size="lg" 
+                  className="bg-gradient-to-r from-gray-900 to-gray-800 hover:from-gray-800 hover:to-gray-700 text-white font-bold px-10 py-4 text-lg shadow-xl transition-all duration-300 hover:shadow-2xl hover:scale-105"
+                >
+                  <Crown className="mr-2 h-5 w-5" />
+                  {defaultData.ctaText}
+                </Button>
+                <div className="text-left">
+                  <p className="text-3xl font-bold text-gray-900">{defaultData.pricingText}</p>
+                  <p className="text-sm text-gray-600">💎 ou 12x de R$ 199,00</p>
+                  <p className="text-xs text-green-600 font-semibold">✅ Garantia de satisfação</p>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials Section */}
-      <section className="py-16 bg-gray-900">
-        <div className="max-w-6xl mx-auto px-4">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
-            Veja o que nossos <span className="text-orange-500">alunos</span> dizem
-          </h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {data.sec_testimonials && Array.isArray(data.sec_testimonials) ? (
-              data.sec_testimonials.map((testimonial: any, index: number) => (
-                <div key={index} className="bg-black p-6 rounded-lg border border-gray-800">
-                  <div className="flex mb-4">
-                    {[...Array(5)].map((_, i) => (
-                      <span key={i} className="text-orange-500 text-lg">★</span>
-                    ))}
-                  </div>
-                  <p className="text-gray-300 mb-4 italic">
-                    "{testimonial.content || 'Depoimento do cliente'}"
-                  </p>
-                  <div className="flex items-center">
-                    <div className="w-12 h-12 bg-orange-500 rounded-full mr-4 flex items-center justify-center">
-                      <span className="text-black font-bold">
-                        {(testimonial.name || 'Cliente')[0]}
-                      </span>
+            
+            {/* Premium Course Preview */}
+            <div className="flex justify-center">
+              <div className="relative">
+                <div className="absolute -inset-4 bg-gradient-to-r from-amber-400 to-amber-600 rounded-2xl blur-xl opacity-20"></div>
+                <Card className="relative bg-white border-2 border-gray-100 shadow-2xl">
+                  <CardContent className="p-8">
+                    <div className="aspect-video bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl mb-6 overflow-hidden">
+                      <img 
+                        src={courseData?.image || "/api/placeholder/500/300"} 
+                        alt="Course Preview" 
+                        className="w-full h-full object-cover"
+                      />
                     </div>
-                    <div>
-                      <p className="font-semibold text-white">
-                        {testimonial.name || 'Nome do Cliente'}
-                      </p>
-                      <p className="text-gray-400 text-sm">
-                        {testimonial.role || 'Profissão'}
-                      </p>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-bold text-xl text-gray-900">
+                          {courseData?.title || 'Masterclass Premium'}
+                        </h3>
+                        <Badge className="bg-amber-100 text-amber-800 border-amber-200">Premium</Badge>
+                      </div>
+                      <div className="grid grid-cols-3 gap-4 text-center">
+                        <div>
+                          <Clock className="h-5 w-5 text-gray-600 mx-auto mb-1" />
+                          <p className="text-sm font-semibold text-gray-900">60h</p>
+                          <p className="text-xs text-gray-600">Conteúdo</p>
+                        </div>
+                        <div>
+                          <Users className="h-5 w-5 text-gray-600 mx-auto mb-1" />
+                          <p className="text-sm font-semibold text-gray-900">100</p>
+                          <p className="text-xs text-gray-600">Executivos</p>
+                        </div>
+                        <div>
+                          <Star className="h-5 w-5 text-yellow-500 mx-auto mb-1" />
+                          <p className="text-sm font-semibold text-gray-900">5.0</p>
+                          <p className="text-xs text-gray-600">Rating</p>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="col-span-3 text-center text-gray-500">
-                Nenhum depoimento cadastrado
+                  </CardContent>
+                </Card>
               </div>
-            )}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section className="py-16 bg-black">
-        <div className="max-w-4xl mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-8">
-            Invista no seu <span className="text-orange-500">futuro</span>
-          </h2>
-          <div className="bg-gradient-to-br from-gray-900 to-black border-2 border-orange-500 rounded-lg shadow-2xl p-8 max-w-md mx-auto">
-            <div className="text-5xl font-bold text-orange-500 mb-4">
-              {pricingText}
+      {/* Premium Benefits */}
+      <section className="py-24 bg-gradient-to-b from-gray-50 to-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-100 rounded-full mb-6">
+              <Crown className="h-4 w-4 text-amber-600" />
+              <span className="text-amber-800 font-semibold text-sm">Benefícios Exclusivos</span>
             </div>
-            <p className="text-gray-400 mb-6 line-through">De R$ 497,00</p>
-            <div className="bg-orange-500 text-black rounded-full px-4 py-2 inline-block mb-6 font-bold">
-              OFERTA LIMITADA
-            </div>
-            <ul className="text-left mb-8 space-y-3">
-              <li className="flex items-center">
-                <span className="text-orange-500 mr-3 text-xl">✓</span>
-                Acesso vitalício ao curso
-              </li>
-              <li className="flex items-center">
-                <span className="text-orange-500 mr-3 text-xl">✓</span>
-                Certificado de conclusão
-              </li>
-              <li className="flex items-center">
-                <span className="text-orange-500 mr-3 text-xl">✓</span>
-                Comunidade exclusiva
-              </li>
-              <li className="flex items-center">
-                <span className="text-orange-500 mr-3 text-xl">✓</span>
-                Suporte direto com mentor
-              </li>
-            </ul>
-            <button className="bg-orange-500 hover:bg-orange-600 text-black font-bold py-4 px-8 rounded-full text-lg transition-all transform hover:scale-105 w-full mb-4">
-              {ctaText}
-            </button>
-            <p className="text-gray-500 text-sm">
-              💳 Parcelamos em até 12x no cartão
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+              Uma experiência sem precedentes
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Investimento estratégico para líderes que buscam resultados excepcionais
             </p>
           </div>
-        </div>
-      </section>
-
-      {/* FAQ Section */}
-      <section className="py-16 bg-gray-900">
-        <div className="max-w-4xl mx-auto px-4">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
-            Perguntas <span className="text-orange-500">Frequentes</span>
-          </h2>
-          <div className="space-y-4">
-            {[
-              {
-                q: "Por quanto tempo tenho acesso ao curso?",
-                a: "O acesso é vitalício! Você pode assistir quantas vezes quiser, no seu próprio ritmo."
-              },
-              {
-                q: "Preciso de conhecimento prévio?",
-                a: "Não! O curso foi pensado para iniciantes e intermediários."
-              },
-              {
-                q: "Tem certificado?",
-                a: "Sim! Ao concluir 100% do curso você recebe um certificado de conclusão."
-              }
-            ].map((faq, index) => (
-              <div key={index} className="bg-black border border-gray-800 rounded-lg p-6">
-                <h3 className="text-lg font-semibold mb-2 text-orange-500">
-                  {faq.q}
-                </h3>
-                <p className="text-gray-300">{faq.a}</p>
-              </div>
+          
+          <div className="grid md:grid-cols-2 gap-8">
+            {defaultData.benefits.map((benefit, index) => (
+              <Card key={index} className="border-2 border-gray-100 hover:border-amber-200 transition-all duration-300 hover:shadow-lg">
+                <CardContent className="p-8">
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 bg-gradient-to-br from-amber-400 to-amber-600 rounded-xl">
+                      <CheckCircle className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-gray-900 mb-3">{benefit}</h3>
+                      <p className="text-gray-600 leading-relaxed">
+                        Benefício premium desenvolvido especificamente para maximizar seu retorno sobre investimento
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Final CTA */}
-      <section className="py-16 bg-gradient-to-r from-orange-500 to-yellow-500">
-        <div className="max-w-4xl mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-8 text-black">
-            Não perca essa oportunidade!
-          </h2>
-          <p className="text-lg mb-8 text-black/80">
-            Apenas 48 horas com esse preço especial
-          </p>
-          <button className="bg-black hover:bg-gray-800 text-white font-bold py-4 px-12 rounded-full text-xl transition-all transform hover:scale-105">
-            {ctaText}
-          </button>
+      {/* Premium Testimonials */}
+      {data.testimonials.length > 0 && (
+        <section className="py-24 bg-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+                Resultados de nossos executivos
+              </h2>
+              <p className="text-xl text-gray-600">
+                Transformações reais de líderes como você
+              </p>
+            </div>
+            
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {data.testimonials.map((testimonial) => (
+                <Card key={testimonial.id} className="border-2 border-gray-100 hover:border-gray-200 transition-all duration-300">
+                  <CardContent className="p-8">
+                    <div className="flex items-center gap-2 mb-6">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+                      ))}
+                    </div>
+                    <Quote className="w-8 h-8 text-gray-300 mb-4" />
+                    <p className="text-gray-700 mb-6 italic leading-relaxed">"{testimonial.content}"</p>
+                    <div className="flex items-center gap-4">
+                      <Avatar className="w-12 h-12 border-2 border-gray-200">
+                        <AvatarImage src={testimonial.avatar} />
+                        <AvatarFallback className="bg-gray-100 text-gray-600">
+                          {testimonial.name.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-bold text-gray-900">{testimonial.name}</p>
+                        <p className="text-sm text-gray-600">{testimonial.role}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Premium Mentor Section */}
+      <section className="py-24 bg-gradient-to-b from-gray-50 to-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <div className="order-2 lg:order-1">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-100 rounded-full mb-6">
+                <Crown className="h-4 w-4 text-amber-600" />
+                <span className="text-amber-800 font-semibold text-sm">Seu Mentor Premium</span>
+              </div>
+              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+                Aprenda com o melhor
+              </h2>
+              <h3 className="text-2xl font-bold text-amber-600 mb-6">
+                {courseData?.mentor.name || 'Nome do Mentor'}
+              </h3>
+              <p className="text-lg text-gray-700 mb-6 leading-relaxed">
+                {defaultData.aboutMentor}
+              </p>
+              <p className="text-lg text-gray-600 leading-relaxed mb-8">
+                {courseData?.mentor.bio || 'Bio detalhada do mentor...'}
+              </p>
+              
+              {/* Mentor Stats */}
+              <div className="grid grid-cols-3 gap-6">
+                <div className="text-center p-4 bg-white rounded-xl shadow-sm border">
+                  <div className="text-3xl font-bold text-gray-900">15+</div>
+                  <div className="text-sm text-gray-600">Anos de experiência</div>
+                </div>
+                <div className="text-center p-4 bg-white rounded-xl shadow-sm border">
+                  <div className="text-3xl font-bold text-gray-900">1000+</div>
+                  <div className="text-sm text-gray-600">Executivos treinados</div>
+                </div>
+                <div className="text-center p-4 bg-white rounded-xl shadow-sm border">
+                  <div className="text-3xl font-bold text-gray-900">50+</div>
+                  <div className="text-sm text-gray-600">Empresas parceiras</div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="order-1 lg:order-2 flex justify-center">
+              <div className="relative">
+                <div className="absolute -inset-8 bg-gradient-to-r from-amber-400 to-amber-600 rounded-full blur-2xl opacity-20"></div>
+                <div className="relative bg-white p-8 rounded-2xl shadow-2xl border-2 border-gray-100">
+                  <Avatar className="w-64 h-64 mx-auto border-4 border-amber-200">
+                    <AvatarImage src={courseData?.mentor.avatar} />
+                    <AvatarFallback className="text-6xl bg-amber-100 text-amber-600">
+                      {courseData?.mentor.name?.charAt(0) || 'M'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="text-center mt-6">
+                    <Badge className="bg-gradient-to-r from-amber-400 to-amber-600 text-white border-0">
+                      ⭐ Mentor Premium
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-black py-12 border-t border-gray-800">
-        <div className="max-w-6xl mx-auto px-4 text-center">
-          <div className="text-2xl font-bold text-orange-500 mb-4">LOGO</div>
-          <p className="text-gray-400 mb-8">
-            Transformando carreiras através da educação de qualidade
+      {/* Premium Final CTA */}
+      <section className="py-24 bg-gradient-to-br from-gray-900 to-gray-800 text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-amber-400/10 to-amber-600/10"></div>
+        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-400/20 rounded-full mb-8">
+            <Crown className="h-4 w-4 text-amber-400" />
+            <span className="text-amber-300 font-semibold text-sm">Experiência Exclusiva</span>
+          </div>
+          
+          <h2 className="text-4xl md:text-6xl font-bold mb-8">
+            Transforme sua liderança hoje
+          </h2>
+          <p className="text-xl mb-12 text-gray-300">
+            ⏳ Apenas 50 vagas disponíveis - Reserve a sua agora
           </p>
-          <div className="border-t border-gray-800 pt-8">
-            <p className="text-gray-500 text-sm">
-              © 2024 Todos os direitos reservados. Política de Privacidade | Termos de Uso
+          
+          <div className="flex flex-col sm:flex-row gap-8 items-center justify-center">
+            <Button 
+              size="lg" 
+              className="bg-gradient-to-r from-amber-400 to-amber-600 hover:from-amber-500 hover:to-amber-700 text-gray-900 font-bold px-12 py-6 text-xl shadow-xl transition-all duration-300 hover:shadow-2xl hover:scale-105"
+            >
+              👑 {defaultData.ctaText}
+            </Button>
+            <div className="text-center">
+              <p className="text-4xl font-bold text-white">{defaultData.pricingText}</p>
+              <p className="text-sm text-gray-400">💎 Investimento Premium • 🛡️ Garantia Total</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Premium Footer */}
+      <footer className="bg-gray-50 border-t py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <Crown className="h-5 w-5 text-amber-600" />
+              <span className="font-bold text-gray-900">Premium Experience</span>
+            </div>
+            <p className="text-gray-600">
+              © 2024 {courseData?.title || 'Curso Premium'}. Todos os direitos reservados.
             </p>
           </div>
         </div>
@@ -340,3 +370,5 @@ export const Template3: React.FC<Template3Props> = ({
     </div>
   );
 };
+
+export default Template3; 

@@ -1,136 +1,128 @@
-
 import { supabase } from '@/integrations/supabase/client';
-import { LandingPageData } from '@/types/landing-page';
+import { CleanLandingPageData, HeroTemplatesConfig, DEFAULT_HERO_TEMPLATES } from '@/types/template-system';
 
-export const templateService = {
-  async getTemplateData(templateType: string): Promise<LandingPageData | null> {
+export class TemplateService {
+  // Extrair texto puro de HTML
+  static extractCleanContent(htmlContent: string): string {
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = htmlContent;
+    
+    // Remover scripts e estilos
+    const scripts = tempDiv.querySelectorAll('script, style');
+    scripts.forEach(script => script.remove());
+    
+    return tempDiv.textContent || tempDiv.innerText || '';
+  }
+  
+  // Converter estrutura antiga (element_1) para nova estrutura limpa
+  static migrateOldStructure(oldData: any): CleanLandingPageData {
+    if (!oldData || !oldData.element_1) {
+      return this.getDefaultCleanData();
+    }
+    
+    const element1 = oldData.element_1;
+    
+    return {
+      "attention-tag": this.extractCleanContent(element1.tagname || ""),
+      "title": this.extractCleanContent(element1.title || ""),
+      "description": this.extractCleanContent(element1.description || ""),
+      "button1": this.extractCleanContent(element1.button1 || ""),
+      "button2": this.extractCleanContent(element1.button2 || ""),
+      "review": this.extractCleanContent(element1.review || ""),
+      "floating_card1": this.extractCleanContent(element1.floating_card1 || ""),
+      "floating_card2": this.extractCleanContent(element1.floating_card2 || ""),
+      "floating_card3": this.extractCleanContent(element1.floating_card3 || ""),
+      "floating_card4": this.extractCleanContent(element1.floating_card4 || "")
+    };
+  }
+  
+  // Dados padrão limpos
+  static getDefaultCleanData(): CleanLandingPageData {
+    return {
+      "attention-tag": "⚡ Elite Performance garantido",
+      "title": "Domine Marketing Digital em 30 Dias",
+      "description": "Transforme sua carreira e conquiste a liberdade financeira com estratégias comprovadas que geraram mais de R$10 milhões em vendas.",
+      "button1": "GARANTIR MINHA VAGA",
+      "button2": "Ver Prévia Gratuita",
+      "review": "4.9/5 • Baseado em 1.2k avaliações"
+    };
+  }
+  
+  // Aplicar template HTML a dados limpos
+  static applyTemplate(fieldName: keyof CleanLandingPageData, cleanContent: string, templates: HeroTemplatesConfig): string {
+    const template = templates[fieldName];
+    if (!template) return cleanContent;
+    
+    let html = template.html;
+    const words = cleanContent.split(' ');
+    
+    // Substituir placeholders com palavras do conteúdo
+    template.placeholders.forEach((placeholder, index) => {
+      const word = words[index] || '';
+      html = html.replace(placeholder, word);
+    });
+    
+    return html;
+  }
+  
+  // Salvar templates customizados
+  static async saveCustomTemplates(landingPageId: string, templates: HeroTemplatesConfig): Promise<void> {
+    const { error } = await supabase
+      .from('course_landing_pages')
+      .update({
+        custom_templates: templates,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', landingPageId);
+      
+    if (error) throw error;
+  }
+  
+  // Carregar templates (customizados ou padrão)
+  static async loadTemplates(landingPageId: string): Promise<HeroTemplatesConfig> {
+    const { data, error } = await supabase
+      .from('course_landing_pages')
+      .select('custom_templates')
+      .eq('id', landingPageId)
+      .single();
+      
+    if (error || !data?.custom_templates) {
+      return DEFAULT_HERO_TEMPLATES;
+    }
+    
+    return data.custom_templates;
+  }
+  
+  // Migrar dados existentes para nova estrutura
+  static async migrateExistingData(landingPageId: string): Promise<CleanLandingPageData> {
     try {
-      console.log(`🔍 Buscando dados do template: ${templateType}`);
-
+      // Buscar dados atuais
       const { data, error } = await supabase
         .from('course_landing_pages')
-        .select('*')
-        .eq('layout_name', templateType)
-        .eq('is_active', true)
-        .maybeSingle();
-
-      if (error) {
-        console.error('❌ Erro ao buscar template:', error);
-        return null;
-      }
-
-      if (!data) {
-        console.log(`⚠️ Template ${templateType} não encontrado`);
-        return null;
-      }
-
-      console.log(`✅ Template ${templateType} carregado com sucesso`);
-      
-      return {
-        id: data.id,
-        template_type: data.layout_name || templateType,
-        course_id: data.course_id,
-        mentor_id: data.mentor_id,
-        is_active: data.is_active,
-        created_at: data.created_at,
-        updated_at: data.updated_at,
-        layout_name: data.layout_name,
-        layout_body: data.layout_body || {},
-        layout_images: data.layout_images || {},
-        ...data.layout_body
-      };
-      
-    } catch (error) {
-      console.error('❌ Erro inesperado ao carregar template:', error);
-      return null;
-    }
-  },
-
-  async updateTemplateData(templateId: string, data: Partial<LandingPageData>): Promise<boolean> {
-    try {
-      console.log(`💾 Salvando dados do template: ${templateId}`);
-      
-      const { layout_body, layout_images, ...otherData } = data;
-      
-      const updateData: any = {
-        updated_at: new Date().toISOString(),
-      };
-
-      if (layout_body) {
-        updateData.layout_body = layout_body;
-      }
-
-      if (layout_images) {
-        updateData.layout_images = layout_images;
-      }
-
-      Object.keys(otherData).forEach(key => {
-        if (key !== 'id' && key !== 'created_at' && key !== 'template_type') {
-          updateData[key] = (otherData as any)[key];
-        }
-      });
-
-      const { error } = await supabase
-        .from('course_landing_pages')
-        .update(updateData)
-        .eq('id', templateId);
-
-      if (error) {
-        console.error('❌ Erro ao salvar template:', error);
-        return false;
-      }
-
-      console.log(`✅ Template ${templateId} salvo com sucesso`);
-      return true;
-      
-    } catch (error) {
-      console.error('❌ Erro inesperado ao salvar template:', error);
-      return false;
-    }
-  },
-
-  async createTemplate(data: Omit<LandingPageData, 'id' | 'created_at' | 'updated_at'>): Promise<LandingPageData | null> {
-    try {
-      const { layout_body, layout_images, ...otherData } = data;
-      
-      const insertData = {
-        layout_name: data.template_type,
-        course_id: data.course_id,
-        mentor_id: data.mentor_id,
-        is_active: data.is_active,
-        layout_body: layout_body || {},
-        layout_images: layout_images || {},
-        ...otherData
-      };
-
-      const { data: newTemplate, error } = await supabase
-        .from('course_landing_pages')
-        .insert(insertData)
-        .select()
+        .select('sec_hero')
+        .eq('id', landingPageId)
         .single();
-
-      if (error) {
-        console.error('❌ Erro ao criar template:', error);
-        return null;
-      }
-
-      return {
-        id: newTemplate.id,
-        template_type: newTemplate.layout_name,
-        course_id: newTemplate.course_id,
-        mentor_id: newTemplate.mentor_id,
-        is_active: newTemplate.is_active,
-        created_at: newTemplate.created_at,
-        updated_at: newTemplate.updated_at,
-        layout_name: newTemplate.layout_name,
-        layout_body: newTemplate.layout_body || {},
-        layout_images: newTemplate.layout_images || {},
-        ...newTemplate.layout_body
-      };
+        
+      if (error) throw error;
       
+      // Converter para estrutura limpa
+      const cleanData = this.migrateOldStructure(data?.sec_hero);
+      
+      // Salvar nova estrutura limpa
+      const { error: updateError } = await supabase
+        .from('course_landing_pages')
+        .update({
+          sec_hero_clean: cleanData,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', landingPageId);
+        
+      if (updateError) throw updateError;
+      
+      return cleanData;
     } catch (error) {
-      console.error('❌ Erro inesperado ao criar template:', error);
-      return null;
+      console.error('Erro na migração:', error);
+      return this.getDefaultCleanData();
     }
   }
-};
+} 

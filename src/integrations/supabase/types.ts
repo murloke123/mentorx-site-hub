@@ -80,173 +80,6 @@ export type Database = {
         }
         Relationships: []
       }
-      chatbot_configs: {
-        Row: {
-          avatar: string | null
-          created_at: string
-          custom_params: Json | null
-          id: string
-          is_active: boolean | null
-          max_history_messages: number | null
-          name: string
-          theme_color: string | null
-          timeout: number | null
-          updated_at: string
-          webhook_url: string | null
-          welcome_message: string | null
-        }
-        Insert: {
-          avatar?: string | null
-          created_at?: string
-          custom_params?: Json | null
-          id?: string
-          is_active?: boolean | null
-          max_history_messages?: number | null
-          name?: string
-          theme_color?: string | null
-          timeout?: number | null
-          updated_at?: string
-          webhook_url?: string | null
-          welcome_message?: string | null
-        }
-        Update: {
-          avatar?: string | null
-          created_at?: string
-          custom_params?: Json | null
-          id?: string
-          is_active?: boolean | null
-          max_history_messages?: number | null
-          name?: string
-          theme_color?: string | null
-          timeout?: number | null
-          updated_at?: string
-          webhook_url?: string | null
-          welcome_message?: string | null
-        }
-        Relationships: []
-      }
-      chatbot_conversations: {
-        Row: {
-          bot_name: string
-          created_at: string
-          id: string
-          session_id: string
-          status: string | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          bot_name: string
-          created_at?: string
-          id?: string
-          session_id: string
-          status?: string | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          bot_name?: string
-          created_at?: string
-          id?: string
-          session_id?: string
-          status?: string | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      chatbot_messages: {
-        Row: {
-          content: string
-          conversation_id: string
-          created_at: string
-          id: string
-          metadata: Json | null
-          sender: string
-          type: string | null
-          updated_at: string
-        }
-        Insert: {
-          content: string
-          conversation_id: string
-          created_at?: string
-          id?: string
-          metadata?: Json | null
-          sender: string
-          type?: string | null
-          updated_at?: string
-        }
-        Update: {
-          content?: string
-          conversation_id?: string
-          created_at?: string
-          id?: string
-          metadata?: Json | null
-          sender?: string
-          type?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "chatbot_messages_conversation_id_fkey"
-            columns: ["conversation_id"]
-            isOneToOne: false
-            referencedRelation: "chatbot_conversations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      chatbot_metrics: {
-        Row: {
-          created_at: string
-          event: string
-          id: string
-          metadata: Json | null
-          session_id: string
-        }
-        Insert: {
-          created_at?: string
-          event: string
-          id?: string
-          metadata?: Json | null
-          session_id: string
-        }
-        Update: {
-          created_at?: string
-          event?: string
-          id?: string
-          metadata?: Json | null
-          session_id?: string
-        }
-        Relationships: []
-      }
-      chatbot_users: {
-        Row: {
-          created_at: string
-          id: string
-          session_id: string
-          settings: Json | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          session_id: string
-          settings?: Json | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          session_id?: string
-          settings?: Json | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       configuracoes_usuario: {
         Row: {
           ativo: boolean | null
@@ -386,36 +219,54 @@ export type Database = {
       }
       course_landing_pages: {
         Row: {
+          about_mentor: string | null
+          benefits: string[] | null
+          bonus_content: string | null
           course_id: string | null
           created_at: string | null
+          cta_text: string | null
+          description: string | null
+          headline: string | null
           id: string
           is_active: boolean | null
-          layout_body: Json | null
-          layout_images: Json | null
-          layout_name: string | null
-          mentor_id: string | null
+          pricing_text: string | null
+          subheadline: string | null
+          template_type: string
+          testimonials: Json | null
           updated_at: string | null
         }
         Insert: {
+          about_mentor?: string | null
+          benefits?: string[] | null
+          bonus_content?: string | null
           course_id?: string | null
           created_at?: string | null
+          cta_text?: string | null
+          description?: string | null
+          headline?: string | null
           id?: string
           is_active?: boolean | null
-          layout_body?: Json | null
-          layout_images?: Json | null
-          layout_name?: string | null
-          mentor_id?: string | null
+          pricing_text?: string | null
+          subheadline?: string | null
+          template_type: string
+          testimonials?: Json | null
           updated_at?: string | null
         }
         Update: {
+          about_mentor?: string | null
+          benefits?: string[] | null
+          bonus_content?: string | null
           course_id?: string | null
           created_at?: string | null
+          cta_text?: string | null
+          description?: string | null
+          headline?: string | null
           id?: string
           is_active?: boolean | null
-          layout_body?: Json | null
-          layout_images?: Json | null
-          layout_name?: string | null
-          mentor_id?: string | null
+          pricing_text?: string | null
+          subheadline?: string | null
+          template_type?: string
+          testimonials?: Json | null
           updated_at?: string | null
         }
         Relationships: [
@@ -496,6 +347,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cursos_landing_page_id_fkey"
+            columns: ["landing_page_id"]
+            isOneToOne: false
+            referencedRelation: "course_landing_pages"
             referencedColumns: ["id"]
           },
         ]
@@ -646,53 +504,6 @@ export type Database = {
         }
         Relationships: []
       }
-      payments: {
-        Row: {
-          amount: number
-          created_at: string
-          currency: string
-          id: string
-          invoice_url: string | null
-          status: string
-          stripe_payment_intent_id: string | null
-          subscription_id: string | null
-          updated_at: string
-          user_id: string | null
-        }
-        Insert: {
-          amount: number
-          created_at?: string
-          currency?: string
-          id?: string
-          invoice_url?: string | null
-          status: string
-          stripe_payment_intent_id?: string | null
-          subscription_id?: string | null
-          updated_at?: string
-          user_id?: string | null
-        }
-        Update: {
-          amount?: number
-          created_at?: string
-          currency?: string
-          id?: string
-          invoice_url?: string | null
-          status?: string
-          stripe_payment_intent_id?: string | null
-          subscription_id?: string | null
-          updated_at?: string
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "payments_subscription_id_fkey"
-            columns: ["subscription_id"]
-            isOneToOne: false
-            referencedRelation: "subscriptions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -758,48 +569,6 @@ export type Database = {
           },
         ]
       }
-      subscriptions: {
-        Row: {
-          created_at: string
-          current_period_end: string | null
-          current_period_start: string | null
-          id: string
-          plan_name: string | null
-          plan_price: number | null
-          status: string
-          stripe_customer_id: string | null
-          stripe_subscription_id: string | null
-          updated_at: string
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          current_period_end?: string | null
-          current_period_start?: string | null
-          id?: string
-          plan_name?: string | null
-          plan_price?: number | null
-          status: string
-          stripe_customer_id?: string | null
-          stripe_subscription_id?: string | null
-          updated_at?: string
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          current_period_end?: string | null
-          current_period_start?: string | null
-          id?: string
-          plan_name?: string | null
-          plan_price?: number | null
-          status?: string
-          stripe_customer_id?: string | null
-          stripe_subscription_id?: string | null
-          updated_at?: string
-          user_id?: string | null
-        }
-        Relationships: []
-      }
     }
     Views: {
       [_ in never]: never
@@ -808,14 +577,6 @@ export type Database = {
       cleanup_orphaned_profiles: {
         Args: Record<PropertyKey, never>
         Returns: undefined
-      }
-      create_default_landing_page_sections: {
-        Args: {
-          course_id_param: string
-          course_title?: string
-          course_price?: number
-        }
-        Returns: string
       }
       obter_detalhes_cursos_do_mentor: {
         Args: { p_mentor_id: string }

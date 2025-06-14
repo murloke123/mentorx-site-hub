@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -18,10 +17,7 @@ interface LandingPageData {
   is_active: boolean;
   created_at: string;
   updated_at: string;
-  layout_name?: string;
-  layout_body?: any;
-  layout_images?: any;
-  [key: string]: any;
+  [key: string]: any; // Para aceitar as seções JSONB dinamicamente
 }
 
 const CoursePublicView: React.FC = () => {
@@ -63,26 +59,11 @@ const CoursePublicView: React.FC = () => {
         }
 
         setCourseData(courseResult.data);
-        
-        // Mapear os dados para o formato esperado
-        const mappedLandingData: LandingPageData = {
-          id: landingPageResult.data.id,
-          template_type: landingPageResult.data.layout_name || 'modelo1',
-          course_id: landingPageResult.data.course_id,
-          mentor_id: landingPageResult.data.mentor_id,
-          is_active: landingPageResult.data.is_active,
-          created_at: landingPageResult.data.created_at,
-          updated_at: landingPageResult.data.updated_at,
-          layout_name: landingPageResult.data.layout_name,
-          layout_body: landingPageResult.data.layout_body,
-          layout_images: landingPageResult.data.layout_images
-        };
-        
-        setLandingPageData(mappedLandingData);
+        setLandingPageData(landingPageResult.data);
 
         console.log('✅ Dados carregados:', {
           curso: courseResult.data.title,
-          template: mappedLandingData.template_type
+          template: landingPageResult.data.template_type
         });
 
       } catch (err) {
@@ -175,4 +156,4 @@ const CoursePublicView: React.FC = () => {
   );
 };
 
-export default CoursePublicView;
+export default CoursePublicView; 
