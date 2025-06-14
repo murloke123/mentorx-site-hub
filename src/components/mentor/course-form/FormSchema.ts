@@ -1,4 +1,18 @@
+
 import * as z from "zod";
+
+export type CourseFormData = {
+  name: string;
+  description: string;
+  category: string;
+  image: string;
+  type: "free" | "paid";
+  price: number;
+  currency: string;
+  discount: number;
+  visibility: "public" | "private";
+  isPublished: boolean;
+};
 
 // Define the schema for the form validation
 export const formSchema = z.object({
@@ -13,9 +27,6 @@ export const formSchema = z.object({
   visibility: z.enum(["public", "private"]),
   isPublished: z.boolean().default(false),
 });
-
-// Re-export the type from the centralized location
-export type { CourseFormData } from "@/types/course";
 
 // Default values for the form
 export const defaultValues: CourseFormData = {

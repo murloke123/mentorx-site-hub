@@ -1,3 +1,4 @@
+
 import { Link, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
@@ -8,7 +9,8 @@ import {
   Settings, 
   LogOut,
   User,
-  Tags
+  Tags,
+  CreditCard
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
@@ -110,6 +112,16 @@ const AdminSidebar = () => {
           >
             <Settings className="mr-2 h-4 w-4" />
             Configurações
+          </Button>
+        </Link>
+        
+        <Link to="/admin/stripe">
+          <Button 
+            variant={isActive("/admin/stripe") ? "default" : "ghost"} 
+            className="w-full justify-start"
+          >
+            <CreditCard className="mr-2 h-4 w-4" />
+            Stripe
           </Button>
         </Link>
         

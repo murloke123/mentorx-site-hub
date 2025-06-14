@@ -1,3 +1,4 @@
+
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from "@/components/ui/sonner";
@@ -15,6 +16,7 @@ import CourseDetailsPage from './pages/CourseDetailsPage';
 import ModuleDetailsPage from './pages/ModuleDetailsPage';
 import { SubscriptionDashboard } from './components/subscription/SubscriptionDashboard';
 import { SubscriptionSuccessPage } from './pages/SubscriptionSuccessPage';
+import StripeConfigPage from './pages/StripeConfigPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -54,6 +56,7 @@ function AppContent() {
             <Route path="/landing/:courseId" element={<CourseLandingPublicPage />} />
             <Route path="/subscription" element={<SubscriptionDashboard />} />
             <Route path="/subscription/success" element={<SubscriptionSuccessPage />} />
+            <Route path="/admin/stripe" element={<StripeConfigPage />} />
           </Routes>
           <Toaster />
         </div>
