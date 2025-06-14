@@ -1,16 +1,10 @@
 
 import React, { useState } from 'react';
-import {
-  Card,
-  CardContent,
-  Typography,
-  Button,
-  Box,
-  Chip,
-  Alert,
-  CircularProgress
-} from '@mui/material';
-import { CheckCircle, Cancel, Warning } from '@mui/icons-material';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { CheckCircle, XCircle, AlertTriangle, Loader2 } from 'lucide-react';
 import { Subscription } from '@/types/subscription';
 import { loadStripe } from '@stripe/stripe-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -27,24 +21,24 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({ subscription
   const getStatusIcon = (status?: string) => {
     switch (status) {
       case 'active':
-        return <CheckCircle className="text-green-500" />;
+        return <CheckCircle className="w-5 h-5 text-green-500" />;
       case 'canceled':
-        return <Cancel className="text-red-500" />;
+        return <XCircle className="w-5 h-5 text-red-500" />;
       default:
-        return <Warning className="text-yellow-500" />;
+        return <AlertTriangle className="w-5 h-5 text-yellow-500" />;
     }
   };
 
-  const getStatusColor = (status?: string) => {
+  const getStatusVariant = (status?: string) => {
     switch (status) {
       case 'active':
-        return 'success';
-      case 'canceled':
-        return 'error';
-      case 'past_due':
-        return 'warning';
-      default:
         return 'default';
+      case 'canceled':
+        return 'destructive';
+      case 'past_due':
+        return 'secondary';
+      default:
+        return 'outline';
     }
   };
 
@@ -94,38 +88,45 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({ subscription
   if (!subscription) {
     return (
       <Card className="dark:bg-gray-800">
-        <CardContent>
-          <Typography variant="h6" gutterBottom className="dark:text-white">
+        <CardHeader>
+          <CardTitle className="dark:text-white">
             Assine Agora
-          </Typography>
-          <Typography variant="body2" color="textSecondary" className="dark:text-gray-300 mb-4">
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">
             Acesse todos os cursos com uma assinatura única
-          </Typography>
+          </p>
           
-          <Box className="bg-gradient-to-r from-blue-500 to-purple-600 p-4 rounded-lg text-white mb-4">
-            <Typography variant="h4" fontWeight="bold">
+          <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-6 rounded-lg text-white mb-4">
+            <h3 className="text-2xl font-bold">
               R$ 97,00
-            </Typography>
-            <Typography variant="body2">
+            </h3>
+            <p className="text-sm opacity-90">
               Acesso vitalício a todos os cursos
-            </Typography>
-          </Box>
+            </p>
+          </div>
 
           {error && (
-            <Alert severity="error" className="mb-4">
-              {error}
+            <Alert className="mb-4">
+              <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
 
           <Button
-            variant="contained"
-            size="large"
-            fullWidth
+            size="lg"
             onClick={handleSubscribe}
             disabled={loading}
-            className="bg-blue-600 hover:bg-blue-700"
+            className="w-full bg-blue-600 hover:bg-blue-700"
           >
-            {loading ? <CircularProgress size={24} /> : 'Assinar Agora'}
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Processando...
+              </>
+            ) : (
+              'Assinar Agora'
+            )}
           </Button>
         </CardContent>
       </Card>
@@ -134,44 +135,49 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({ subscription
 
   return (
     <Card className="dark:bg-gray-800">
-      <CardContent>
-        <Box display="flex" alignItems="center" gap={2} mb={2}>
+      <CardHeader>
+        <div className="flex items-center gap-3">
           {getStatusIcon(subscription.status)}
-          <Typography variant="h6" className="dark:text-white">
+          <CardTitle className="dark:text-white">
             Minha Assinatura
-          </Typography>
-          <Chip 
-            label={subscription.status.toUpperCase()} 
-            color={getStatusColor(subscription.status) as any}
-            size="small"
-          />
-        </Box>
-
-        <Typography variant="body2" color="textSecondary" className="dark:text-gray-300 mb-2">
+          </CardTitle>
+          <Badge variant={getStatusVariant(subscription.status)}>
+            {subscription.status.toUpperCase()}
+          </Badge>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <p className="text-gray-600 dark:text-gray-400 mb-2">
           Plano: {subscription.plan_name || 'Acesso Completo'}
-        </Typography>
+        </p>
 
         {subscription.current_period_end && (
-          <Typography variant="body2" color="textSecondary" className="dark:text-gray-300 mb-4">
+          <p className="text-gray-600 dark:text-gray-400 mb-4">
             Próxima renovação: {new Date(subscription.current_period_end).toLocaleDateString('pt-BR')}
-          </Typography>
+          </p>
         )}
 
         {error && (
-          <Alert severity="error" className="mb-4">
-            {error}
+          <Alert className="mb-4">
+            <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
 
         {subscription.status === 'active' && (
           <Button
-            variant="outlined"
-            color="error"
+            variant="outline"
             onClick={handleCancelSubscription}
             disabled={loading}
-            fullWidth
+            className="w-full text-red-600 border-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
           >
-            {loading ? <CircularProgress size={24} /> : 'Cancelar Assinatura'}
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Cancelando...
+              </>
+            ) : (
+              'Cancelar Assinatura'
+            )}
           </Button>
         )}
       </CardContent>

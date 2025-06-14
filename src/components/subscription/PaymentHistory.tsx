@@ -1,17 +1,9 @@
 
 import React from 'react';
-import {
-  Card,
-  CardContent,
-  Typography,
-  List,
-  ListItem,
-  ListItemText,
-  Chip,
-  Box,
-  IconButton
-} from '@mui/material';
-import { Receipt } from '@mui/icons-material';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Receipt } from 'lucide-react';
 import { Payment } from '@/types/subscription';
 
 interface PaymentHistoryProps {
@@ -22,13 +14,13 @@ export const PaymentHistory: React.FC<PaymentHistoryProps> = ({ payments }) => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'succeeded':
-        return 'success';
-      case 'failed':
-        return 'error';
-      case 'pending':
-        return 'warning';
-      default:
         return 'default';
+      case 'failed':
+        return 'destructive';
+      case 'pending':
+        return 'secondary';
+      default:
+        return 'outline';
     }
   };
 
@@ -41,50 +33,46 @@ export const PaymentHistory: React.FC<PaymentHistoryProps> = ({ payments }) => {
 
   return (
     <Card className="dark:bg-gray-800">
-      <CardContent>
-        <Typography variant="h6" gutterBottom className="dark:text-white">
+      <CardHeader>
+        <CardTitle className="dark:text-white">
           Histórico de Pagamentos
-        </Typography>
-
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
         {payments.length === 0 ? (
-          <Typography variant="body2" color="textSecondary" className="dark:text-gray-300">
+          <p className="text-gray-600 dark:text-gray-400 text-sm">
             Nenhum pagamento encontrado
-          </Typography>
+          </p>
         ) : (
-          <List>
+          <div className="space-y-3">
             {payments.map((payment) => (
-              <ListItem key={payment.id} className="px-0">
-                <ListItemText
-                  primary={
-                    <Box display="flex" justifyContent="space-between" alignItems="center">
-                      <Typography variant="body2" className="dark:text-white">
-                        {formatCurrency(payment.amount, payment.currency)}
-                      </Typography>
-                      <Chip
-                        label={payment.status}
-                        color={getStatusColor(payment.status) as any}
-                        size="small"
-                      />
-                    </Box>
-                  }
-                  secondary={
-                    <Typography variant="caption" className="dark:text-gray-300">
-                      {new Date(payment.created_at).toLocaleDateString('pt-BR')}
-                    </Typography>
-                  }
-                />
+              <div key={payment.id} className="flex items-center justify-between p-3 border rounded-lg dark:border-gray-700">
+                <div className="flex-1">
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="font-medium dark:text-white">
+                      {formatCurrency(payment.amount, payment.currency)}
+                    </span>
+                    <Badge variant={getStatusColor(payment.status)}>
+                      {payment.status}
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
+                    {new Date(payment.created_at).toLocaleDateString('pt-BR')}
+                  </p>
+                </div>
                 {payment.invoice_url && (
-                  <IconButton
-                    size="small"
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => window.open(payment.invoice_url, '_blank')}
-                    className="dark:text-gray-300"
+                    className="ml-2"
                   >
-                    <Receipt />
-                  </IconButton>
+                    <Receipt className="w-4 h-4" />
+                  </Button>
                 )}
-              </ListItem>
+              </div>
             ))}
-          </List>
+          </div>
         )}
       </CardContent>
     </Card>

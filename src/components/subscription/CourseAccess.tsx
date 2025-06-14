@@ -1,15 +1,9 @@
 
 import React from 'react';
-import {
-  Card,
-  CardContent,
-  Typography,
-  Grid,
-  Box,
-  Button,
-  LinearProgress
-} from '@mui/material';
-import { PlayArrow, MenuBook } from '@mui/icons-material';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { Play, BookOpen } from 'lucide-react';
 
 export const CourseAccess: React.FC = () => {
   // Mock data - replace with real data from your course service
@@ -36,77 +30,72 @@ export const CourseAccess: React.FC = () => {
 
   return (
     <Card className="dark:bg-gray-800">
-      <CardContent>
-        <Typography variant="h6" gutterBottom className="dark:text-white">
+      <CardHeader>
+        <CardTitle className="dark:text-white">
           Meus Cursos
-        </Typography>
-
-        <Grid container spacing={3}>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {courses.map((course) => (
-            <Grid item xs={12} sm={6} md={4} key={course.id}>
-              <Card className="dark:bg-gray-700 h-full">
-                <CardContent>
-                  <Box className="mb-3">
-                    <img 
-                      src={course.image} 
-                      alt={course.title}
-                      className="w-full h-32 object-cover rounded"
-                    />
-                  </Box>
-                  
-                  <Typography variant="h6" className="dark:text-white mb-2">
-                    {course.title}
-                  </Typography>
-                  
-                  <Typography variant="body2" color="textSecondary" className="dark:text-gray-300 mb-2">
-                    {course.description}
-                  </Typography>
+            <Card key={course.id} className="dark:bg-gray-700">
+              <CardContent className="p-4">
+                <div className="mb-3">
+                  <img 
+                    src={course.image} 
+                    alt={course.title}
+                    className="w-full h-32 object-cover rounded"
+                  />
+                </div>
+                
+                <h3 className="font-semibold text-lg dark:text-white mb-2">
+                  {course.title}
+                </h3>
+                
+                <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
+                  {course.description}
+                </p>
 
-                  <Box className="mb-2">
-                    <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-                      <Typography variant="body2" className="dark:text-gray-300">
-                        Progresso: {course.progress}%
-                      </Typography>
-                      <Typography variant="body2" className="dark:text-gray-300">
-                        {course.completedLessons}/{course.totalLessons}
-                      </Typography>
-                    </Box>
-                    <LinearProgress 
-                      variant="determinate" 
-                      value={course.progress} 
-                      className="rounded"
-                    />
-                  </Box>
+                <div className="mb-3">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm dark:text-gray-300">
+                      Progresso: {course.progress}%
+                    </span>
+                    <span className="text-sm dark:text-gray-300">
+                      {course.completedLessons}/{course.totalLessons}
+                    </span>
+                  </div>
+                  <Progress value={course.progress} className="h-2" />
+                </div>
 
-                  <Box display="flex" gap={1} mt={2}>
-                    <Button
-                      variant="contained"
-                      size="small"
-                      startIcon={<PlayArrow />}
-                      className="bg-blue-600 hover:bg-blue-700"
-                    >
-                      Continuar
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      startIcon={<MenuBook />}
-                    >
-                      Módulos
-                    </Button>
-                  </Box>
-                </CardContent>
-              </Card>
-            </Grid>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    className="bg-blue-600 hover:bg-blue-700 flex items-center gap-1"
+                  >
+                    <Play className="w-4 h-4" />
+                    Continuar
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-1"
+                  >
+                    <BookOpen className="w-4 h-4" />
+                    Módulos
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           ))}
-        </Grid>
+        </div>
 
         {courses.length === 0 && (
-          <Box textAlign="center" py={4}>
-            <Typography variant="body1" color="textSecondary">
+          <div className="text-center py-8">
+            <p className="text-gray-600 dark:text-gray-400">
               Nenhum curso disponível no momento
-            </Typography>
-          </Box>
+            </p>
+          </div>
         )}
       </CardContent>
     </Card>

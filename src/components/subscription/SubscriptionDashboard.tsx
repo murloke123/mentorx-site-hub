@@ -1,11 +1,5 @@
 
 import React, { useState, useEffect } from 'react';
-import {
-  Container,
-  Typography,
-  Grid,
-  Box
-} from '@mui/material';
 import { SubscriptionCard } from './SubscriptionCard';
 import { PaymentHistory } from './PaymentHistory';
 import { CourseAccess } from './CourseAccess';
@@ -43,41 +37,37 @@ export const SubscriptionDashboard: React.FC = () => {
 
   if (!user) {
     return (
-      <Container maxWidth="lg" className="py-8">
-        <Typography variant="h4" gutterBottom>
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold mb-2 dark:text-white">
           Acesso negado
-        </Typography>
-        <Typography variant="body1">
+        </h1>
+        <p className="text-gray-600 dark:text-gray-400">
           Você precisa estar logado para acessar esta página.
-        </Typography>
-      </Container>
+        </p>
+      </div>
     );
   }
 
   return (
-    <Container maxWidth="lg" className="py-8">
-      <Typography variant="h4" gutterBottom className="dark:text-white">
+    <div className="max-w-6xl mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold mb-2 dark:text-white">
         Minha Assinatura
-      </Typography>
+      </h1>
       
-      <Typography variant="body1" color="textSecondary" className="dark:text-gray-300 mb-6">
+      <p className="text-gray-600 dark:text-gray-400 mb-6">
         Gerencie sua assinatura, acesse seus cursos e visualize seu histórico de pagamentos
-      </Typography>
+      </p>
 
-      <Box mb={4}>
-        <Grid container spacing={4}>
-          <Grid item xs={12} md={8}>
-            <SubscriptionCard subscription={subscription} onUpdate={loadData} />
-            <Box mt={4}>
-              <CourseAccess />
-            </Box>
-          </Grid>
-          
-          <Grid item xs={12} md={4}>
-            <PaymentHistory payments={payments} />
-          </Grid>
-        </Grid>
-      </Box>
-    </Container>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          <SubscriptionCard subscription={subscription} onUpdate={loadData} />
+          <CourseAccess />
+        </div>
+        
+        <div>
+          <PaymentHistory payments={payments} />
+        </div>
+      </div>
+    </div>
   );
 };
