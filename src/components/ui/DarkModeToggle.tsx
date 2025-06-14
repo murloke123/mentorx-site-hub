@@ -1,19 +1,20 @@
 
 import React from 'react';
-import { IconButton } from '@mui/material';
-import { Brightness4, Brightness7 } from '@mui/icons-material';
+import { Moon, Sun } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { useTheme } from '@/contexts/ThemeContext';
 
 export const DarkModeToggle: React.FC = () => {
   const { isDarkMode, toggleDarkMode } = useTheme();
 
   return (
-    <IconButton
+    <Button
+      variant="ghost"
+      size="icon"
       onClick={toggleDarkMode}
-      color="inherit"
       aria-label="toggle dark mode"
     >
-      {isDarkMode ? <Brightness7 /> : <Brightness4 />}
-    </IconButton>
+      {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+    </Button>
   );
 };

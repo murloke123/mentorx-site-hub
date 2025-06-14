@@ -9,7 +9,7 @@ export const subscriptionService = {
       .select('*')
       .eq('user_id', userId)
       .eq('status', 'active')
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Error fetching subscription:', error);
@@ -61,10 +61,19 @@ export const subscriptionService = {
     }));
   },
 
-  async createSubscription(subscriptionData: Partial<Subscription>): Promise<Subscription | null> {
+  async createSubscription(subscriptionData: Omit<Subscription, 'id' | 'created_at' | 'updated_at'>): Promise<Subscription | null> {
     const { data, error } = await supabase
       .from('subscriptions')
-      .insert(subscriptionData)
+      .insert({
+        user_id: subscriptionData.user_id,
+        stripe_customer_id: subscriptionData.stripe_customer_id,
+        stripe_subscription_id: subscriptionData.stripe_subscription_id,
+        status: subscriptionData.status,
+        current_period_start: subscriptionData.current_period_start,
+        current_period_end: subscriptionData.current_period_end,
+        plan_name: subscriptionData.plan_name,
+        plan_price: subscriptionData.plan_price
+      })
       .select()
       .single();
 
@@ -90,7 +99,7 @@ export const subscriptionService = {
     };
   },
 
-  async updateSubscription(id: string, updates: Partial<Subscription>): Promise<boolean> {
+  async updateSubscription(id: string, updates: Partial<Omit<Subscription, 'id' | 'created_at' | 'updated_at'>>): Promise<boolean> {
     const { error } = await supabase
       .from('subscriptions')
       .update(updates)

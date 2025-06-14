@@ -1,5 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
-import { Course, CourseFormData } from '@/types/course';
+
+export type { Course } from '@/types/course';
+export type { Modulo } from '@/types/index';
 
 export async function getCourseById(courseId: string): Promise<CourseFormData> {
   try {
