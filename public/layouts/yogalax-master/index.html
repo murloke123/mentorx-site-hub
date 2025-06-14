@@ -29,40 +29,205 @@
   <body>
   	<nav class="navbar navbar-expand-lg navbar-dark ftco_navbar bg-dark ftco-navbar-light" id="ftco-navbar">
 	    <div class="container">
-	      <a class="navbar-brand" href="#"><span class="flaticon-lotus"></span><span data-field="field1">Jornada Espiritual</span></a>
+	      <a class="navbar-brand" href="javascript:void(0)"><span class="flaticon-lotus"></span><span data-field="field1">Jornada Espiritual</span></a>
 	    </div>
 	  </nav>
     <!-- END nav -->
 
-    <section class="hero-wrap js-fullheight" style="background-image: url('images/bg_2.jpg');">
-      <div class="overlay"></div>
-      <div class="container">
-        <div class="row no-gutters slider-text js-fullheight align-items-center justify-content-start">
-          <div class="col-md-8 ftco-animate">
+    <section class="hero-wrap js-fullheight" style="background: #F8F5F8; position: relative; overflow: hidden;">
+      <div class="overlay" style="background: rgba(0,0,0,0.05);"></div>
+      <div class="container" style="position: relative; z-index: 5;">
+        <div class="row no-gutters slider-text js-fullheight align-items-center">
+          <!-- Conteúdo de texto no lado esquerdo -->
+          <div class="col-md-7 ftco-animate">
             <h1 class="typewrite mb-3" data-period="4000" data-type='[ "Inspiração para uma Vida Plena.", "Terapia Eficaz Contra o Estresse.", "Flexibilidade é um Segundo Poder."]'>
               <span class="wrap"></span>
             </h1>
             <h2 class="mb-5" data-field="field2">Pratique espiritualidade hoje para um amanhã melhor</h2>
-            <p><a href="#" class="btn btn-primary p-3 px-4" data-field="field3">Comece Sua Jornada</a></p>
+            <p><a href="javascript:void(0)" class="btn btn-primary p-3 px-4" data-field="field3">Comece Sua Jornada</a></p>
+          </div>
+          
+          <!-- Espaço para a imagem no lado direito -->
+          <div class="col-md-5">
+            <!-- A imagem será posicionada aqui via CSS -->
           </div>
         </div>
       </div>
+      
+      <!-- Imagem sobreposta no lado direito -->
+      <div class="hero-image-overlay" 
+           style="background-image: url('images/bg_2.png');" 
+           data-image="img1">
+      </div>
+      
+      <style>
+                 .hero-image-overlay {
+           position: absolute !important;
+           top: 50% !important;
+           right: calc(5% + 100px) !important;
+           width: 467px !important;
+           height: 665px !important;
+           background-size: contain !important;
+           background-position: center !important;
+           background-repeat: no-repeat !important;
+           transform: translateY(-50%) !important;
+           background-color: transparent !important;
+           border: none !important;
+           border-radius: 0 !important;
+           box-shadow: none !important;
+           z-index: 10 !important;
+           overflow: hidden !important;
+         }
+         
+         /* Responsividade para tablets */
+         @media (max-width: 992px) {
+           .hero-image-overlay {
+             width: 334px !important;
+             height: 475px !important;
+             right: calc(3% + 80px) !important;
+             background-size: contain !important;
+           }
+         }
+        
+        /* Responsividade para mobile */
+        @media (max-width: 768px) {
+          .hero-image-overlay {
+            position: relative !important;
+            top: auto !important;
+            right: auto !important;
+            transform: none !important;
+            width: 100% !important;
+            height: 400px !important;
+            margin-top: 30px !important;
+            background-size: cover !important;
+            border-radius: 0 !important;
+          }
+          
+          .hero-wrap .container .row {
+            flex-direction: column;
+          }
+          
+          .hero-wrap .col-md-7 {
+            order: 2;
+            margin-top: 20px;
+          }
+          
+          .hero-wrap .col-md-5 {
+            order: 1;
+          }
+        }
+        
+        /* Ajuste da altura da seção hero */
+        .hero-wrap.js-fullheight {
+          min-height: 100vh;
+          display: flex;
+          align-items: center;
+        }
+        
+        /* Efeito aurora sutil na primeira seção */
+        .hero-wrap.js-fullheight::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: 
+            radial-gradient(ellipse 800px 600px at 15% 25%, rgba(255, 182, 193, 0.12) 0%, transparent 60%),
+            radial-gradient(ellipse 700px 500px at 85% 75%, rgba(221, 160, 221, 0.10) 0%, transparent 55%),
+            radial-gradient(ellipse 600px 400px at 45% 85%, rgba(255, 192, 203, 0.08) 0%, transparent 50%),
+            radial-gradient(ellipse 500px 350px at 65% 15%, rgba(240, 230, 240, 0.09) 0%, transparent 45%),
+            radial-gradient(ellipse 400px 300px at 25% 60%, rgba(255, 228, 225, 0.06) 0%, transparent 40%);
+          pointer-events: none;
+          z-index: 2;
+          animation: aurora-float 8s ease-in-out infinite alternate;
+        }
+        
+        /* Animação sutil da aurora */
+        @keyframes aurora-float {
+          0% { opacity: 0.7; transform: translateY(0px) scale(1); }
+          100% { opacity: 1; transform: translateY(-10px) scale(1.02); }
+        }
+        
+        /* Garantir que o conteúdo fique acima da aurora */
+        .hero-wrap .container {
+          position: relative;
+          z-index: 5;
+        }
+        
+        /* Diminuir fonte do texto da animação typewrite */
+        .hero-wrap .typewrite {
+          font-size: 2.8rem !important;
+          line-height: 1.2 !important;
+        }
+        
+        /* Responsividade para o texto typewrite */
+        @media (max-width: 992px) {
+          .hero-wrap .typewrite {
+            font-size: 2.2rem !important;
+          }
+        }
+        
+        @media (max-width: 768px) {
+          .hero-wrap .typewrite {
+            font-size: 1.8rem !important;
+          }
+        }
+
+        /* Estilos para a seção intro */
+        .intro-image-container {
+          padding: 20px;
+        }
+
+        .intro-image {
+          max-width: 100%;
+          height: auto;
+          display: block;
+        }
+
+        @media (min-width: 992px) {
+          .intro-image {
+            width: 846px !important;
+            height: 811px !important;
+          }
+        }
+
+        @media (max-width: 991px) {
+          .intro-image {
+            width: 100% !important;
+            height: auto !important;
+            max-height: 500px;
+          }
+        }
+
+        @media (max-width: 768px) {
+          .intro-image-container {
+            padding: 10px;
+            margin-bottom: 30px;
+          }
+        }
+      </style>
     </section>
 		
-		<section class="ftco-section ftco-intro" style="background-image: url(images/intro.jpg);">
+		<section class="ftco-section ftco-intro">
 			<div class="container">
-				<div class="row justify-content-end">
-					<div class="col-md-6">
+				<div class="row align-items-center">
+					<div class="col-md-6 order-md-1 order-2">
+						<div class="intro-image-container">
+							<img src="images/intro.jpg" alt="Espiritualidade" class="intro-image" data-image="img2" style="width: 846px; height: 811px; object-fit: cover; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+						</div>
+					</div>
+					<div class="col-md-6 order-md-2 order-1">
 						<div class="heading-section ftco-animate">
 	            <h2 class="mb-4" data-field="field4">Por Que Você Deveria Cultivar a Espiritualidade</h2>
 	          </div>
 	          <p class="ftco-animate" data-field="field5">A jornada espiritual é um caminho de autodescoberta e transformação interior. Através de práticas conscientes e meditação, encontramos a paz interior que tanto buscamos. Este é um convite para reconectar-se consigo mesmo e com o sagrado que habita em você.</p>
 	          <ul class="mt-5 do-list">
-	          	<li class="ftco-animate"><a href="#"><span class="ion-ios-checkmark-circle mr-3"></span><span data-field="field6">A espiritualidade fortalece a mente</span></a></li>
-	          	<li class="ftco-animate"><a href="#"><span class="ion-ios-checkmark-circle mr-3"></span><span data-field="field7">A meditação melhora a respiração</span></a></li>
-	          	<li class="ftco-animate"><a href="#"><span class="ion-ios-checkmark-circle mr-3"></span><span data-field="field8">Práticas espirituais desenvolvem a força interior</span></a></li>
-	          	<li class="ftco-animate"><a href="#"><span class="ion-ios-checkmark-circle mr-3"></span><span data-field="field9">A espiritualidade ajuda você a se concentrar</span></a></li>
-	          	<li class="ftco-animate"><a href="#"><span class="ion-ios-checkmark-circle mr-3"></span><span data-field="field10">A jornada espiritual dá significado ao seu dia</span></a></li>
+	          	<li class="ftco-animate"><span class="ion-ios-checkmark-circle mr-3"></span><span data-field="field6">A espiritualidade fortalece a mente</span></li>
+	          	<li class="ftco-animate"><span class="ion-ios-checkmark-circle mr-3"></span><span data-field="field7">A meditação melhora a respiração</span></li>
+	          	<li class="ftco-animate"><span class="ion-ios-checkmark-circle mr-3"></span><span data-field="field8">Práticas espirituais desenvolvem a força interior</span></li>
+	          	<li class="ftco-animate"><span class="ion-ios-checkmark-circle mr-3"></span><span data-field="field9">A espiritualidade ajuda você a se concentrar</span></li>
+	          	<li class="ftco-animate"><span class="ion-ios-checkmark-circle mr-3"></span><span data-field="field10">A jornada espiritual dá significado ao seu dia</span></li>
 	          </ul>
 					</div>
 				</div>
@@ -131,62 +296,62 @@
         <div class="row no-gutters">
         	<div class="col-md-6 col-lg-4">
         		<div class="package-program ftco-animate">
-        			<a href="#" class="img d-flex justify-content-center align-items-center" style="background-image: url(images/program-1.jpg);">
+        			<div class="img d-flex justify-content-center align-items-center" style="background-image: url(images/program-1.jpg);" data-image="img3">
         				<div class="text p-5 text-center">
 	        				<h3 data-field="field21">Meditação em Grupo</h3>
 	        				<p data-field="field22">Conecte-se com outros buscadores em sessões de meditação coletiva, onde a energia compartilhada amplifica a experiência espiritual.</p>
 	        			</div>
-        			</a>
+        			</div>
         		</div>
         	</div>
         	<div class="col-md-6 col-lg-4">
         		<div class="package-program ftco-animate">
-        			<a href="#" class="img d-flex justify-content-center align-items-center" style="background-image: url(images/program-2.jpg);">
+        			<div class="img d-flex justify-content-center align-items-center" style="background-image: url(images/program-2.jpg);" data-image="img4">
         				<div class="text p-5 text-center">
 	        				<h3 data-field="field23">Iniciação Espiritual</h3>
 	        				<p data-field="field24">Para aqueles que estão começando sua jornada espiritual, oferecemos um caminho suave de descoberta e autoconhecimento.</p>
 	        			</div>
-        			</a>
+        			</div>
         		</div>
         	</div>
         	<div class="col-md-6 col-lg-4">
         		<div class="package-program ftco-animate">
-        			<a href="#" class="img d-flex justify-content-center align-items-center" style="background-image: url(images/program-3.jpg);">
+        			<div class="img d-flex justify-content-center align-items-center" style="background-image: url(images/program-3.jpg);" data-image="img5">
         				<div class="text p-5 text-center">
 	        				<h3 data-field="field25">Maternidade Consciente</h3>
 	        				<p data-field="field26">Acompanhamento espiritual para futuras mães, cultivando a conexão sagrada entre mãe e bebê através de práticas meditativas.</p>
 	        			</div>
-        			</a>
+        			</div>
         		</div>
         	</div>
         	<div class="col-md-6 col-lg-4">
         		<div class="package-program ftco-animate">
-        			<a href="#" class="img d-flex justify-content-center align-items-center" style="background-image: url(images/program-4.jpg);">
+        			<div class="img d-flex justify-content-center align-items-center" style="background-image: url(images/program-4.jpg);" data-image="img6">
         				<div class="text p-5 text-center">
 	        				<h3 data-field="field27">Casais em Harmonia</h3>
 	        				<p data-field="field28">Fortaleça a união espiritual do casal através de práticas conjuntas de meditação e desenvolvimento da consciência compartilhada.</p>
 	        			</div>
-        			</a>
+        			</div>
         		</div>
         	</div>
         	<div class="col-md-6 col-lg-4">
         		<div class="package-program ftco-animate">
-        			<a href="#" class="img d-flex justify-content-center align-items-center" style="background-image: url(images/program-5.jpg);">
+        			<div class="img d-flex justify-content-center align-items-center" style="background-image: url(images/program-5.jpg);" data-image="img7">
         				<div class="text p-5 text-center">
 	        				<h3 data-field="field29">Despertar Energético</h3>
 	        				<p data-field="field30">Técnicas avançadas para despertar e equilibrar os centros energéticos, promovendo uma transformação profunda do ser.</p>
 	        			</div>
-        			</a>
+        			</div>
         		</div>
         	</div>
         	<div class="col-md-6 col-lg-4">
         		<div class="package-program ftco-animate">
-        			<a href="#" class="img d-flex justify-content-center align-items-center" style="background-image: url(images/program-6.jpg);">
+        			<div class="img d-flex justify-content-center align-items-center" style="background-image: url(images/program-6.jpg);" data-image="img8">
         				<div class="text p-5 text-center">
 	        				<h3 data-field="field31">Cura Espiritual</h3>
 	        				<p data-field="field32">Práticas de cura através da conexão com energias superiores, promovendo o equilíbrio entre corpo, mente e espírito.</p>
 	        			</div>
-        			</a>
+        			</div>
         		</div>
         	</div>
         </div>
@@ -219,7 +384,7 @@
 	              <li data-field="field43">Orientação para Despertar Espiritual</li>
 	            </ul>
 
-	            <a href="#" class="btn btn-primary d-block px-2 py-4" data-field="field44">Iniciar Jornada</a>
+	            <a href="javascript:void(0)" class="btn btn-primary d-block px-2 py-4" data-field="field44">Iniciar Jornada</a>
 	            </div>
 	          </div>
 	        </div>
@@ -239,7 +404,7 @@
 	              <li data-field="field53">Orientação para Autoconhecimento</li>
 	            </ul>
 
-	            <a href="#" class="btn btn-primary d-block px-2 py-4" data-field="field54">Começar Agora</a>
+	            <a href="javascript:void(0)" class="btn btn-primary d-block px-2 py-4" data-field="field54">Começar Agora</a>
 	            </div>
 	          </div>
 	        </div>
@@ -259,7 +424,7 @@
 	              <li data-field="field63">Introdução ao Autoconhecimento</li>
 	            </ul>
 
-	            <a href="#" class="btn btn-primary d-block px-2 py-4" data-field="field64">Experimentar</a>
+	            <a href="javascript:void(0)" class="btn btn-primary d-block px-2 py-4" data-field="field64">Experimentar</a>
 	            </div>
 	          </div>
 	        </div>
@@ -289,7 +454,7 @@
 	                    </span>
 	                  </div>
                     <div class="d-flex align-items-center">
-                    	<div class="user-img" style="background-image: url(images/person_1.jpg)">
+                    	<div class="user-img" style="background-image: url(images/person_1.jpg)" data-image="img9">
 		                  </div>
 		                  <div class="ml-4">
 		                  	<p class="name" data-field="field68">Maria Silva</p>
@@ -310,7 +475,7 @@
 	                  </div>
 
                     <div class="d-flex align-items-center">
-                    	<div class="user-img" style="background-image: url(images/person_2.jpg)">
+                    	<div class="user-img" style="background-image: url(images/person_2.jpg)" data-image="img10">
 		                  </div>
 		                  <div class="ml-4">
 		                  	<p class="name" data-field="field71">João Santos</p>
@@ -331,7 +496,7 @@
 	                  </div>
 
                     <div class="d-flex align-items-center">
-                    	<div class="user-img" style="background-image: url(images/person_3.jpg)">
+                    	<div class="user-img" style="background-image: url(images/person_3.jpg)" data-image="img11">
 		                  </div>
 		                  <div class="ml-4">
 		                  	<p class="name" data-field="field74">Ana Costa</p>
@@ -352,7 +517,7 @@
 	                  </div>
 
                     <div class="d-flex align-items-center">
-                    	<div class="user-img" style="background-image: url(images/person_4.jpg)">
+                    	<div class="user-img" style="background-image: url(images/person_4.jpg)" data-image="img12">
 		                  </div>
 		                  <div class="ml-4">
 		                  	<p class="name" data-field="field77">Carlos Oliveira</p>
@@ -373,7 +538,7 @@
 	                  </div>
 
                     <div class="d-flex align-items-center">
-                    	<div class="user-img" style="background-image: url(images/person_2.jpg)">
+                    	<div class="user-img" style="background-image: url(images/person_2.jpg)" data-image="img13">
 		                  </div>
 		                  <div class="ml-4">
 		                  	<p class="name" data-field="field80">Lucia Ferreira</p>
@@ -389,7 +554,7 @@
       </div>
     </section>
 
-    <section class="ftco-counter ftco-bg-dark img" id="section-counter" style="background-image: url(images/bg_3.jpg);" data-stellar-background-ratio="0.5">
+    <section class="ftco-counter ftco-bg-dark img" id="section-counter" style="background-image: url(images/bg_3.jpg);" data-stellar-background-ratio="0.5" data-image="img14">
 			<div class="overlay"></div>
       <div class="container">
         <div class="row justify-content-center">
@@ -444,7 +609,7 @@
         <div class="row d-flex">
           <div class="col-md-4 d-flex ftco-animate">
           	<div class="blog-entry justify-content-end">
-              <a href="blog-single.html" class="block-20" style="background-image: url('images/image_1.jpg');">
+              <a href="blog-single.html" class="block-20" style="background-image: url('images/image_1.jpg');" data-image="img15">
               </a>
               <div class="text p-4 float-right d-block">
               	<div class="d-flex align-items-center pt-2 mb-4">
@@ -456,14 +621,14 @@
               			<span class="mos">Dezembro</span>
               		</div>
               	</div>
-                <h3 class="heading mt-2"><a href="#" data-field="field88">O Poder da Meditação Diária</a></h3>
+                <h3 class="heading mt-2"><a href="javascript:void(0)" data-field="field88">O Poder da Meditação Diária</a></h3>
                 <p data-field="field89">Descubra como uma prática simples de meditação pode transformar sua vida, trazendo paz interior e clareza mental para o seu dia a dia.</p>
               </div>
             </div>
           </div>
           <div class="col-md-4 d-flex ftco-animate">
           	<div class="blog-entry justify-content-end">
-              <a href="blog-single.html" class="block-20" style="background-image: url('images/image_2.jpg');">
+              <a href="blog-single.html" class="block-20" style="background-image: url('images/image_2.jpg');" data-image="img16">
               </a>
               <div class="text p-4 float-right d-block">
               	<div class="d-flex align-items-center pt-2 mb-4">
@@ -475,14 +640,14 @@
               			<span class="mos">Dezembro</span>
               		</div>
               	</div>
-                <h3 class="heading mt-2"><a href="#" data-field="field90">Encontrando Seu Propósito Espiritual</a></h3>
+                <h3 class="heading mt-2"><a href="javascript:void(0)" data-field="field90">Encontrando Seu Propósito Espiritual</a></h3>
                 <p data-field="field91">Uma jornada de autoconhecimento para descobrir sua missão de vida e como alinhar suas ações com seus valores mais profundos.</p>
               </div>
             </div>
           </div>
           <div class="col-md-4 d-flex ftco-animate">
           	<div class="blog-entry">
-              <a href="blog-single.html" class="block-20" style="background-image: url('images/image_3.jpg');">
+              <a href="blog-single.html" class="block-20" style="background-image: url('images/image_3.jpg');" data-image="img17">
               </a>
               <div class="text p-4 float-right d-block">
               	<div class="d-flex align-items-center pt-2 mb-4">
@@ -494,7 +659,7 @@
               			<span class="mos">Dezembro</span>
               		</div>
               	</div>
-                <h3 class="heading mt-2"><a href="#" data-field="field92">Cura Através da Espiritualidade</a></h3>
+                <h3 class="heading mt-2"><a href="javascript:void(0)" data-field="field92">Cura Através da Espiritualidade</a></h3>
                 <p data-field="field93">Explore como as práticas espirituais podem ser ferramentas poderosas de cura emocional, mental e até mesmo física.</p>
               </div>
             </div>
@@ -513,28 +678,28 @@
         </div>
     		<div class="row">
 					<div class="col-md-3 ftco-animate">
-						<a href="images/gallery-1.jpg" class="gallery image-popup img d-flex align-items-center" style="background-image: url(images/gallery-1.jpg);">
+						<a href="images/gallery-1.jpg" class="gallery image-popup img d-flex align-items-center" style="background-image: url(images/gallery-1.jpg);" data-image="img18">
 							<div class="icon mb-4 d-flex align-items-center justify-content-center">
     						<span class="icon-instagram"></span>
     					</div>
 						</a>
 					</div>
 					<div class="col-md-3 ftco-animate">
-						<a href="images/gallery-2.jpg" class="gallery image-popup img d-flex align-items-center" style="background-image: url(images/gallery-2.jpg);">
+						<a href="images/gallery-2.jpg" class="gallery image-popup img d-flex align-items-center" style="background-image: url(images/gallery-2.jpg);" data-image="img19">
 							<div class="icon mb-4 d-flex align-items-center justify-content-center">
     						<span class="icon-instagram"></span>
     					</div>
 						</a>
 					</div>
 					<div class="col-md-3 ftco-animate">
-						<a href="images/gallery-3.jpg" class="gallery image-popup img d-flex align-items-center" style="background-image: url(images/gallery-3.jpg);">
+						<a href="images/gallery-3.jpg" class="gallery image-popup img d-flex align-items-center" style="background-image: url(images/gallery-3.jpg);" data-image="img20">
 							<div class="icon mb-4 d-flex align-items-center justify-content-center">
     						<span class="icon-instagram"></span>
     					</div>
 						</a>
 					</div>
 					<div class="col-md-3 ftco-animate">
-						<a href="images/gallery-4.jpg" class="gallery image-popup img d-flex align-items-center" style="background-image: url(images/gallery-4.jpg);">
+						<a href="images/gallery-4.jpg" class="gallery image-popup img d-flex align-items-center" style="background-image: url(images/gallery-4.jpg);" data-image="img21">
 							<div class="icon mb-4 d-flex align-items-center justify-content-center">
     						<span class="icon-instagram"></span>
     					</div>
@@ -563,9 +728,9 @@
           <div class="col-lg-3 col-md-6 mb-5 mb-md-5">
             <div class="ftco-footer-widget mb-4">
               <ul class="ftco-footer-social list-unstyled float-md-left float-lft">
-                <li class="ftco-animate"><a href="#"><span class="icon-twitter"></span></a></li>
-                <li class="ftco-animate"><a href="#"><span class="icon-facebook"></span></a></li>
-                <li class="ftco-animate"><a href="#"><span class="icon-instagram"></span></a></li>
+                <li class="ftco-animate"><a href="javascript:void(0)"><span class="icon-twitter"></span></a></li>
+                <li class="ftco-animate"><a href="javascript:void(0)"><span class="icon-facebook"></span></a></li>
+                <li class="ftco-animate"><a href="javascript:void(0)"><span class="icon-instagram"></span></a></li>
               </ul>
             </div>
           </div>

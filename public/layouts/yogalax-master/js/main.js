@@ -102,6 +102,8 @@
 					navbar = $('.ftco_navbar'),
 					sd = $('.js-scroll-wrap');
 
+			// DESABILITADO: Navbar scrolled removido conforme solicitado
+			/*
 			if (st > 150) {
 				if ( !navbar.hasClass('scrolled') ) {
 					navbar.addClass('scrolled');	
@@ -130,6 +132,7 @@
 					sd.removeClass('sleep');
 				}
 			}
+			*/
 		});
 	};
 	scrollWindow();

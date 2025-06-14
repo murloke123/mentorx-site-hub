@@ -77,7 +77,12 @@ const layouts: LayoutOption[] = [
     description: 'Layout ideal para cursos de yoga, mindfulness e desenvolvimento pessoal',
     source: '/layouts/yogalax-master/index.html'
   },
-  // Futuramente podemos adicionar mais layouts aqui
+  {
+    id: 'venda',
+    name: 'Venda',
+    description: 'Layout profissional para páginas de vendas e conversão',
+    source: '/layouts/lava-master/index.html'
+  }
 ];
 
 const CourseLandingPage: React.FC = () => {
@@ -96,8 +101,41 @@ const CourseLandingPage: React.FC = () => {
   const [showLayoutModal, setShowLayoutModal] = useState(false);
   const [selectedLayout, setSelectedLayout] = useState<string | null>(null);
   const [modalAction, setModalAction] = useState<'exit' | 'close'>('exit');
+  
+  // Estados para edição de imagens
+  const [layoutImages, setLayoutImages] = useState<any>({});
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [currentImageTag, setCurrentImageTag] = useState<string>('');
+  const [currentImageUrl, setCurrentImageUrl] = useState<string>('');
+  const [hasUnsavedImageChanges, setHasUnsavedImageChanges] = useState(false);
+  
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Mapeamento padrão de imagens com dimensões
+  const defaultImageConfig = {
+    img1: { url: 'images/bg_2.png', width: '467px', height: '665px' }, // Hero image overlay
+    img2: { url: 'images/intro.jpg', width: '100%', height: 'auto' }, // Intro background
+    img3: { url: 'images/program-1.jpg', width: '100%', height: '300px' }, // Programa 1
+    img4: { url: 'images/program-2.jpg', width: '100%', height: '300px' }, // Programa 2
+    img5: { url: 'images/program-3.jpg', width: '100%', height: '300px' }, // Programa 3
+    img6: { url: 'images/program-4.jpg', width: '100%', height: '300px' }, // Programa 4
+    img7: { url: 'images/program-5.jpg', width: '100%', height: '300px' }, // Programa 5
+    img8: { url: 'images/program-6.jpg', width: '100%', height: '300px' }, // Programa 6
+    img9: { url: 'images/person_1.jpg', width: '60px', height: '60px' }, // Depoimento 1
+    img10: { url: 'images/person_2.jpg', width: '60px', height: '60px' }, // Depoimento 2
+    img11: { url: 'images/person_3.jpg', width: '60px', height: '60px' }, // Depoimento 3
+    img12: { url: 'images/person_4.jpg', width: '60px', height: '60px' }, // Depoimento 4
+    img13: { url: 'images/person_2.jpg', width: '60px', height: '60px' }, // Depoimento 5
+    img14: { url: 'images/bg_3.jpg', width: '100%', height: 'auto' }, // Estatísticas background
+    img15: { url: 'images/image_1.jpg', width: '100%', height: '200px' }, // Blog 1
+    img16: { url: 'images/image_2.jpg', width: '100%', height: '200px' }, // Blog 2
+    img17: { url: 'images/image_3.jpg', width: '100%', height: '200px' }, // Blog 3
+    img18: { url: 'images/gallery-1.jpg', width: '100%', height: '250px' }, // Galeria 1
+    img19: { url: 'images/gallery-2.jpg', width: '100%', height: '250px' }, // Galeria 2
+    img20: { url: 'images/gallery-3.jpg', width: '100%', height: '250px' }, // Galeria 3
+    img21: { url: 'images/gallery-4.jpg', width: '100%', height: '250px' }, // Galeria 4
+  };
 
   // Carregar dados do curso e template ativo
   useEffect(() => {
@@ -155,8 +193,13 @@ const CourseLandingPage: React.FC = () => {
           setEditableContent(layoutBody);
           setOriginalContent(layoutBody);
           
+          // Carregar configurações de imagem
+          const layoutImagesData = (existingPage as any).layout_images || {};
+          setLayoutImages(layoutImagesData);
+          
           console.log('📦 Layout body carregado:', Object.keys(layoutBody).length, 'campos');
-          } else {
+          console.log('🖼️ Layout images carregado:', Object.keys(layoutImagesData).length, 'imagens');
+        } else {
           // Não existe landing page, criar uma nova
           console.log('🆕 Criando nova landing page...');
           const mentorId = course.mentor_id;
@@ -344,12 +387,12 @@ const CourseLandingPage: React.FC = () => {
 
   // Salvar conteúdo editado
   const handleSaveEditedContent = async () => {
-    try {
-      await saveEditedContent();
-      showSuccessIndicator();
-    } catch (error) {
-      console.error('❌ Erro ao salvar:', error);
-      showErrorIndicator();
+    console.log('💾 Iniciando salvamento...');
+    await saveEditedContent();
+    
+    // Salvar imagens se houver mudanças
+    if (hasUnsavedImageChanges) {
+      await saveImageChanges();
     }
   };
 
@@ -594,49 +637,25 @@ const CourseLandingPage: React.FC = () => {
     }, 3000);
   };
 
-  // Aplicar apenas estilos quando modo de edição muda
+  // Efeito para atualizar modo de edição quando isEditingMode ou isEditMode muda
   useEffect(() => {
-    if (iframeRef.current && iframeRef.current.contentDocument) {
-      console.log(`🔄 useEffect modo edição: ${isEditMode ? 'ATIVADO' : 'DESATIVADO'}`);
-      
+    console.log(`🔄 useEffect disparado: selectedLayout=${selectedLayout}, isEditMode=${isEditMode}, isEditingMode=${isEditingMode}`);
+    console.log(`🖼️ layoutImages tem ${Object.keys(layoutImages).length} imagens customizadas`);
+    
+    if (selectedLayout && iframeRef.current) {
+      // Aguardar um pouco para garantir que o iframe esteja carregado
       setTimeout(() => {
+        console.log('🎯 Executando funções de inicialização...');
         initializeEditMode();
+        initializeImageEditing();
         
-        // Se entrou no modo de edição, carregar conteúdo salvo
-        if (isEditMode) {
-          loadSavedContentToPage();
-          
-          // Debug: verificar elementos encontrados
-          setTimeout(() => {
-            const doc = iframeRef.current?.contentDocument;
-            if (doc) {
-              const editableElements = doc.querySelectorAll('.editable-text');
-              const dataFieldElements = doc.querySelectorAll('[data-field]');
-              
-              console.log(`🔍 Debug Modo Edição:`);
-              console.log(`   - Elementos editáveis: ${editableElements.length}`);
-              console.log(`   - Elementos com data-field: ${dataFieldElements.length}`);
-              
-              if (editableElements.length === 0 && dataFieldElements.length === 0) {
-                console.warn('⚠️ Nenhum elemento encontrado! Verificando página...');
-                
-                // Listar alguns elementos da página para debug
-                const allElements = doc.querySelectorAll('h1, h2, h3, p, button, .title, .subtitle');
-                console.log(`📄 Elementos disponíveis na página: ${allElements.length}`);
-                allElements.forEach((el, i) => {
-                  if (i < 5) { // Mostrar apenas os 5 primeiros
-                    console.log(`   ${i+1}. ${el.tagName}: "${el.textContent?.substring(0, 50)}..."`);
-                  }
-                });
-              }
-            }
-          }, 200);
-        }
-      }, 150); // Aumentar delay para garantir que iframe carregou
+        // Aplicar imagens sempre que layoutImages mudar
+        applyAllImagesToIframe();
+      }, 100);
     } else {
-      console.log('⚠️ useEffect: iframe ou documento não disponível ainda');
+      console.log('⚠️ Condições não atendidas para inicialização');
     }
-  }, [isEditMode, editableContent]); // Adicionar editableContent como dependência
+  }, [isEditingMode, isEditMode, selectedLayout, layoutImages]);
 
   // Função para aplicar layout
   const handleApplyLayout = async (layoutId: string) => {
@@ -782,6 +801,19 @@ const CourseLandingPage: React.FC = () => {
       
       // Inicializar modo de edição se ativo
       initializeEditMode();
+      
+      // Aplicar imagens salvas SEMPRE (independente do modo)
+      setTimeout(() => {
+        applyAllImagesToIframe();
+        console.log('🖼️ Imagens salvas aplicadas após carregamento do iframe');
+      }, 200);
+      
+      // Inicializar edição de imagens se ativo
+      if (isEditMode && isEditingMode) {
+        setTimeout(() => {
+          initializeImageEditing();
+        }, 300);
+      }
     }, 300);
   };
 
@@ -824,15 +856,321 @@ const CourseLandingPage: React.FC = () => {
     console.log(`🔄 Toggle modo de edição: ${!isEditingMode ? 'ATIVO' : 'INATIVO'}`);
   };
 
-  // Efeito para atualizar modo de edição quando isEditingMode muda
-  useEffect(() => {
-    if (selectedLayout && iframeRef.current) {
-      // Aguardar um pouco para garantir que o iframe esteja carregado
-      setTimeout(() => {
-        initializeEditMode();
-      }, 100);
+  // Funções para edição de imagens
+  const initializeImageEditing = () => {
+    const iframe = iframeRef.current;
+    if (!iframe || !iframe.contentDocument) {
+      console.log('🚫 initializeImageEditing: iframe ou contentDocument não disponível');
+      return;
     }
-  }, [isEditingMode, selectedLayout]);
+
+    const doc = iframe.contentDocument;
+    const imageElements = doc.querySelectorAll('[data-image]');
+    
+    console.log(`🖼️ initializeImageEditing: isEditMode=${isEditMode}, isEditingMode=${isEditingMode}`);
+    console.log(`🖼️ Encontradas ${imageElements.length} imagens com data-image`);
+    
+    if (isEditMode && isEditingMode) {
+      // Adicionar event listeners para clique em imagens
+      imageElements.forEach((element, index) => {
+        const htmlElement = element as HTMLElement;
+        const imageTag = htmlElement.getAttribute('data-image');
+        console.log(`📷 Configurando imagem ${index + 1}: ${imageTag}`);
+        
+        // NÃO adicionar clique na imagem toda - apenas no ícone
+        htmlElement.style.cursor = 'default';
+        htmlElement.style.position = 'relative';
+        
+        // Para img1 (hero), garantir posicionamento correto
+        if (imageTag === 'img1') {
+          htmlElement.style.zIndex = '10';
+        }
+        
+        // Adicionar indicador visual de que a imagem é editável
+        if (!htmlElement.querySelector('.image-edit-indicator')) {
+          const indicator = doc.createElement('div');
+          indicator.className = 'image-edit-indicator';
+          
+          // Criar ícone SVG profissional
+          indicator.innerHTML = `
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 15.5C13.933 15.5 15.5 13.933 15.5 12C15.5 10.067 13.933 8.5 12 8.5C10.067 8.5 8.5 10.067 8.5 12C8.5 13.933 10.067 15.5 12 15.5Z" stroke="white" stroke-width="1.5"/>
+              <path d="M3 16.5V9C3 8.44772 3.44772 8 4 8H6.5L8 6H16L17.5 8H20C20.5523 8 21 8.44772 21 9V16.5C21 17.0523 20.5523 17.5 20 17.5H4C3.44772 17.5 3 17.0523 3 16.5Z" stroke="white" stroke-width="1.5"/>
+            </svg>
+          `;
+          
+          // Z-index especial para img1 (hero image)
+          const zIndexValue = imageTag === 'img1' ? '999999' : '99999';
+          
+          // Posicionamento especial para img1 (lado esquerdo)
+          const positionStyle = imageTag === 'img1' 
+            ? 'top: 12px !important; left: 12px !important;' 
+            : 'top: 12px !important; right: 12px !important;';
+          
+          indicator.style.cssText = `
+            position: absolute !important;
+            ${positionStyle}
+            width: 44px !important;
+            height: 44px !important;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            border-radius: 50% !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            cursor: pointer !important;
+            z-index: ${zIndexValue} !important;
+            pointer-events: auto !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25), 0 2px 6px rgba(0,0,0,0.15) !important;
+            border: 3px solid rgba(255,255,255,0.9) !important;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            backdrop-filter: blur(10px) !important;
+            visibility: visible !important;
+            opacity: 0.8 !important;
+          `;
+          
+          // Adicionar efeitos hover
+          indicator.addEventListener('mouseenter', () => {
+            indicator.style.transform = 'scale(1.15) !important';
+            indicator.style.boxShadow = '0 6px 20px rgba(0,0,0,0.35), 0 3px 10px rgba(0,0,0,0.25) !important';
+            indicator.style.background = 'linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%) !important';
+            indicator.style.opacity = '1 !important'; // Opacidade total no hover
+          });
+          
+          indicator.addEventListener('mouseleave', () => {
+            indicator.style.transform = 'scale(1) !important';
+            indicator.style.boxShadow = '0 4px 12px rgba(0,0,0,0.25), 0 2px 6px rgba(0,0,0,0.15) !important';
+            indicator.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important';
+            indicator.style.opacity = '0.8 !important'; // Volta para 80% de opacidade
+          });
+          
+          // Garantir que o clique funcione
+          indicator.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleImageClick(e);
+          });
+          
+          htmlElement.appendChild(indicator);
+          console.log(`✅ Indicador premium adicionado para ${imageTag} (z-index: ${zIndexValue})`);
+          
+          // Debug especial para img1
+          if (imageTag === 'img1') {
+            console.log('🎯 Hero image (img1) configurada com z-index máximo para garantir clique');
+            console.log('📍 Elemento hero:', htmlElement);
+            console.log('📍 Indicador hero:', indicator);
+          }
+        }
+      });
+      console.log(`✅ ${imageElements.length} imagens configuradas para edição`);
+    } else {
+      // Remover indicadores (não há clique na imagem para remover)
+      imageElements.forEach(element => {
+        const htmlElement = element as HTMLElement;
+        htmlElement.style.cursor = 'default';
+        
+        const indicator = htmlElement.querySelector('.image-edit-indicator');
+        if (indicator) {
+          // Remover todos os event listeners do indicador
+          indicator.removeEventListener('mouseenter', () => {});
+          indicator.removeEventListener('mouseleave', () => {});
+          indicator.removeEventListener('click', handleImageClick);
+          indicator.remove();
+        }
+      });
+      console.log('🧹 Indicadores premium de imagem removidos');
+    }
+  };
+
+  const handleImageClick = (event: Event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    // O clique vem do ícone, então precisamos encontrar o elemento pai com data-image
+    const clickedElement = event.currentTarget as HTMLElement;
+    const imageElement = clickedElement.closest('[data-image]') || clickedElement.parentElement?.closest('[data-image]');
+    
+    if (imageElement) {
+      const imageTag = imageElement.getAttribute('data-image');
+      
+      if (imageTag) {
+        console.log(`🖼️ Clique no ícone da imagem: ${imageTag}`);
+        
+        // Extrair URL atual da imagem
+        const style = imageElement.getAttribute('style') || '';
+        const urlMatch = style.match(/background-image:\s*url\(['"]?([^'"]+)['"]?\)/);
+        const currentUrl = urlMatch ? urlMatch[1] : '';
+        
+        setCurrentImageTag(imageTag);
+        setCurrentImageUrl(currentUrl);
+        setShowImageModal(true);
+      }
+    }
+  };
+
+  const handleImageUrlChange = (newUrl: string) => {
+    setCurrentImageUrl(newUrl);
+  };
+
+  const handleSaveImage = () => {
+    if (!currentImageTag || !currentImageUrl) return;
+
+    // Atualizar configuração de imagem
+    const updatedImages = {
+      ...layoutImages,
+      [currentImageTag]: {
+        ...defaultImageConfig[currentImageTag as keyof typeof defaultImageConfig],
+        url: currentImageUrl
+      }
+    };
+    
+    setLayoutImages(updatedImages);
+    setHasUnsavedImageChanges(true);
+    
+    // Aplicar imagem no iframe imediatamente
+    applyImageToIframe(currentImageTag, currentImageUrl);
+    
+    setShowImageModal(false);
+    console.log(`💾 Imagem ${currentImageTag} atualizada: ${currentImageUrl}`);
+  };
+
+  const applyImageToIframe = (imageTag: string, imageUrl: string) => {
+    const iframe = iframeRef.current;
+    if (!iframe || !iframe.contentDocument) return;
+
+    const doc = iframe.contentDocument;
+    const element = doc.querySelector(`[data-image="${imageTag}"]`);
+    
+    if (element) {
+      const htmlElement = element as HTMLElement;
+      
+      // Obter configuração padrão para dimensões
+      const defaultConfig = defaultImageConfig[imageTag as keyof typeof defaultImageConfig];
+      
+      if (defaultConfig) {
+        // Tratamento especial para img1 (hero image overlay)
+        if (imageTag === 'img1') {
+          // Para o hero image, aplicar URL e garantir propriedades CSS corretas
+          const currentStyle = htmlElement.getAttribute('style') || '';
+          
+          // Remover background-image antigo e manter o resto
+          let newStyle = currentStyle.replace(
+            /background-image:\s*url\(['"]?[^'"]*['"]?\)/,
+            ''
+          );
+          
+          // Garantir propriedades essenciais para manter dimensões
+          if (!newStyle.includes('background-size:')) {
+            newStyle += 'background-size: contain !important; ';
+          } else {
+            newStyle = newStyle.replace(/background-size:\s*[^;]+;?/, 'background-size: contain !important; ');
+          }
+          
+          if (!newStyle.includes('background-position:')) {
+            newStyle += 'background-position: center !important; ';
+          } else {
+            newStyle = newStyle.replace(/background-position:\s*[^;]+;?/, 'background-position: center !important; ');
+          }
+          
+          if (!newStyle.includes('background-repeat:')) {
+            newStyle += 'background-repeat: no-repeat !important; ';
+          } else {
+            newStyle = newStyle.replace(/background-repeat:\s*[^;]+;?/, 'background-repeat: no-repeat !important; ');
+          }
+          
+          // Adicionar nova imagem
+          newStyle += `background-image: url('${imageUrl}') !important; `;
+          
+          htmlElement.setAttribute('style', newStyle.trim());
+          console.log(`✅ Hero image ${imageTag} aplicada: ${imageUrl} (dimensões 417x593px mantidas)`);
+        } else {
+          // Para outras imagens, aplicar dimensões normalmente
+          const currentStyle = htmlElement.getAttribute('style') || '';
+          
+          // Remover background-image antigo
+          let newStyle = currentStyle.replace(
+            /background-image:\s*url\(['"]?[^'"]*['"]?\)/,
+            ''
+          );
+          
+          // Garantir que as dimensões estão aplicadas
+          if (!newStyle.includes('width:')) {
+            newStyle += `width: ${defaultConfig.width}; `;
+          }
+          if (!newStyle.includes('height:') && defaultConfig.height !== 'auto') {
+            newStyle += `height: ${defaultConfig.height}; `;
+          }
+          
+          // Adicionar nova imagem
+          newStyle += `background-image: url('${imageUrl}'); `;
+          
+          // Garantir propriedades de background para manter proporções
+          if (!newStyle.includes('background-size:')) {
+            newStyle += 'background-size: cover; ';
+          }
+          if (!newStyle.includes('background-position:')) {
+            newStyle += 'background-position: center; ';
+          }
+          if (!newStyle.includes('background-repeat:')) {
+            newStyle += 'background-repeat: no-repeat; ';
+          }
+          
+          htmlElement.setAttribute('style', newStyle.trim());
+          console.log(`✅ Imagem ${imageTag} aplicada com dimensões: ${defaultConfig.width} x ${defaultConfig.height}`);
+        }
+      } else {
+        console.warn(`⚠️ Configuração padrão não encontrada para ${imageTag}`);
+      }
+    } else {
+      console.warn(`⚠️ Elemento não encontrado para ${imageTag}`);
+    }
+  };
+
+  const applyAllImagesToIframe = () => {
+    const iframe = iframeRef.current;
+    if (!iframe || !iframe.contentDocument) return;
+
+    // Combinar configurações: padrão + salvas (salvas têm prioridade)
+    const imagesToApply = { ...defaultImageConfig, ...layoutImages };
+    
+    console.log(`🖼️ Aplicando ${Object.keys(imagesToApply).length} imagens no iframe...`);
+    console.log('📋 Imagens salvas:', Object.keys(layoutImages));
+    
+    Object.entries(imagesToApply).forEach(([imageTag, config]) => {
+      const imageConfig = config as { url: string; width: string; height: string };
+      
+      // Verificar se é uma imagem customizada (salva) ou padrão
+      const isCustomImage = layoutImages.hasOwnProperty(imageTag);
+      const status = isCustomImage ? '🎨 CUSTOMIZADA' : '📷 PADRÃO';
+      
+      console.log(`${status} ${imageTag}: ${imageConfig.url}`);
+      applyImageToIframe(imageTag, imageConfig.url);
+    });
+    
+    console.log(`✅ Todas as imagens aplicadas no iframe`);
+  };
+
+  const saveImageChanges = async () => {
+    if (!landingPageId || !hasUnsavedImageChanges) return;
+
+    try {
+      setIsLoading(true);
+      
+      const { error } = await (supabase as any)
+        .from('course_landing_pages')
+        .update({ layout_images: layoutImages })
+        .eq('id', landingPageId);
+
+      if (error) throw error;
+
+      setHasUnsavedImageChanges(false);
+      console.log('✅ Configurações de imagem salvas no banco');
+      
+    } catch (error) {
+      console.error('❌ Erro ao salvar imagens:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -858,34 +1196,38 @@ const CourseLandingPage: React.FC = () => {
               
               {/* Botão Toggle Visualizar/Editar Layout */}
               {selectedLayout && (
-                <Button
-                  onClick={handleToggleEditingMode}
-                  variant="outline"
-                  className={`px-6 py-2.5 font-semibold transition-all ${
-                    isEditingMode 
-                      ? 'bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100' 
-                      : 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100'
-                  }`}
-                >
-                  {isEditingMode ? (
-                    <>
-                      <Eye className="w-4 h-4 mr-2" />
-                      Visualizar
-                    </>
-                  ) : (
-                    <>
-                      <Edit className="w-4 h-4 mr-2" />
-                      Editar Layout
-                    </>
-                  )}
-                </Button>
+                <>
+                  <Button
+                    onClick={handleToggleEditingMode}
+                    variant="outline"
+                    className={`px-6 py-2.5 font-semibold transition-all ${
+                      isEditingMode 
+                        ? 'bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100' 
+                        : 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100'
+                    }`}
+                  >
+                    {isEditingMode ? (
+                      <>
+                        <Eye className="w-4 h-4 mr-2" />
+                        Visualizar
+                      </>
+                    ) : (
+                      <>
+                        <Edit className="w-4 h-4 mr-2" />
+                        Editar Layout
+                      </>
+                    )}
+                  </Button>
+                  
+
+                </>
               )}
             </div>
 
             {/* Botões de Ação */}
             <div className="flex items-center gap-3">
               {/* Botão Salvar (quando há mudanças) */}
-              {hasUnsavedChanges && (
+              {(hasUnsavedChanges || hasUnsavedImageChanges) && (
                 <Button
                   onClick={handleSaveEditedContent}
                   disabled={isLoading}
@@ -980,9 +1322,9 @@ const CourseLandingPage: React.FC = () => {
         ) : (
           <iframe
             ref={iframeRef}
-            src={selectedLayout === 'desenvolvimento_pessoal' 
-              ? `/layouts/yogalax-master/index.html`
-              : `/landing-page-modelo1-completa.html` // Fallback padrão
+            src={selectedLayout 
+              ? layouts.find(l => l.id === selectedLayout)?.source || `/layouts/yogalax-master/index.html`
+              : `/layouts/yogalax-master/index.html` // Fallback padrão
             }
             className="w-full border-0"
             title={selectedLayout 
@@ -1089,6 +1431,64 @@ const CourseLandingPage: React.FC = () => {
         </div>
       )}
 
+      {/* Modal de Edição de Imagem */}
+      {showImageModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-96 mx-4">
+            <div className="text-center">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-purple-100 mb-4">
+                <span className="text-2xl">🖼️</span>
+              </div>
+              
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                Editar Imagem
+              </h3>
+              
+              <p className="text-sm text-gray-500 mb-4">
+                Tag: <strong>{currentImageTag}</strong>
+              </p>
+            </div>
+            
+            <div className="space-y-3 mb-6">
+              <label className="block text-sm font-medium text-gray-700">
+                URL da Nova Imagem:
+              </label>
+              <input
+                type="text"
+                value={currentImageUrl}
+                onChange={(e) => handleImageUrlChange(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                placeholder="https://exemplo.com/imagem.jpg"
+              />
+              <p className="text-xs text-gray-500">
+                A imagem manterá as dimensões originais do layout
+              </p>
+            </div>
+            
+            <div className="flex space-x-3">
+              <Button
+                onClick={handleSaveImage}
+                disabled={!currentImageUrl.trim()}
+                className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
+              >
+                💾 Aplicar Imagem
+              </Button>
+              
+              <Button
+                onClick={() => {
+                  console.log('❌ Modal de imagem cancelado');
+                  setShowImageModal(false);
+                }}
+                variant="outline"
+                className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-50"
+              >
+                Cancelar
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Modal de Confirmação Bonito */}
       {showSaveModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -1127,10 +1527,9 @@ const CourseLandingPage: React.FC = () => {
             </div>
           </div>
         </div>
-      )}
+              )}
 
-
-    </div>
+     </div>
   );
 };
 

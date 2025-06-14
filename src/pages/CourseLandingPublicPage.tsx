@@ -4,12 +4,12 @@ import { supabase } from '@/integrations/supabase/client';
 
 const CourseLandingPublicPage: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>();
-  const [templateType, setTemplateType] = useState<string | null>(null);
+  const [layoutName, setLayoutName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadTemplate = async () => {
+    const loadLayout = async () => {
       if (!courseId) {
         setError('ID do curso não encontrado');
         setIsLoading(false);
@@ -17,21 +17,21 @@ const CourseLandingPublicPage: React.FC = () => {
       }
 
       try {
-        console.log('🔍 Buscando template para curso:', courseId);
+        console.log('🔍 Buscando layout para curso:', courseId);
         
-        // Buscar landing page para este curso (agora só existe 1 por curso)
-        const { data, error } = await supabase
+        // Buscar landing page para este curso
+        const { data, error } = await (supabase as any)
           .from('course_landing_pages')
-          .select('template_type')
+          .select('layout_name')
           .eq('course_id', courseId)
           .single();
 
         if (error) {
           console.error('❌ Erro na consulta:', error);
           if (error.code === 'PGRST116') {
-            // Não existe landing page - usar modelo1 como padrão
-            console.log('⚠️ Landing page não encontrada, usando modelo1 como padrão');
-            setTemplateType('modelo1');
+            // Não existe landing page - usar desenvolvimento pessoal como padrão
+            console.log('⚠️ Landing page não encontrada, usando desenvolvimento pessoal como padrão');
+            setLayoutName('desenvolvimento_pessoal');
           } else {
             setError('Erro ao carregar a página do curso');
           }
@@ -39,8 +39,9 @@ const CourseLandingPublicPage: React.FC = () => {
           return;
         }
 
-        console.log('✅ Template encontrado:', data.template_type);
-        setTemplateType(data.template_type);
+        console.log('✅ Layout encontrado:', data.layout_name);
+        // Se não tem layout definido, usar desenvolvimento pessoal como padrão
+        setLayoutName(data.layout_name || 'desenvolvimento_pessoal');
         setIsLoading(false);
       } catch (error) {
         console.error('❌ Erro inesperado:', error);
@@ -49,7 +50,7 @@ const CourseLandingPublicPage: React.FC = () => {
       }
     };
 
-    loadTemplate();
+    loadLayout();
   }, [courseId]);
 
   // Loading state
@@ -84,16 +85,27 @@ const CourseLandingPublicPage: React.FC = () => {
     );
   }
 
-  // Se não temos template, usar modelo1 como fallback
-  const finalTemplateType = templateType || 'modelo1';
-  const templatePath = `/landing-page-${finalTemplateType}-completa.html`;
+  // Mapear layout_name para o caminho do arquivo
+  const getLayoutPath = (layoutName: string | null) => {
+    switch (layoutName) {
+      case 'desenvolvimento_pessoal':
+        return '/layouts/yogalax-master/index.html';
+      case 'venda':
+        return '/layouts/lava-master/index.html';
+      default:
+        // Fallback para desenvolvimento pessoal
+        return '/layouts/yogalax-master/index.html';
+    }
+  };
+
+  const layoutPath = getLayoutPath(layoutName);
   
-  console.log('🚀 Carregando template:', templatePath);
+  console.log('🚀 Carregando layout:', layoutPath);
   
   return (
     <div className="w-full h-screen">
       <iframe
-        src={templatePath}
+        src={layoutPath}
         className="w-full h-full border-0"
         title="Landing Page do Curso"
         sandbox="allow-scripts allow-same-origin allow-forms"
